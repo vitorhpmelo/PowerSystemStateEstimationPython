@@ -279,6 +279,87 @@ def FACTSini(graph,useDFACTS=1):
                     no.bUFPC_adjk[key].t_sh=no.bUFPC_adjk[key].t_sh_ini
 
 
+def FACTSini_Btcsc(graph,useDFACTS=1):
+    """
+    Function to initialize FACTS devices
+    """
+    if useDFACTS==0:
+        for no in graph:
+            if no.FlagTCSC==1:
+                for  key in no.bFACTS_adjk.keys():
+                    no.bFACTS_adjk[key].btcsc=10
+                    no.bFACTS_adjk[key].AttY_B()
+            if no.FlagSVC==True:
+                no.SVC.BSVC=0.10
+                no.SVC.attYk()    
+            if no.FlagUPFC==1:
+                for  key in no.bUFPC_adjk.keys():
+                    no.bUFPC_adjk[key].Vse=0.02
+                    no.bUFPC_adjk[key].Vsh=1.00
+                    no.bUFPC_adjk[key].t_se=-90/np.pi()
+                    no.bUFPC_adjk[key].t_sh=0
+    if useDFACTS==1:
+        for no in graph:
+            if no.FlagTCSC==1:
+                for  key in no.bFACTS_adjk.keys():
+                    no.bFACTS_adjk[key].btcsc=no.bFACTS_adjk[key].btcsc_ini
+                    no.bFACTS_adjk[key].AttY_B()
+            if no.FlagSVC==True:
+                no.SVC.BSVC=no.SVC.Bini
+                no.SVC.attYk() 
+            if no.FlagUPFC==True:
+                for key, item in no.bUFPC_adjk.items():
+                    if item.mode==1:
+                        no.V=item.Vp 
+            if no.FlagUPFC==1:
+                for  key in no.bUFPC_adjk.keys():
+                    no.bUFPC_adjk[key].Vse=no.bUFPC_adjk[key].Vse_ini
+                    no.bUFPC_adjk[key].Vsh=no.bUFPC_adjk[key].Vsh_ini
+                    no.bUFPC_adjk[key].t_se=no.bUFPC_adjk[key].t_se_ini
+                    no.bUFPC_adjk[key].t_sh=no.bUFPC_adjk[key].t_sh_ini
+
+
+
+def FACTSini_ktcsc(graph,useDFACTS=1):
+    """
+    Function to initialize FACTS devices
+    """
+    if useDFACTS==0:
+        for no in graph:
+            if no.FlagTCSC==1:
+                for  key in no.bFACTS_adjk.keys():
+                    no.bFACTS_adjk[key].k=11
+                    no.bFACTS_adjk[key].AttY_k()
+            if no.FlagSVC==True:
+                no.SVC.BSVC=0.10
+                no.SVC.attYk()    
+            if no.FlagUPFC==1:
+                for  key in no.bUFPC_adjk.keys():
+                    no.bUFPC_adjk[key].Vse=0.02
+                    no.bUFPC_adjk[key].Vsh=1.00
+                    no.bUFPC_adjk[key].t_se=-90/np.pi()
+                    no.bUFPC_adjk[key].t_sh=0
+    if useDFACTS==1:
+        for no in graph:
+            if no.FlagTCSC==1:
+                for  key in no.bFACTS_adjk.keys():
+                    no.bFACTS_adjk[key].xtcsc=no.bFACTS_adjk[key].xtcsc_ini
+                    no.bFACTS_adjk[key].k=no.bFACTS_adjk[key].k_ini
+                    no.bFACTS_adjk[key].AttY_k()
+            if no.FlagSVC==True:
+                no.SVC.BSVC=no.SVC.Bini
+                no.SVC.attYk() 
+            if no.FlagUPFC==True:
+                for key, item in no.bUFPC_adjk.items():
+                    if item.mode==1:
+                        no.V=item.Vp 
+            if no.FlagUPFC==1:
+                for  key in no.bUFPC_adjk.keys():
+                    no.bUFPC_adjk[key].Vse=no.bUFPC_adjk[key].Vse_ini
+                    no.bUFPC_adjk[key].Vsh=no.bUFPC_adjk[key].Vsh_ini
+                    no.bUFPC_adjk[key].t_se=no.bUFPC_adjk[key].t_se_ini
+                    no.bUFPC_adjk[key].t_sh=no.bUFPC_adjk[key].t_sh_ini
+
 
 def PowerFlows(ram,graph,print=0):
     """
@@ -438,6 +519,18 @@ def create_x_TCSC(graph):
                 i=i+1
     return var_x
 
+
+
+
+def create_var_TCSC(graph):
+    var_x={}
+    i=0
+    for no in graph:
+        if no.FlagTCSC==1 and len(no.bFACTS_adjk.keys())>0:
+            for key,item in no.bFACTS_adjk.items():
+                var_x[str(item.de)+"-"+str(item.para)]=i
+                i=i+1
+    return var_x
 
 def create_c_x_UPFC(graph):
     """
@@ -1035,6 +1128,7 @@ def calc_H_EE_TCSC(z,var_x,graph,H):
 
 
 
+
 def calc_H_EE_TCSC_B(z,var_x,graph,H):
     i=0
 
@@ -1073,13 +1167,67 @@ def calc_H_EE_TCSC_B(z,var_x,graph,H):
             elif mk in graph[k].adjm.keys():
                 if graph[k].adjm[mk].type==3:
                     H[i][var_x[mk]]= graph[k].adjm[mk].dQfdB(graph,1)    
-            else:
-                print("erro ao calcular fluxo na Jacobiana, medida Fluxo deQ {:d}-{:d}".format(graph[k].id,graph[m].id))
-                exit(1)
         elif item.type==4:
                 for key in var_x.keys():
                     H[i][var_x[key]]=0 
+        elif item.type==10:
+            k=item.k
+            m=item.m
+            km=str(k)+"-"+str(m)
+            H[i][var_x[km]]=1
         i=i+1
+
+def calc_H_EE_TCSC_k(z,var_x,graph,H):
+    i=0
+
+    for item in z:
+        if item.type==0:
+            k=item.k
+            for key in set(graph[k].adjk.keys()).intersection(set(var_x.keys())):
+                H[i][var_x[key]]=graph[k].adjk[key].dPfdk(graph,0)
+            for key in set(graph[k].adjm.keys()).intersection(set(var_x.keys())):
+                H[i][var_x[key]]=graph[k].adjm[key].dPfdk(graph,1)     
+        elif item.type==1:
+            k=item.k
+            for key in set(graph[k].adjk.keys()).intersection(set(var_x.keys())):
+                H[i][var_x[key]]=graph[k].adjk[key].dQfdk(graph,0)
+            for key in set(graph[k].adjm.keys()).intersection(set(var_x.keys())):
+                H[i][var_x[key]]=graph[k].adjm[key].dQfdk(graph,1)    
+        elif item.type==2:
+            k=item.k
+            m=item.m
+            km=str(k)+"-"+str(m)
+            mk=str(m)+"-"+str(k)
+            if km in graph[k].adjk.keys():
+                if  graph[k].adjk[km].type==3:
+                    H[i][var_x[km]]= graph[k].adjk[km].dPfdk(graph,0)
+            elif mk in graph[k].adjm.keys():
+                if graph[k].adjm[mk].type==3:
+                    H[i][var_x[mk]]= graph[k].adjm[mk].dPfdk(graph,1)
+        elif item.type==3:
+            k=item.k
+            m=item.m
+            km=str(k)+"-"+str(m)
+            mk=str(m)+"-"+str(k)
+            if km in graph[k].adjk.keys():
+                if  graph[k].adjk[km].type==3:
+                    H[i][var_x[km]]= graph[k].adjk[km].dQfdk(graph,0)
+            elif mk in graph[k].adjm.keys():
+                if graph[k].adjm[mk].type==3:
+                    H[i][var_x[mk]]= graph[k].adjm[mk].dQfdk(graph,1)    
+        elif item.type==4:
+                for key in var_x.keys():
+                    H[i][var_x[key]]=0 
+        elif item.type==10:
+            k=item.k
+            m=item.m
+            km=str(k)+"-"+str(m)
+            H[i][var_x[km]]=1
+        i=i+1
+
+
+
+
 
 def calc_H_EE(z,var_t,var_v,graph,H):
     #refazer
@@ -1417,6 +1565,23 @@ def new_X_TCSC(graph,nvars,var_x,dx):
         graph[k].adjk[key].xtcsc=graph[k].adjk[key].xtcsc+dx[item+nvars]
         graph[k].adjk[key].AttY()
 
+def new_B_TCSC(graph,nvars,var_x,dx):
+    for key,item in var_x.items():
+        k=int(key.split("-")[0])
+        graph[k].adjk[key].btcsc=graph[k].adjk[key].btcsc+dx[item+nvars]
+        graph[k].adjk[key].AttY_B()
+        graph[k].adjk[key].xtcsc=-1/graph[k].adjk[key].btcsc
+
+
+def new_k_TCSC(graph,nvars,var_x,dx):
+    for key,item in var_x.items():
+        k=int(key.split("-")[0])
+        graph[k].adjk[key].k=graph[k].adjk[key].k+dx[item+nvars]
+        graph[k].adjk[key].AttY_k()
+        
+
+
+
 
 def checklim_X_TCSC(graph,var_x):
     x_lim_sup=0.2
@@ -1494,10 +1659,10 @@ def X_TCSC_its(graph,nvars,var_x,dx):
         k=int(key.split("-")[0])
         dx[item+nvars]=0
 def dx_TCSC_max(graph,nvars,var_x,dx):    
-    DXs=[]
+    DXs=[0]
     for key,item in var_x.items():
         k=int(key.split("-")[0])
-        DXs.append(np.max(dx[item+nvars]))
+        DXs.append(np.max(np.abs(dx[item+nvars])))
     return np.max(DXs)
 
 def new_X_TCSCC_B(graph,nvars,var_x,dx):
@@ -1546,6 +1711,8 @@ def load_flow_FACTS(graph,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres=
     lstdx=[]
     lstdz=[]
 
+    FlagTCSC=len(var_x)>1
+    FlagSVC=len(var_svc)>1
     while it<itmax:
         calc_dz(z,graph,dz)
         calc_cUPFC(graph,var_UPFC,c_UPFC)
@@ -1566,11 +1733,12 @@ def load_flow_FACTS(graph,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres=
        
         dx=sliang.spsolve(A,b)
 
-        if 0.5<dx_TCSC_max(graph,len(var_t)+len(var_v),var_x,dx):
+        if (0.5<dx_TCSC_max(graph,len(var_t)+len(var_v),var_x,dx))  :
             X_TCSC_its(graph,len(var_t)+len(var_v),var_x,dx)    
 
         new_X(graph,var_t,var_v,dx)
-        if it>5:
+
+        if (it>5):
             new_X_TCSC(graph,len(var_t)+len(var_v),var_x,dx)
             new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,dx)
         new_X_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,var_UPFC_vsh,dx)#

@@ -190,11 +190,26 @@ class branTCSC(branch):
         self.xtcsc_ini=xtcsc_ini
         self.xtcsc=xtcsc_ini
         self.Pfesp=Pfesp
+        self.btcsc_ini=-1/xtcsc_ini
+        self.btcsc=self.btcsc_ini
+        self.k_ini=1
+        self.k=self.k_ini
     def AttY(self):
         self.Y[0][0]=complex(0,-1/self.xtcsc)
         self.Y[1][1]=complex(0,-1/self.xtcsc)
         self.Y[1][0]=complex(0,1/self.xtcsc)
         self.Y[0][1]=complex(0,1/self.xtcsc)
+    def AttY_B(self):
+        self.Y[0][0]=complex(0,self.btcsc)
+        self.Y[1][1]=complex(0,self.btcsc)
+        self.Y[1][0]=complex(0,-self.btcsc)
+        self.Y[0][1]=complex(0,-self.btcsc)
+    def AttY_k(self):
+        self.Y[0][0]=complex(0,-self.k/self.xtcsc)
+        self.Y[1][1]=complex(0,-self.k/self.xtcsc)
+        self.Y[1][0]=complex(0,self.k/self.xtcsc)
+        self.Y[0][1]=complex(0,self.k/self.xtcsc)
+
     def dPfdx(self,grafo,flagT):
         if flagT==0:
             k=self.de
@@ -218,7 +233,7 @@ class branTCSC(branch):
         elif flagT==1:
             k=self.para
             m=self.de
-        return grafo[k].V*grafo[m].V*np.sin(grafo[k].teta-grafo[m].teta)
+        return -grafo[k].V*grafo[m].V*np.sin(grafo[k].teta-grafo[m].teta)
     def dQfdB(self,grafo,flagT):
         if flagT==0:
             k=self.de
@@ -226,7 +241,23 @@ class branTCSC(branch):
         elif flagT==1:
             k=self.para
             m=self.de
-        return (grafo[k].V**2)-grafo[k].V*grafo[m].V*np.cos(grafo[k].teta-grafo[m].teta)
+        return -(grafo[k].V**2)+grafo[k].V*grafo[m].V*np.cos(grafo[k].teta-grafo[m].teta)
+    def dPfdk(self,grafo,flagT):
+        if flagT==0:
+            k=self.de
+            m=self.para
+        elif flagT==1:
+            k=self.para
+            m=self.de
+        return grafo[k].V*grafo[m].V*((1/self.xtcsc))*np.sin(grafo[k].teta-grafo[m].teta)
+    def dQfdk(self,grafo,flagT):
+        if flagT==0:
+            k=self.de
+            m=self.para
+        elif flagT==1:
+            k=self.para
+            m=self.de
+        return (1/self.xtcsc)*((grafo[k].V**2)-grafo[k].V*grafo[m].V*np.cos(grafo[k].teta-grafo[m].teta))
 
 
 

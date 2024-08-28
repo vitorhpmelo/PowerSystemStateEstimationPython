@@ -227,6 +227,7 @@ def addTCSCingraph(graph,ramfacts):
             k=int(key.split("-")[0]) #bus from
             m=int(key.split("-")[1]) #bus to
             item.AttY() # creates adimitance matrix
+            item.AttY_B()
             graph[k].FlagTCSC=1 # indicates that there is TCSC in the bus from
             graph[m].FlagTCSC=1# indicates that there is TCSC connected in the bus to
             graph[k].bFACTS_adjk.update({key:item}) #inserts the ram key in the bus adj of the bus from dic only of FACTS

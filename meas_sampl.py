@@ -237,13 +237,51 @@ def insert_res(dfDMEDsr,N=100):
     e=np.random.normal(size=(len(dfDMEDsr)))
     for i in range(len(e)):
         if e[i]>3:
-            e[i]=2.0
+            e[i]=3.0
         elif e[i]<-3:
             e[i]=-3.0
     dfDMEDr=dfDMEDsr.copy()
     dfDMEDr.loc[:,"zmed"]=dfDMEDsr["zmed"]+e*dfDMEDsr["prec"]*np.abs(dfDMEDsr["zmed"])/3
     return dfDMEDr
 
+def insert_EG(dfDMEDsr,dfEG,duplicate=False):
+    """
+    Inserts Gross Error in measruements in the measurement set, the measurements are selected following the LST file.
+
+    """
+    
+    for idx,meas in dfEG.iterrows():
+        tipo=meas["type"]
+        de=meas["de"]
+        para=meas["para"]
+        mag=meas["magnitude"]
+        mul=meas["multi"]
+
+        if tipo in [0,1,4,11]:
+            mask=(dfDMEDsr["type"]==tipo) & (dfDMEDsr["de"]==de)
+        else: 
+            mask=(dfDMEDsr["type"]==tipo) & (dfDMEDsr["de"]==de) & (dfDMEDsr["para"]==para)
+        if mul == 0:
+            for idx2, row in dfDMEDsr[mask].iterrows():
+                    sigma=row["prec"]*np.abs(row["zmed"])/3
+                    dfDMEDsr.at[idx2,"zmed"]=-row["zmed"]
+                    # +mag*sigma
+
+                    break
+        else:
+            i=0
+            for idx2, row in dfDMEDsr[mask].iterrows():
+                sigma=row["prec"]*np.abs(row["zmed"])/3
+                dfDMEDsr.at[idx2,"zmed"]=row["zmed"]+mag*sigma
+                if i == mul:
+                    break
+                i=i+1
+
+    
+
+    
+
+    return dfDMEDsr
 
 
 

@@ -1,4 +1,4 @@
-#%%
+#%% Simulações de monte carlo
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -21,14 +21,14 @@ import copy
 sys="IEEE118_rakp2009"
 measFACTS=False
 
-if measFACTS==True:
+if measFACTS==True: #nomeclatura dos arquivos de entrada
     Meas="ComMedidas"
 else:
     Meas="SemMedidas"
 
 
 
-dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
+dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys) # lê arquivos
 
 
 [bars,nbars,pv,pq,ind_i]=creat_bar(dfDBAR)
@@ -49,7 +49,7 @@ addSVCingraph(graph,busSVC)
 addUPFCingraph(graph,ramUPFC)
 
 
-#%%
+#%% Guarda os Set points originais do ramo, para calcular o percentual em relação a eles
 
 dfTCSC_original_values={}
 dfsvc_original_values={}
@@ -64,6 +64,8 @@ for key,upfc in ramUPFC.items():
     dfUPFC_original_values[key]["Qsp"]=upfc.Qsp_set
     dfUPFC_original_values[key]["Vp"]=graph[upfc.p].bar.V
         
+
+#casos de compensação
 
 dfcasos=pd.DataFrame(data={"TCSC":[-15,-10,10,15],"SVC":[-1,-1,1,1],"UPFC_flow":[15,10,-10,-15],"UPFC_V":[-2,-1,1,1],"TCSC_ini":[0.01,0.01,-0.01,-0.01],"SVC_ini":[0.10,0.10,-1.0,-1.0]})
 #%%
@@ -95,8 +97,8 @@ for idx, row in dfcasos.iterrows():
         dStateTCSC_ref[idx]=get_state_FACTS(ramTCSC,busSVC,ramUPFC)
 
 #%%
-dfSATES_ref=pd.DataFrame()
-dfSATES_FACTS_ref=pd.DataFrame()
+dfSATES_ref=pd.DataFrame() #salva os valores de referência das variáveis de estado normais
+dfSATES_FACTS_ref=pd.DataFrame() #salva os valores de referência das variáveis de estado dos FACTS
 
 for key,item in dState_ref.items():
     df=item
