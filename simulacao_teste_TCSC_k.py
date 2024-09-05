@@ -134,8 +134,8 @@ else:
 #%%
 xtcsc_ini=-0.2
 k=1
-Bini=-0.1
-V_sh_ini=1.0
+Bini=0.1
+V_sh_ini=-1.0
 t_sh_ini=0
 V_se_ini=0.05
 t_se_ini=90*np.pi/180
@@ -240,9 +240,12 @@ for idx, row in dfcasos.iterrows():
 
         conv_noBCs[idx].append(conv_noBC)
         conv_BCs[idx].append(conv_BC)
-        
+        conv_LMs[idx].append(conv_LM)
+
         nits_noBCs[idx].append(nits_noBC)
         nits_BCs[idx].append(nits_BC)
+        nits_LMs[idx].append(nits_LM)
+
 
         dconv["n"].append(n)
 
@@ -250,6 +253,8 @@ for idx, row in dfcasos.iterrows():
         dconv["convGNbc"].append(conv_BC)
         dconv["nitsGN"].append(nits_noBC)
         dconv["nitsGNbc"].append(nits_BC)
+        dconv["convLM"].append(conv_LM)
+        dconv["nitsLM"].append(nits_LM)
         dconv["caso"].append(idx)
 
 
