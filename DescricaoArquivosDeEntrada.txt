@@ -83,7 +83,9 @@ DMED -- File with the measurement about the measurements
 type,de,para,zmed,prec
 
 
-type - measurement type  (0-Active Power Injection (p.u.), 1-Reactive Power Injection (p.u.), 2-Active Power flow (p.u.), 3-Reactive Power Flow (p.u.), 4-Voltage Magnitude (p.u.),10 - X TCSC (p.u.),11 - B SVC (p.u.),12 - Voltage Magnitude sh UPFC, 13 - Voltage angle p-sh UPFC,14 - Voltage Magnitude se UPFC, 15 - Voltage angle p-se UPFC )
+type - measurement type  (0-Active Power Injection (p.u.), 1-Reactive Power Injection (p.u.), 2-Active Power flow (p.u.), 3-Reactive Power Flow (p.u.), 4-Voltage Magnitude (p.u.), 5 - Voltage pashe angle (rad)
+                          6 - Current flow Re (p.u.), 7 - Current flow Im (p.u.)   
+                         10 - X TCSC (p.u.),11 - B SVC (p.u.),12 - Voltage Magnitude sh UPFC, 13 - Voltage angle p-sh UPFC,14 - Voltage Magnitude se UPFC, 15 - Voltage angle p-se UPFC )
 de
 para
 zmed

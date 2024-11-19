@@ -107,10 +107,18 @@ def save_DMED_fp(graph,ram,sys,dUPFC={}):
     Pinj=[]
     Qinj=[]
     Vmod=[]
+    Vangl=[]
     Pkm=[]
     Pmk=[]
     Qkm=[]
     Qmk=[]
+    Ikm_re=[]
+    Imk_re=[]
+    Ikm_im=[]
+    Imk_im=[]
+    Iinj_re=[]
+    Iinj_im=[]
+    
     #calculates the Power Inejection (Reactive and Active)
     for no in graph:
         linha=[0,no.bar.id,-1,no.P(graph),1]
@@ -119,6 +127,8 @@ def save_DMED_fp(graph,ram,sys,dUPFC={}):
         Qinj.append(linha)
         linha=[4,no.bar.id,-1,no.V,1]
         Vmod.append(linha)
+        linha=[5,no.bar.id,-1,no.teta,1]
+        Vangl.append(linha)
 
     #calculates the flows in the branches
     for key,r in ram.items():
@@ -132,6 +142,9 @@ def save_DMED_fp(graph,ram,sys,dUPFC={}):
         linha2=[3,graph[r.para].bar.id,graph[r.de].bar.id,r.Qf(graph,1),1.0]
         Pmk.append(linha)
         Qmk.append(linha2)
+
+
+ 
     #calculates the flows in the upfc
     for key,upfc in dUPFC.items():
         linha=[2,graph[upfc.p].bar.id,graph[upfc.s].bar.id,upfc.Pps(graph),1.0]
@@ -143,6 +156,38 @@ def save_DMED_fp(graph,ram,sys,dUPFC={}):
         linha2=[3,graph[upfc.s].bar.id,graph[upfc.p].bar.id,upfc.Qsp(graph),1.0]
         Pmk.append(linha)
         Qmk.append(linha2)
+
+
+     #calculates the current in the branches
+    for key,r in ram.items():
+        #calculate from k to m
+        linha=[6,graph[r.de].bar.id,graph[r.para].bar.id,r.Iref(graph,0),1.0]
+        linha2=[7,graph[r.de].bar.id,graph[r.para].bar.id,r.Iimf(graph,0),1.0]
+        Ikm_re.append(linha)
+        Ikm_im.append(linha2)
+        #calculate from m to k
+        linha=[6,graph[r.para].bar.id,graph[r.de].bar.id,r.Iref(graph,1),1.0]
+        linha2=[7,graph[r.para].bar.id,graph[r.de].bar.id,r.Iimf(graph,1),1.0]
+        Imk_re.append(linha)
+        Imk_im.append(linha2)
+
+
+    for key,upfc in dUPFC.items():
+        linha=[6,graph[upfc.p].bar.id,graph[upfc.s].bar.id,upfc.Ips_re(graph),1.0]
+        linha2=[7,graph[upfc.p].bar.id,graph[upfc.s].bar.id,upfc.Ips_im(graph),1.0]
+        Ikm_re.append(linha)
+        Ikm_im.append(linha2)
+        #calculate from m to k
+        linha=[6,graph[upfc.s].bar.id,graph[upfc.p].bar.id,upfc.Isp_re(graph),1.0]
+        linha2=[7,graph[upfc.s].bar.id,graph[upfc.p].bar.id,upfc.Isp_re(graph),1.0]
+        Imk_re.append(linha)
+        Imk_im.append(linha2)
+
+    for no in graph:
+        linha=[8,no.bar.id,-1,no.I_inj_re(graph),1]
+        Iinj_re.append(linha)
+        linha=[9,no.bar.id,-1,no.I_inj_im(graph),1]
+        Iinj_im.append(linha)
 
 
     Xtcsc=[]
@@ -183,7 +228,9 @@ def save_DMED_fp(graph,ram,sys,dUPFC={}):
 
 
 
-    medidas=Pinj+Qinj+Pkm+Qkm+Pmk+Qmk+Vmod+Xtcsc+BSVC+Vsh+t_sh+Vse+t_se
+    medidas=Pinj+Qinj+Pkm+Qkm+Pmk+Qmk+Vmod+\
+    Vangl+Ikm_re+Ikm_im+Imk_re+Imk_im+Iinj_re+Iinj_im\
+    +Xtcsc+BSVC+Vsh+t_sh+Vse+t_se
 
 
     

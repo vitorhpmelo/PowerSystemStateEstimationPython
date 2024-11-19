@@ -181,6 +181,171 @@ class branch():
                 return -2*Bmm*Vm + Vk*(-Bmk*np.cos(tk-tm)-Gmk*np.sin(tk-tm))
             else:
                 return 0
+    #equações correntes
+    def Iref(self,grafo,flagT):
+        k=self.de
+        m=self.para
+        Vk=grafo[k].V
+        Vm=grafo[m].V
+        tk=grafo[k].teta
+        tm=grafo[m].teta
+        if flagT == 0:
+            Bkk=np.imag(self.Y[0][0])
+            Gkk=np.real(self.Y[0][0])
+            Bkm=np.imag(self.Y[0][1])
+            Gkm=np.real(self.Y[0][1])
+            return -Vk*Bkk*np.sin(tk)+Vk*Gkk*np.cos(tk)-Vm*Bkm*np.sin(tm)+Vm*Gkm*np.cos(tm)
+        if flagT == 1:
+            Bmm=np.imag(self.Y[1][1])
+            Gmm=np.real(self.Y[1][1])
+            Bmk=np.imag(self.Y[1][0])
+            Gmk=np.real(self.Y[1][0])
+            return -Vk*Bmk*np.sin(tk) + Vk*Gmk*np.cos(tk) - Vm*Bmm*np.sin(tm) + Vm*Gmm*np.cos(tm)
+    def Iimf(self,grafo,flagT):
+        k=self.de
+        m=self.para
+        Vk=grafo[k].V
+        Vm=grafo[m].V
+        tk=grafo[k].teta
+        tm=grafo[m].teta
+        if flagT == 0:
+            Bkk=np.imag(self.Y[0][0])
+            Gkk=np.real(self.Y[0][0])
+            Bkm=np.imag(self.Y[0][1])
+            Gkm=np.real(self.Y[0][1])
+            return Vk*Bkk*np.cos(tk) + Vk*Gkk*np.sin(tk) + Vm*Bkm*np.cos(tm) + Vm*Gkm*np.sin(tm)
+        if flagT == 1:
+            Bmm=np.imag(self.Y[1][1])
+            Gmm=np.real(self.Y[1][1])
+            Bmk=np.imag(self.Y[1][0])
+            Gmk=np.real(self.Y[1][0])
+            return Vk*Bmk*np.cos(tk) + Vk*Gmk*np.sin(tk) + Vm*Bmm*np.cos(tm) + Vm*Gmm*np.sin(tm)
+    def dIrefdt(self,grafo,flagT,var):
+        k=self.de
+        m=self.para
+        Vk=grafo[k].V
+        Vm=grafo[m].V
+        tk=grafo[k].teta
+        tm=grafo[m].teta
+        if flagT==0: #dIkm
+            Bkm=np.imag(self.Y[0][1])
+            Gkm=np.real(self.Y[0][1])
+            Bkk=np.imag(self.Y[0][0])
+            Gkk=np.real(self.Y[0][0])
+            if k==var:#dIkmtk
+                return -Vk*Bkk*np.cos(tk) - Vk*Gkk*np.sin(tk)
+            elif m==var:#dIkmtm
+                return -Vm*Bkm*np.cos(tm) - Vm*Gkm*np.sin(tm)
+            else:
+                return 0
+        if flagT==1:#dImk
+            Bmm=np.imag(self.Y[1][1])
+            Gmm=np.real(self.Y[1][1])
+            Bmk=np.imag(self.Y[1][0])
+            Gmk=np.real(self.Y[1][0])
+            if k==var:#dImkdtk
+                return -Vk*Bmk*np.cos(tk) - Vk*Gmk*np.sin(tk)
+            elif m==var:#dImkdtm
+                return -Vm*Bmm*np.cos(tm) - Vm*Gmm*np.sin(tm)
+            else:
+                return 0
+    def dIrefdv(self,grafo,flagT,var):
+        k=self.de
+        m=self.para
+        Vk=grafo[k].V
+        Vm=grafo[m].V
+        tk=grafo[k].teta
+        tm=grafo[m].teta
+        if flagT==0: #dIkm
+            Bkm=np.imag(self.Y[0][1])
+            Gkm=np.real(self.Y[0][1])
+            Bkk=np.imag(self.Y[0][0])
+            Gkk=np.real(self.Y[0][0])
+            if k==var:#dIkmvk
+                return -Bkk*np.sin(tk) + Gkk*np.cos(tk)
+            elif m==var:#dIkmvm
+                return -Bkm*np.sin(tm) + Gkm*np.cos(tm)
+            else:
+                return 0
+        if flagT==1:#dImk
+            Bmm=np.imag(self.Y[1][1])
+            Gmm=np.real(self.Y[1][1])
+            Bmk=np.imag(self.Y[1][0])
+            Gmk=np.real(self.Y[1][0])
+            if k==var:#dImkdvk
+                return -Bmk*np.sin(tk) + Gmk*np.cos(tk)
+            elif m==var:#dImkdvm
+                return -Bmm*np.sin(tm) + Gmm*np.cos(tm)
+            else:
+                return 0
+    def dIimfdt(self,grafo,flagT,var):
+        k=self.de
+        m=self.para
+        Vk=grafo[k].V
+        Vm=grafo[m].V
+        tk=grafo[k].teta
+        tm=grafo[m].teta
+        if flagT==0: #dIkm
+            Bkm=np.imag(self.Y[0][1])
+            Gkm=np.real(self.Y[0][1])
+            Bkk=np.imag(self.Y[0][0])
+            Gkk=np.real(self.Y[0][0])
+            if k==var:#dIkmtk
+                return -Vk*Bkk*np.sin(tk) + Vk*Gkk*np.cos(tk)
+            elif m==var:#dIkmtm
+                return -Vm*Bkm*np.sin(tm) + Vm*Gkm*np.cos(tm)
+            else:
+                return 0
+        if flagT==1:#dImk
+            Bmm=np.imag(self.Y[1][1])
+            Gmm=np.real(self.Y[1][1])
+            Bmk=np.imag(self.Y[1][0])
+            Gmk=np.real(self.Y[1][0])
+            if k==var:#dImkdtk
+                return -Vk*Bmk*np.sin(tk) + Vk*Gmk*np.cos(tk)
+            elif m==var:#dImkdtm
+                return -Vm*Bmm*np.sin(tm) + Vm*Gmm*np.cos(tm)
+            else:
+                return 0
+    def dIimfdv(self,grafo,flagT,var):
+        k=self.de
+        m=self.para
+        Vk=grafo[k].V
+        Vm=grafo[m].V
+        tk=grafo[k].teta
+        tm=grafo[m].teta
+        if flagT==0: #dIkm
+            Bkm=np.imag(self.Y[0][1])
+            Gkm=np.real(self.Y[0][1])
+            Bkk=np.imag(self.Y[0][0])
+            Gkk=np.real(self.Y[0][0])
+            if k==var:#dIkmtk
+                return Bkk*np.cos(tk) + Gkk*np.sin(tk)
+            elif m==var:#dIkmtm
+                return Bkm*np.cos(tm) + Gkm*np.sin(tm)
+            else:
+                return 0
+        if flagT==1:#dImk
+            Bmm=np.imag(self.Y[1][1])
+            Gmm=np.real(self.Y[1][1])
+            Bmk=np.imag(self.Y[1][0])
+            Gmk=np.real(self.Y[1][0])
+            if k==var:#dImkdtk
+                return Bmk*np.cos(tk) + Gmk*np.sin(tk)
+            elif m==var:#dImkdtm
+                return Bmm*np.cos(tm) + Gmm*np.sin(tm)
+            else:
+                return 0
+
+
+ 
+        
+        
+
+
+
+
+
             
 
 class branTCSC(branch):
@@ -381,7 +546,40 @@ class node_graph():
             return  self.adjk[str(self.i)+"-"+str(bar)].dQdV(graph,1,bar)
         else:
             return  0  
-        
+    def I_inj_re(self,graph):
+        I=0
+        if self.FlagSVC==1:
+            I=I+self.V*(-self.SVC.Bk*np.sin(self.teta)+self.SVC.Gk*np.cos(self.teta))
+        if self.FlagBS==1:
+            I=I+self.V*(-self.Bs*np.sin(self.teta))
+        for key,item in self.adjk.items():
+            I=I+item.Iref(graph,0)
+        for key,item in self.adjm.items():
+            I=I+item.Iref(graph,1)
+        for key,item in self.bUFPC_adjk.items():
+            I=I+item.Ips_re(graph)
+        for key,item in self.bUFPC_adjm.items():
+            I=I+item.Isp_re(graph)
+        if np.abs(I)<1e-12:
+            I=0
+        return I
+    def I_inj_im(self,graph):
+        I=0
+        if self.FlagSVC==1:
+            I=I+self.V*(self.SVC.Bk*np.cos(self.teta)+self.SVC.Gk*np.sin(self.teta))
+        if self.FlagBS==1:
+            I=I+self.V*(self.Bs*np.cos(self.teta))
+        for key,item in self.adjk.items():
+            I=I+item.Iimf(graph,0)
+        for key,item in self.adjm.items():
+            I=I+item.Iimf(graph,1)
+        for key,item in self.bUFPC_adjk.items():
+            I=I+item.Ips_im(graph)
+        for key,item in self.bUFPC_adjm.items():
+            I=I+item.Isp_im(graph)
+        if np.abs(I)<1e-12:
+            I=0
+        return I
 
 class UPFC():
     def __init__(self,id,de,para,Vse_ini,t_se_ini,Vsh_ini,t_sh_ini,Psp,Qsp,Vp,Rse,Xse,Rsh,Xsh,Vse_max,Vse_min,Vsh_max,Vsh_min,mode):
@@ -1299,6 +1497,88 @@ class UPFC():
         bsh=self.bsh
 
         return -Vp*(-bsh*np.sin(tp - tsh) + gsh*np.cos(tp - tsh)) + 2*Vsh*gsh
+    #correntes no UPFC
+    def Ips_re(self,graph):
+        p=self.p
+        s=self.s
+        Vp=graph[p].V
+        Vs=graph[s].V
+        tp=graph[p].teta
+        ts=graph[s].teta
+        Vse=self.Vse
+        Vsh=self.Vsh
+        tse=self.t_se
+        tsh=self.t_sh
+        gse=self.gse
+        bse=self.bse
+        gsh=self.gsh
+        bsh=self.bsh
+        return -Vp*(bse + bsh)*np.sin(tp) + Vp*(gse + gsh)*np.cos(tp) \
+            + Vs*bse*np.sin(ts) - Vs*gse*np.cos(ts) + Vse*bse*np.sin(tse)\
+            - Vse*gse*np.cos(tse) + Vsh*bsh*np.sin(tsh) - Vsh*gsh*np.cos(tsh)
+    
+    def Ips_im(self,graph):
+        p=self.p
+        s=self.s
+        Vp=graph[p].V
+        Vs=graph[s].V
+        tp=graph[p].teta
+        ts=graph[s].teta
+        Vse=self.Vse
+        Vsh=self.Vsh
+        tse=self.t_se
+        tsh=self.t_sh
+        gse=self.gse
+        bse=self.bse
+        gsh=self.gsh
+        bsh=self.bsh
+        return Vp*(bse + bsh)*np.cos(tp) + Vp*(gse + gsh)*np.sin(tp) - Vs*bse*np.cos(ts)\
+              -Vs*gse*np.sin(ts) - Vse*bse*np.cos(tse) - Vse*gse*np.sin(tse) -Vsh*bsh*np.cos(tsh)\
+              -Vsh*gsh*np.sin(tsh)
+
+    
+
+    def Isp_re(self,graph):
+        p=self.p
+        s=self.s
+        Vp=graph[p].V
+        Vs=graph[s].V
+        tp=graph[p].teta
+        ts=graph[s].teta
+        Vse=self.Vse
+        Vsh=self.Vsh
+        tse=self.t_se
+        tsh=self.t_sh
+        gse=self.gse
+        bse=self.bse
+        gsh=self.gsh
+        bsh=self.bsh
+        return Vp*bse*np.sin(tp) - Vp*gse*np.cos(tp) - Vs*bse*np.sin(ts) + Vs*gse*np.cos(ts) \
+            - Vse*bse*np.sin(tse) + Vse*gse*np.cos(tse)
+    
+    def Isp_im(self,graph):
+        p=self.p
+        s=self.s
+        Vp=graph[p].V
+        Vs=graph[s].V
+        tp=graph[p].teta
+        ts=graph[s].teta
+        Vse=self.Vse
+        Vsh=self.Vsh
+        tse=self.t_se
+        tsh=self.t_sh
+        gse=self.gse
+        bse=self.bse
+        gsh=self.gsh
+        bsh=self.bsh
+        return -Vp*bse*np.cos(tp) - Vp*gse*np.sin(tp) + Vs*bse*np.cos(ts) + Vs*gse*np.sin(ts) \
+            + Vse*bse*np.cos(tse) + Vse*gse*np.sin(tse)
+    
+
+
+
+
+
 
 
 class SVC():

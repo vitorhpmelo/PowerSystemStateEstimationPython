@@ -16,7 +16,7 @@ import scipy.sparse.linalg as sliang
 
 #%% Lê arquivos e constroi a estrutura da rede
 
-sys="IEEE4"
+sys="IEEE14"
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
 
@@ -27,7 +27,7 @@ graph=create_graph(bars,ram)
 
 
 
-conv = load_flow(graph,tol=1e-7)
+conv = load_flow_FACTS(graph,tol=1e-7)
 # %%
 
 state_ref=get_state(graph)
