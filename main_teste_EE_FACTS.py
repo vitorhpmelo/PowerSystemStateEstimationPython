@@ -42,32 +42,21 @@ addSVCingraph(graph,busSVC)
 
 addUPFCingraph(graph,ramUPFC)
 
+
+#%%
+print("EE - GN")
+it1=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)
+
+#%%
+print("EE - GNbc")
+it2=SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,flatstart=2,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)
+
+
 #%%
 
-print("Estimador 1")
-print("FACTS with BC")
-it1=SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,flatstart=2,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)
-#%%
-print("Estimador 2")
-print("FACTS no BC")
-it2=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)
-#%%
-print("Estimador 3")
-print("FACTS with BC and jump first iterations facts")
-it3=SS_WLS_FACTS_withBC_limalphavarfacts(graph,dfDMED,ind_i,flatstart=2,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)
+print("EE - LM")
+it3=SS_WLS_FACTS_LM_BC(graph,dfDMED,ind_i,flatstart=2,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)
+# it2=SS_WLS_FACTS_grad(graph,dfDMED,ind_i,flatstart=2,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)
 
 # %%
-print("Estimador 4")
-print("FACTS with BC lim for X and jump first iterations facts")
-it4=SS_WLS_FACTS_withBC_limvarfacts(graph,dfDMED,ind_i,flatstart=2,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)
-#%%
 
-print("Estimador 5")
-print("FACTS with BC lim for X and jump first iterations facts")
-SS_WLS_FACTS_withBC_itvarfacts(graph,dfDMED,ind_i,flatstart=2,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)
-# %%
-
-
-print("Estimador 6")
-print("FACTS no LM 1")
-SS_WLS_FACTS_LM(graph,dfDMED,ind_i,flatstart=2,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)

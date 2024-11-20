@@ -158,37 +158,39 @@ def save_DMED_fp(graph,ram,sys,dUPFC={}):
         Qmk.append(linha2)
 
 
+
+
+    for no in graph:
+        linha=[6,no.bar.id,-1,no.I_inj_re(graph),1]
+        Iinj_re.append(linha)
+        linha=[7,no.bar.id,-1,no.I_inj_im(graph),1]
+        Iinj_im.append(linha)
+
+
      #calculates the current in the branches
     for key,r in ram.items():
         #calculate from k to m
-        linha=[6,graph[r.de].bar.id,graph[r.para].bar.id,r.Iref(graph,0),1.0]
-        linha2=[7,graph[r.de].bar.id,graph[r.para].bar.id,r.Iimf(graph,0),1.0]
+        linha=[8,graph[r.de].bar.id,graph[r.para].bar.id,r.Iref(graph,0),1.0]
+        linha2=[9,graph[r.de].bar.id,graph[r.para].bar.id,r.Iimf(graph,0),1.0]
         Ikm_re.append(linha)
         Ikm_im.append(linha2)
         #calculate from m to k
-        linha=[6,graph[r.para].bar.id,graph[r.de].bar.id,r.Iref(graph,1),1.0]
-        linha2=[7,graph[r.para].bar.id,graph[r.de].bar.id,r.Iimf(graph,1),1.0]
+        linha=[8,graph[r.para].bar.id,graph[r.de].bar.id,r.Iref(graph,1),1.0]
+        linha2=[9,graph[r.para].bar.id,graph[r.de].bar.id,r.Iimf(graph,1),1.0]
         Imk_re.append(linha)
         Imk_im.append(linha2)
 
 
     for key,upfc in dUPFC.items():
-        linha=[6,graph[upfc.p].bar.id,graph[upfc.s].bar.id,upfc.Ips_re(graph),1.0]
-        linha2=[7,graph[upfc.p].bar.id,graph[upfc.s].bar.id,upfc.Ips_im(graph),1.0]
+        linha=[8,graph[upfc.p].bar.id,graph[upfc.s].bar.id,upfc.Ips_re(graph),1.0]
+        linha2=[9,graph[upfc.p].bar.id,graph[upfc.s].bar.id,upfc.Ips_im(graph),1.0]
         Ikm_re.append(linha)
         Ikm_im.append(linha2)
         #calculate from m to k
-        linha=[6,graph[upfc.s].bar.id,graph[upfc.p].bar.id,upfc.Isp_re(graph),1.0]
-        linha2=[7,graph[upfc.s].bar.id,graph[upfc.p].bar.id,upfc.Isp_re(graph),1.0]
+        linha=[8,graph[upfc.s].bar.id,graph[upfc.p].bar.id,upfc.Isp_re(graph),1.0]
+        linha2=[9,graph[upfc.s].bar.id,graph[upfc.p].bar.id,upfc.Isp_re(graph),1.0]
         Imk_re.append(linha)
         Imk_im.append(linha2)
-
-    for no in graph:
-        linha=[8,no.bar.id,-1,no.I_inj_re(graph),1]
-        Iinj_re.append(linha)
-        linha=[9,no.bar.id,-1,no.I_inj_im(graph),1]
-        Iinj_im.append(linha)
-
 
     Xtcsc=[]
     BSVC=[]

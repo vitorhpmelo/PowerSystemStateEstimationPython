@@ -767,7 +767,7 @@ def SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_v
 
     it=0
     it2=0
-    itmax=3
+    itmax=2
     lstdx=[]
     lstdz=[]
     lstc_upfc=[]
@@ -1195,7 +1195,7 @@ def SS_WLS_FACTS_LM_BC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
         if it==0:
             norminicial=liang.norm(grad)
             G=np.matmul(np.matmul(H.T,W),H)
-            D=liang.norm(np.diag(G))*1e-7
+            D=liang.norm(np.diag(G))*1e-6
 
             
         damp=calc_damp_leven_mod_2(grad/norminicial,it+1)
@@ -1212,7 +1212,7 @@ def SS_WLS_FACTS_LM_BC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
             b=np.append(dz,c_upfc)
             Jxn=np.matmul(np.matmul(b,W),b)
             it2=it2+1
-            if it2==itmax:
+            if it2>=itmax:
                 break
             if Jxn < Jxk + c1*a*np.dot(grad,dx):
                 break

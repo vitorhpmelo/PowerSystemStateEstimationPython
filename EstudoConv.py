@@ -60,7 +60,7 @@ for key,upfc in ramUPFC.items():
     dfUPFC_original_values[key]["Vp"]=graph[upfc.p].bar.V
         
 
-dfcasos=pd.DataFrame(data={"TCSC":[-15,-10,10,15],"SVC":[-1,-1,1,1],"UPFC_flow":[15,10,-10,-15],"UPFC_V":[-2,-1,1,1],"TCSC_ini":[-0.01,-0.01,-0.01,-0.01],"SVC_ini":[0.10,0.10,-1.0,-1.0]})
+dfcasos=pd.DataFrame(data={"TCSC":[-15,-10,10,15],"SVC":[-1,-1,1,1],"UPFC_flow":[15,10,-10,-15],"UPFC_V":[-1,-1,1,1],"TCSC_ini":[-0.01,-0.01,-0.01,-0.01],"SVC_ini":[0.10,0.10,-1.0,-1.0]})
 #%%
 dDMEDfps={}
 dState_ref={}
@@ -107,12 +107,12 @@ else:
 
 
 #%%
-TCSCini=-0.05
-Bini=-0.1
+TCSCini=0.05
+Bini=0.1
 V_sh_ini=1.0
 t_sh_ini=0
 V_se_ini=0.05
-t_se_ini=90*np.pi/180
+t_se_ini=-90*np.pi/180
 cx="x1"
 dfcasos=pd.DataFrame(data={"TCSC":[20,10,-15,-20],"SVC":[-1,-1,1,1],"UPFC_flow":[20,10,-10,-20],"UPFC_V":[-1,-1,1,1],"TCSC_ini":[TCSCini,TCSCini,TCSCini,TCSCini],"SVC_ini":[Bini,Bini,Bini,Bini]})
 conv_LMs={}
@@ -121,7 +121,7 @@ conv_noBCs={}
 nits_LMs={}
 nits_BCs={}
 nits_noBCs={}
-N=10
+N=1
 
 dState_LM={}
 dStateFACTS_LM={}
@@ -157,8 +157,8 @@ for idx, row in dfcasos.iterrows():
 
 
     for n in range(N): 
-        dfDMED=insert_res(dfDMEDs[idx],n)
-        # dfDMED=dfDMEDs[idx].copy()
+        # dfDMED=insert_res(dfDMEDs[idx],n)
+        dfDMED=dfDMEDs[idx].copy()
         for key ,tcsc in ramTCSC.items():
             # true=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["tipo"]=="x_tcsc")&(dStateTCSC_ref[idx]["de"]==key)]["val"].values[0]
             # tcsc.xtcsc_ini=true*(1+cx)
@@ -202,11 +202,11 @@ for idx, row in dfcasos.iterrows():
 
         dconv["n"].append(n)
         dconv["convLM"].append(conv_LM)
-        dconv["convGN"].append(conv_BC)
-        dconv["convGNbc"].append(conv_noBC)
+        dconv["convGN"].append(conv_noBC)
+        dconv["convGNbc"].append(conv_BC)
         dconv["nitsLM"].append(nits_LM)
-        dconv["nitsGN"].append(nits_BC)
-        dconv["nitsGNbc"].append(nits_noBC)
+        dconv["nitsGN"].append(nits_noBC)
+        dconv["nitsGNbc"].append(nits_BC)
         dconv["caso"].append(idx)
 
         if not dfITsLM.empty:
