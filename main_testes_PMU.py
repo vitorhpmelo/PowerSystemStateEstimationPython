@@ -45,6 +45,7 @@ addUPFCingraph(graph,ramUPFC)
 prec={"SCADAPF":0.01,"SCADAPI":0.01,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
 
 #%%
-DMED=create_DMED(sys,prec,graph,ram,ramUPFC)
+# dfDMED=create_DMED(sys,prec,graph,ram,ramUPFC)
 #%%
 
+conv_noBC,nits_noBC,dfITsGN=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2)

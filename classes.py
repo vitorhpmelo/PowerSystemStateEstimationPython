@@ -1668,6 +1668,40 @@ class meas():
                 exit(1)
         elif self.type==4:
             return self.val-graph[self.k].V
+        elif self.type==5:
+            return self.val-graph[self.k].teta
+        elif self.type==6:
+            return self.val-graph[self.k].I_inj_re(graph) ## inserir fluxos do UPFC
+        elif self.type==7:
+            return self.val-graph[self.k].I_inj_im(graph) ## inserir fluxos do UPFC
+        elif self.type==8:
+            keyk=str(self.k)+"-"+str(self.m)
+            keym=str(self.m)+"-"+str(self.k)
+            if keyk in graph[self.k].adjk.keys():
+                return self.val-graph[self.k].adjk[keyk].Iref(graph,0) # Se for UPFC branch
+            elif keym in graph[self.k].adjm.keys():
+                return self.val-graph[self.k].adjm[keym].Iref(graph,1) # Se for UPFC branch.
+            # elif keyk in graph[self.k].bUFPC_adjk.keys(): 
+            #     return self.val-graph[self.k].bUFPC_adjk[keyk].Pps(graph)
+            # elif keym in graph[self.k].bUFPC_adjm.keys():
+            #     return self.val-graph[self.k].bUFPC_adjm[keym].Psp(graph)
+            else:
+                print("medida de fluxo de potencia ativa com ramo não existente")
+                exit(1)
+        elif self.type==9:
+            keyk=str(self.k)+"-"+str(self.m)
+            keym=str(self.m)+"-"+str(self.k)
+            if keyk in graph[self.k].adjk.keys():
+                return self.val-graph[self.k].adjk[keyk].Iimf(graph,0)
+            elif keym in graph[self.k].adjm.keys():
+                return self.val-graph[self.k].adjm[keym].Iimf(graph,1)
+            # elif keyk in graph[self.k].bUFPC_adjk.keys(): 
+            #     return self.val-graph[self.k].bUFPC_adjk[keyk].Qps(graph)
+            # elif keym in graph[self.k].bUFPC_adjm.keys():
+            #     return self.val-graph[self.k].bUFPC_adjm[keym].Qsp(graph)
+            else:
+                print("medida de fluxo de potencia reativa com ramo não existente")
+                exit(1)
         elif self.type==10:
             #medida é uma variavel de controle do TCSC
             k=self.k

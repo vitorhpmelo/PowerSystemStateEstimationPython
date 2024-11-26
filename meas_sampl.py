@@ -183,7 +183,7 @@ def create_dfV(dfDMEDfp,lst_V):
     @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
     @param: lst_V: list with the buses with that type of measurement
     """
-    return dfDMEDfp[(dfDMEDfp["type"]==4)& (dfDMEDfp["type"]==5)& (dfDMEDfp["de"].isin(lst_V))]
+    return dfDMEDfp[(dfDMEDfp["type"]==4)& (dfDMEDfp["de"].isin(lst_V))]
 
 def create_dfV_PMUs(dfDMEDfp,lst_V):
     """
@@ -193,7 +193,7 @@ def create_dfV_PMUs(dfDMEDfp,lst_V):
     @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
     @param: lst_V: list with the buses with that type of measurement
     """
-    return dfDMEDfp[(dfDMEDfp["type"]==4)& (dfDMEDfp["de"].isin(lst_V))]
+    return dfDMEDfp[((dfDMEDfp["type"]==4)|(dfDMEDfp["type"]==5))& (dfDMEDfp["de"].isin(lst_V))]
 
 
 

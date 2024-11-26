@@ -2104,15 +2104,19 @@ def create_z_x(graph,dfDMED,ind_i):
     var_v={}
     i=0
     j=0
+    flag_PMU_teta=0
+
+    flag_PMU_teta = (len(dfDMED[dfDMED["type"]==5])>0)
+
     for item in graph:
-        if item.bar.type==1 or item.bar.type==2:
+        if (item.bar.type==1 or item.bar.type==2) or flag_PMU_teta==1:
             var_t[item.id]=i
             i=i+1
         var_v[item.id]=j
         j=j+1
 
     for idx,row in dfDMED.iterrows():
-        if (int(row["type"])==0) or (int(row["type"])==1) or  (int(row["type"])==4) or (int(row["type"])==11) :
+        if (int(row["type"])==0) or (int(row["type"])==1) or  (int(row["type"])==4) or  (int(row["type"])==5) or  (int(row["type"])==6) or  (int(row["type"])==7)  or (int(row["type"])==11) :
             mes=meas(ind_i[int(row["de"])],-1,int(row["type"]),row["zmed"],row["prec"])
         else:  
             mes=meas(ind_i[int(row["de"])],ind_i[int(row["para"])],int(row["type"]),row["zmed"],row["prec"])
