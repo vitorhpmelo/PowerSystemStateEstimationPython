@@ -42,19 +42,9 @@ addSVCingraph(graph,busSVC)
 
 addUPFCingraph(graph,ramUPFC)
 
-#%%
-conv=load_flow_FACTS(graph,inici=1,prt=1,itmax=20)
-#%%
-
-
-
-ram.update(ramTCSC)
-
-save_DMED_fp(graph,ram,sys,ramUPFC)
-
+prec={"SCADAPF":0.01,"SCADAPI":0.01,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
 
 #%%
+DMED=create_DMED(sys,prec,graph,ram,ramUPFC)
+#%%
 
-
-
-# %%

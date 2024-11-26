@@ -131,6 +131,24 @@ def create_dfFluxo(dfDMEDfp,lstFP):
         dfFLOW=pd.concat([dfFLOW,dfDMEDfp[((dfDMEDfp["type"]==2) |(dfDMEDfp["type"]==3)) &(dfDMEDfp["de"]==int(de)) & (dfDMEDfp["para"]==int(para))]])
     return dfFLOW
 
+def create_dfFluxo_PMU(dfDMEDfp,lstFP):
+    """
+    function to filter the current flow measurements in the dfDMEDfp given the branches in the
+    lstFP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    obatined by the load flow and returns only the ones desired.
+    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: lstFP: list with the branches with that type of measurement
+    @return: dfFLOW: pandas dataframe with the measurements filterd
+    """
+    dfFLOW=pd.DataFrame()
+
+    if len(lstFP)<1:
+        return dfDMEDfp[dfDMEDfp['type']==-1]
+    for item in lstFP:
+        [de,para]=item.split("-")
+        dfFLOW=pd.concat([dfFLOW,dfDMEDfp[((dfDMEDfp["type"]==8) |(dfDMEDfp["type"]==9)) &(dfDMEDfp["de"]==int(de)) & (dfDMEDfp["para"]==int(para))]])
+    return dfFLOW
+
 def create_dfIP(dfDMEDfp,lst_IP):
     """
     Funcion to filter the power injection measurements in the the dfDMEDfp given buses in the
@@ -143,6 +161,20 @@ def create_dfIP(dfDMEDfp,lst_IP):
         return dfDMEDfp[dfDMEDfp['type']==-1]
     return dfDMEDfp[((dfDMEDfp["type"]==0)|(dfDMEDfp["type"]==1)) & (dfDMEDfp["de"].isin(lst_IP))]
 
+
+def create_dfIC_PMUs(dfDMEDfp,lst_IP):
+    """
+    Funcion to filter the current PMUs injection measurements in the the dfDMEDfp given buses in the
+    list lst_IP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    obatined by the load flow  and returns only the ones desired.
+    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: lst_IP: list with the buses with that type of measurement
+    """
+    if len(lst_IP)<1:
+        return dfDMEDfp[dfDMEDfp['type']==-1]
+    return dfDMEDfp[((dfDMEDfp["type"]==6)|(dfDMEDfp["type"]==7)) & (dfDMEDfp["de"].isin(lst_IP))]
+
+
 def create_dfV(dfDMEDfp,lst_V):
     """
     Funcion to filter the voltage magnitude measurements in the the dfDMEDfp given buses in the
@@ -151,7 +183,18 @@ def create_dfV(dfDMEDfp,lst_V):
     @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
     @param: lst_V: list with the buses with that type of measurement
     """
+    return dfDMEDfp[(dfDMEDfp["type"]==4)& (dfDMEDfp["type"]==5)& (dfDMEDfp["de"].isin(lst_V))]
+
+def create_dfV_PMUs(dfDMEDfp,lst_V):
+    """
+    Funcion to filter the voltage magnitude measurements in the the dfDMEDfp given buses in the
+    list lst_V. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    obatined by the load flow  and returns only the ones desired.
+    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: lst_V: list with the buses with that type of measurement
+    """
     return dfDMEDfp[(dfDMEDfp["type"]==4)& (dfDMEDfp["de"].isin(lst_V))]
+
 
 
 def create_DMED(sys,prec,graph,ram,dUPFC={},dfDMEDfp=pd.DataFrame()):
@@ -182,7 +225,7 @@ def create_DMED(sys,prec,graph,ram,dUPFC={},dfDMEDfp=pd.DataFrame()):
         print("There is no measurement plan file")
         exit()
     
-    prec_standard={"SCADAPF":0.01,"SCADAPI":0.01,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01}
+    prec_standard={"SCADAPF":0.01,"SCADAPI":0.01,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
     
 
 
@@ -192,12 +235,15 @@ def create_DMED(sys,prec,graph,ram,dUPFC={},dfDMEDfp=pd.DataFrame()):
     SCADAlstIP=list(np.int32(list(filter(None,df["PISCADA"].to_list()))))
     SCADAlstFP=list(filter(None,df["PFSCADA"].to_list()))
     SCADAlstV=list(np.int32(list(filter(None,df["VSCADA"].to_list()))))
+    PMUslst_If=list(filter(None,df["PMU_If"].to_list()))
+    PMUslst_Iinj=list(np.int32(list(filter(None,df["PMU_Iinj"].to_list()))))
+    PMUslst_V=list(np.int32(list(filter(None,df["PMU_V"].to_list()))))
     SMlstIP=list(np.int32(list(filter(None,df["PISM"].to_list()))))
     SMlstFP=list(filter(None,df["PFSM"].to_list()))
     SMlstV=list(np.int32(list(filter(None,df["VSM"].to_list()))))
     PSEUDOlst=list(np.int32(list(filter(None,df["PSEUDO"].to_list()))))
-    Plst=dfDMEDfp[((dfDMEDfp["zmed"]==0.000) & (dfDMEDfp["type"]==0))]["de"].tolist()
-    Qlst=dfDMEDfp[((dfDMEDfp["zmed"]==0.000) & (dfDMEDfp["type"]==1))]["de"].tolist()
+    Plst=dfDMEDfp[((dfDMEDfp["prec"]<0.0001) &(dfDMEDfp["zmed"]==0.000) & (dfDMEDfp["type"]==0))]["de"].tolist()
+    Qlst=dfDMEDfp[((dfDMEDfp["prec"]<0.0001) &(dfDMEDfp["zmed"]==0.000) & (dfDMEDfp["type"]==1))]["de"].tolist()
     Vistuaislst=list(set(Plst).intersection(Qlst))
     Vistuaislst=list(set(Vistuaislst)-set(Vistuaislst).intersection(SCADAlstIP+SMlstIP+PSEUDOlst))
 
@@ -206,6 +252,10 @@ def create_DMED(sys,prec,graph,ram,dUPFC={},dfDMEDfp=pd.DataFrame()):
     dfPFSCADA=create_dfFluxo(dfDMEDfp,SCADAlstFP)
 
     dfVSCADA=create_dfV(dfDMEDfp,SCADAlstV)
+
+    dfIfPMU=create_dfFluxo_PMU(dfDMEDfp,PMUslst_If)
+    dfIinjPMU=create_dfIC_PMUs(dfDMEDfp,PMUslst_Iinj)
+    dfVPMU=create_dfV_PMUs(dfDMEDfp,PMUslst_V)
 
     dfIPSM=create_dfIP(dfDMEDfp,SMlstIP)
 
@@ -219,13 +269,19 @@ def create_DMED(sys,prec,graph,ram,dUPFC={},dfDMEDfp=pd.DataFrame()):
     dfPFSCADA.loc[:,"prec"]=prec["SCADAPF"]
     dfPISCADA.loc[:,"prec"]=prec["SCADAPI"]
     dfVSCADA.loc[:,"prec"]=prec["SCADAV"]
+
+
+    dfIfPMU.loc[:,"prec"]=prec["PMU_If"]
+    dfIinjPMU.loc[:,"prec"]=prec["PMU_Iinj"]
+    dfVPMU.loc[:,"prec"]=prec["PMUs_V"]
+
     dfIPSM.loc[:,"prec"]=prec["SMP"]
     dfFPSM.loc[:,"prec"]=prec["SMP"]
     dfVSM.loc[:,"prec"]=prec["SMV"]
     dfPSEUDO.loc[:,"prec"]=prec["PSEUDO"]
     dfVirtuais.loc[:,"prec"]=prec["VIRTUAL"]
 
-    dfDMED=pd.concat([dfPISCADA,dfIPSM,dfPSEUDO,dfVirtuais,dfPFSCADA,dfFPSM,dfVSCADA,dfVSM])
+    dfDMED=pd.concat([dfPISCADA,dfIPSM,dfPSEUDO,dfVirtuais,dfPFSCADA,dfFPSM,dfVSCADA,dfVSM,dfIfPMU,dfIinjPMU,dfVPMU])
     return dfDMED
 
 def insert_res(dfDMEDsr,N=100):
