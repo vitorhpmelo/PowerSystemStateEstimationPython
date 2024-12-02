@@ -1027,6 +1027,14 @@ def calc_H_EE_SVC(z,var_svc,graph,H):
             k=item.k
             if graph[k].FlagSVC==1:
                 H[i][var_svc[k]]= -(graph[k].V**2)*graph[k].SVC.dBkdBsvc()
+        elif item.type==6:
+            k=item.k
+            if graph[k].FlagSVC==1:
+                H[i][var_svc[k]]= graph[k].V*(-graph[k].SVC.dBkdBsvc()*np.sin(graph[k].teta) + graph[k].SVC.dGkdBsvc()*np.cos(graph[k].teta))
+        elif item.type==7:
+            k=item.k
+            if graph[k].FlagSVC==1:
+                H[i][var_svc[k]]= graph[k].V*(graph[k].SVC.dBkdBsvc()*np.cos(graph[k].teta) + graph[k].SVC.dGkdBsvc()*np.sin(graph[k].teta))
         elif item.type==11:
             k=item.k
             H[i][var_svc[k]]=1
@@ -1119,6 +1127,44 @@ def calc_H_EE_TCSC(z,var_x,graph,H):
         elif item.type==4:
                 for key in var_x.keys():
                     H[i][var_x[key]]=0 
+        elif item.type==5:
+            for key in var_x.keys():
+                    H[i][var_x[key]]=0 
+        if item.type==6:
+            k=item.k
+            for key in set(graph[k].adjk.keys()).intersection(set(var_x.keys())):
+                H[i][var_x[key]]=graph[k].adjk[key].dI_refdx(graph,0)
+            for key in set(graph[k].adjm.keys()).intersection(set(var_x.keys())):
+                H[i][var_x[key]]=graph[k].adjm[key].dI_refdx(graph,1)     
+        elif item.type==7:
+            k=item.k
+            for key in set(graph[k].adjk.keys()).intersection(set(var_x.keys())):
+                H[i][var_x[key]]=graph[k].adjk[key].dI_imdx(graph,0)
+            for key in set(graph[k].adjm.keys()).intersection(set(var_x.keys())):
+                H[i][var_x[key]]=graph[k].adjm[key].dI_imdx(graph,1)    
+        elif item.type==8:
+            k=item.k
+            m=item.m
+            km=str(k)+"-"+str(m)
+            mk=str(m)+"-"+str(k)
+            if km in graph[k].adjk.keys():
+                if  graph[k].adjk[km].type==3:
+                    H[i][var_x[km]]= graph[k].adjk[km].dI_refdx(graph,0)
+            elif mk in graph[k].adjm.keys():
+                if graph[k].adjm[mk].type==3:
+                    H[i][var_x[mk]]= graph[k].adjm[mk].dI_refdx(graph,1)
+        elif item.type==9:
+            k=item.k
+            m=item.m
+            km=str(k)+"-"+str(m)
+            mk=str(m)+"-"+str(k)
+            if km in graph[k].adjk.keys():
+                if  graph[k].adjk[km].type==3:
+                    H[i][var_x[km]]= graph[k].adjk[km].dI_imdx(graph,0)
+            elif mk in graph[k].adjm.keys():
+                if graph[k].adjm[mk].type==3:
+                    H[i][var_x[mk]]= graph[k].adjm[mk].dI_imdx(graph,1)    
+
         elif item.type==10:
             k=item.k
             m=item.m
@@ -1559,7 +1605,7 @@ def calc_H_EE(z,var_t,var_v,graph,H):
                 if item.k in bar_v:
                     soma2=soma2+branch.dIimfdv(graph,0,item.k)
                 if  branch.de in var_v.keys():
-                    H[i][var_v[branch.para]+n_teta]=branch.dIrefdv(graph,0,branch.para)
+                    H[i][var_v[branch.para]+n_teta]=branch.dIimfdv(graph,0,branch.para)
             for key,branch in graph[item.k].adjm.items():
                 if item.k in bar_v:
                     soma2=soma2+branch.dIimfdv(graph,1,item.k) 

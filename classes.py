@@ -423,7 +423,25 @@ class branTCSC(branch):
             k=self.para
             m=self.de
         return (1/self.xtcsc)*((grafo[k].V**2)-grafo[k].V*grafo[m].V*np.cos(grafo[k].teta-grafo[m].teta))
+    
+    def dI_refdx(self,grafo,flagT):
+        if flagT==0:
+            k=self.de
+            m=self.para
+        elif flagT==1:
+            k=self.para
+            m=self.de
+        return (-grafo[k].V*np.sin(grafo[k].teta) + grafo[m].V*np.sin(grafo[m].teta))/(self.xtcsc**2)
 
+    def dI_imdx(self,grafo,flagT):
+        if flagT==0:
+            k=self.de
+            m=self.para
+        elif flagT==1:
+            k=self.para
+            m=self.de
+        return (grafo[k].V*np.cos(grafo[k].teta) - grafo[m].V*np.cos(grafo[m].teta))/(self.xtcsc**2)
+    
 
 
 
