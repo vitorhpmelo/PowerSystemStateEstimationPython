@@ -1592,12 +1592,543 @@ class UPFC():
         return -Vp*bse*np.cos(tp) - Vp*gse*np.sin(tp) + Vs*bse*np.cos(ts) + Vs*gse*np.sin(ts) \
             + Vse*bse*np.cos(tse) + Vse*gse*np.sin(tse)
     
+    def dIps_redtp(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return -V_p*((b_se + b_sh)*np.cos(t_p) + (g_se + g_sh)*np.sin(t_p))
+    
+    def dIps_redts(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return V_s*(b_se*np.cos(t_s) + g_se*np.sin(t_s))
+    
+    def dIps_redtse(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return V_se*(b_se*np.cos(t_se) + g_se*np.sin(t_se))
+    
+    def dIps_redtsh(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return V_sh*(b_sh*np.cos(t_sh) + g_sh*np.sin(t_sh))
+   
+    def dIps_redVp(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return -(b_se + b_sh)*np.sin(t_p) + (g_se + g_sh)*np.cos(t_p)
+    
+    def dIps_redVs(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return b_se*np.sin(t_s) - g_se*np.cos(t_s)
+    
+    def dIps_redVse(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return b_se*np.sin(t_se) - g_se*np.cos(t_se)
 
-
-
-
-
-
+    def dIps_redVsh(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return  b_sh*np.sin(t_sh) - g_sh*np.cos(t_sh)
+    
+    def dIps_imdtp(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return V_p*(-(b_se + b_sh)*np.sin(t_p) + (g_se + g_sh)*np.cos(t_p))
+   
+    def dIps_imdts(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return V_s*(b_se*np.sin(t_s) - g_se*np.cos(t_s))
+    
+    def dIps_imdtse(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        
+        return V_se*(b_se*np.sin(t_se) - g_se*np.cos(t_se))
+    
+    def dIps_imdtsh(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return V_sh*(b_sh*np.sin(t_sh) - g_sh*np.cos(t_sh))
+    
+    def dIps_imdVp(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh  
+        return (b_se + b_sh)*np.cos(t_p) + (g_se + g_sh)*np.sin(t_p) 
+    
+    def dIps_imdVs(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh  
+        return -b_se*np.cos(t_s) - g_se*np.sin(t_s)
+    def dIps_imdVse(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh  
+        return -b_se*np.cos(t_se) - g_se*np.sin(t_se)
+    
+    def dIps_imdVsh(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh  
+        return -b_sh*np.cos(t_sh) - g_sh*np.sin(t_sh)
+    
+    def dIsp_redtp(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return V_p*(b_se*np.cos(t_p) + g_se*np.sin(t_p))
+    
+    def dIsp_redts(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return -V_s*(b_se*np.cos(t_s) + g_se*np.sin(t_s))
+    def dIsp_redtse(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return -V_se*(b_se*np.cos(t_se) + g_se*np.sin(t_se))
+    
+    def dIsp_redtsh(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return 0
+    
+    def dIsp_redVp(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return b_se*np.sin(t_p) - g_se*np.cos(t_p)
+        
+    def dIsp_redVs(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return -b_se*np.sin(t_s) + g_se*np.cos(t_s)
+    
+    def dIsp_redVse(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return -b_se*np.sin(t_se) + g_se*np.cos(t_se)
+        
+    def dIsp_redVsh(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh
+        return 0
+    
+    def dIsp_imdtp(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh    
+        return V_p*(b_se*np.sin(t_p) - g_se*np.cos(t_p))
+    def dIsp_imdts(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh       
+        return V_s*(-b_se*np.sin(t_s) + g_se*np.cos(t_s))
+    def dIsp_imdtse(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh 
+        return V_se*(-b_se*np.sin(t_se) + g_se*np.cos(t_se))
+    def dIsp_imdtsh(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh 
+        return 0
+    
+    def dIsp_imdVp(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh    
+        return -b_se*np.cos(t_p) - g_se*np.sin(t_p)
+    
+    def dIsp_imdVs(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh        
+        return b_se*np.cos(t_s) + g_se*np.sin(t_s)
+def dIsp_imdVse(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh  
+        return b_se*np.cos(t_se) + g_se*np.sin(t_se)
+def dIsp_imdVse(self,graph):
+        p=self.p
+        s=self.s
+        V_p=graph[p].V
+        V_s=graph[s].V
+        t_p=graph[p].teta
+        t_s=graph[s].teta
+        V_se=self.Vse
+        V_sh=self.Vsh
+        t_se=self.t_se
+        t_sh=self.t_sh
+        g_se=self.gse
+        b_se=self.bse
+        g_sh=self.gsh
+        b_sh=self.bsh 
+        return 0
 
 class SVC():
     def __init__(self,id,bus,Rt,Xt,Bini,BMAX,BMIN,aini,amax,amin):

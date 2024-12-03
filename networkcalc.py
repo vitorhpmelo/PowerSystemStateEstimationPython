@@ -1631,13 +1631,13 @@ def calc_H_EE(z,var_t,var_v,graph,H):
                 Vk=graph[item.k].V
                 tk=graph[item.k].teta
                 Bsh=graph[item.k].Bs
-                soma2=soma2-Bsh*np.sin(tk) 
+                soma2=soma2+Bsh*np.sin(tk) 
             if graph[item.k].FlagSVC==1:
                 Vk=graph[item.k].V
                 tk=graph[item.k].teta
                 Bk=graph[item.k].SVC.Bk
                 Gk=graph[item.k].SVC.Gk
-                soma2=soma2-Bk*np.cos(tk) +Gk*np.sin(tk)
+                soma2=soma2+Bk*np.cos(tk) +Gk*np.sin(tk)
             H[i][var_v[item.k]+n_teta]=soma2
             soma2=0
         elif item.type==8:
