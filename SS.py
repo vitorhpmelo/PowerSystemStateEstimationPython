@@ -635,7 +635,8 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
     n_UPFC=len(var_UPFC)
     nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
     dz=np.zeros(len(z))
-    W=create_W(z+list(c_upfc),flag_ones=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
+    h=np.zeros(len(z))
+    W=create_W(z+list(c_upfc),flag_ones=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
     
     C_UPFC=np.zeros((len(c_upfc),nvar))
 
@@ -649,6 +650,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
     while(it <30):
         a=1
         calc_dz(z,graph,dz)
+        calc_h(z,graph,h)
         calc_cUPFC(graph,var_UPFC,c_upfc)
         calc_H_EE(z,var_t,var_v,graph,Htrad) 
         calc_H_EE_TCSC(z,var_x,graph,HTCSC) 
@@ -661,7 +663,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
         b=np.append(dz,c_upfc)
         grad=np.matmul(np.matmul(H.T,W),b)
         try: 
-            dx=NormalEQ(H,W,b,printcond=printcond,printmat=printmat)
+            dx=NormalEQ_QR(H,W,b,printcond=printcond,printmat=printmat)
         except:
             conv=0
             it=30
@@ -670,6 +672,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
         Jxk=np.matmul(np.matmul(b,W),b)
         if it==0:
             norminicial=liang.norm(grad)
+
         new_X(graph,var_t,var_v,a*dx)
         new_X_TCSC(graph,len(var_t)+len(var_v),var_x,a*dx)
         new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,a*dx)

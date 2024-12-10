@@ -16,7 +16,7 @@ import scipy.sparse.linalg as sliang
 
 #%% Lê arquivos e constroi a estrutura da rede
 
-sys="IEEE14_tcsc_SVC"
+sys="IEEE14_rakp2009"
 
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
@@ -50,7 +50,8 @@ prec={"SCADAPF":0.01,"SCADAPI":0.01,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.
 #%%
 
 dfDMED.loc[(dfDMED["type"]==0)|(dfDMED["type"]==1)|(dfDMED["type"]==2)|(dfDMED["type"]==3),"prec"]=0.02
-dfDMED.loc[(dfDMED["type"]==4)|(dfDMED["type"]==5)|(dfDMED["type"]==6)|(dfDMED["type"]==7)|(dfDMED["type"]==8)|(dfDMED["type"]==9),"prec"]=0.002
+dfDMED.loc[(dfDMED["type"]==10)|(dfDMED["type"]==11)|(dfDMED["type"]==12)|(dfDMED["type"]==13)|(dfDMED["type"]==14)|(dfDMED["type"]==15),"prec"]=0.001
+dfDMED.loc[(dfDMED["type"]==4)|(dfDMED["type"]==5)|(dfDMED["type"]==6)|(dfDMED["type"]==7)|(dfDMED["type"]==8)|(dfDMED["type"]==9),"prec"]=0.001
 
 
 medidas_virtuais_P=list(set(dfDMED[(dfDMED["type"]==0)&(dfDMED["zmed"]==0)]["de"].to_list()).intersection(dfDMED[(dfDMED["type"]==1)&(dfDMED["zmed"]==0)]["de"].to_list())) 
@@ -59,9 +60,7 @@ medidas_virtuais_P=list(set(dfDMED[(dfDMED["type"]==0)&(dfDMED["zmed"]==0)]["de"
 
 
 
-dfDMED.loc[((dfDMED["type"]==0)|(dfDMED["type"]==1))&dfDMED["de"].isin(medidas_virtuais_P),"prec"]=0.00001
 
-dfDMED.loc[((dfDMED["type"]==6)|(dfDMED["type"]==7))&dfDMED["de"].isin(medidas_virtuais_P),"prec"]=0.00001
 
 #%%
 conv_noBC,nits_noBC,dfITsGN=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2)

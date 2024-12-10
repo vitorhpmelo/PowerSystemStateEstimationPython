@@ -1589,7 +1589,8 @@ class UPFC():
         bse=self.bse
         gsh=self.gsh
         bsh=self.bsh
-        return -Vp*bse*np.cos(tp) - Vp*gse*np.sin(tp) + Vs*bse*np.cos(ts) + Vs*gse*np.sin(ts) \
+        return -Vp*bse*np.cos(tp) - Vp*gse*np.sin(tp) \
+            + Vs*bse*np.cos(ts) + Vs*gse*np.sin(ts) \
             + Vse*bse*np.cos(tse) + Vse*gse*np.sin(tse)
     
     def dIps_redtp(self,graph):
@@ -2015,6 +2016,8 @@ class UPFC():
         g_sh=self.gsh
         b_sh=self.bsh    
         return V_p*(b_se*np.sin(t_p) - g_se*np.cos(t_p))
+    
+    
     def dIsp_imdts(self,graph):
         p=self.p
         s=self.s
@@ -2097,38 +2100,38 @@ class UPFC():
         g_sh=self.gsh
         b_sh=self.bsh        
         return b_se*np.cos(t_s) + g_se*np.sin(t_s)
-def dIsp_imdVse(self,graph):
-        p=self.p
-        s=self.s
-        V_p=graph[p].V
-        V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
-        V_se=self.Vse
-        V_sh=self.Vsh
-        t_se=self.t_se
-        t_sh=self.t_sh
-        g_se=self.gse
-        b_se=self.bse
-        g_sh=self.gsh
-        b_sh=self.bsh  
-        return b_se*np.cos(t_se) + g_se*np.sin(t_se)
-def dIsp_imdVse(self,graph):
-        p=self.p
-        s=self.s
-        V_p=graph[p].V
-        V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
-        V_se=self.Vse
-        V_sh=self.Vsh
-        t_se=self.t_se
-        t_sh=self.t_sh
-        g_se=self.gse
-        b_se=self.bse
-        g_sh=self.gsh
-        b_sh=self.bsh 
-        return 0
+    def dIsp_imdVse(self,graph):
+            p=self.p
+            s=self.s
+            V_p=graph[p].V
+            V_s=graph[s].V
+            t_p=graph[p].teta
+            t_s=graph[s].teta
+            V_se=self.Vse
+            V_sh=self.Vsh
+            t_se=self.t_se
+            t_sh=self.t_sh
+            g_se=self.gse
+            b_se=self.bse
+            g_sh=self.gsh
+            b_sh=self.bsh  
+            return b_se*np.cos(t_se) + g_se*np.sin(t_se)
+    def dIsp_imdVsh(self,graph):
+            p=self.p
+            s=self.s
+            V_p=graph[p].V
+            V_s=graph[s].V
+            t_p=graph[p].teta
+            t_s=graph[s].teta
+            V_se=self.Vse
+            V_sh=self.Vsh
+            t_se=self.t_se
+            t_sh=self.t_sh
+            g_se=self.gse
+            b_se=self.bse
+            g_sh=self.gsh
+            b_sh=self.bsh 
+            return 0
 
 class SVC():
     def __init__(self,id,bus,Rt,Xt,Bini,BMAX,BMIN,aini,amax,amin):
@@ -2230,10 +2233,10 @@ class meas():
                 return self.val-graph[self.k].adjk[keyk].Iref(graph,0) # Se for UPFC branch
             elif keym in graph[self.k].adjm.keys():
                 return self.val-graph[self.k].adjm[keym].Iref(graph,1) # Se for UPFC branch.
-            # elif keyk in graph[self.k].bUFPC_adjk.keys(): 
-            #     return self.val-graph[self.k].bUFPC_adjk[keyk].Pps(graph)
-            # elif keym in graph[self.k].bUFPC_adjm.keys():
-            #     return self.val-graph[self.k].bUFPC_adjm[keym].Psp(graph)
+            elif keyk in graph[self.k].bUFPC_adjk.keys(): 
+                return self.val-graph[self.k].bUFPC_adjk[keyk].Ips_re(graph)
+            elif keym in graph[self.k].bUFPC_adjm.keys():
+                return self.val-graph[self.k].bUFPC_adjm[keym].Isp_re(graph)
             else:
                 print("medida de fluxo de potencia ativa com ramo não existente")
                 exit(1)
@@ -2244,10 +2247,10 @@ class meas():
                 return self.val-graph[self.k].adjk[keyk].Iimf(graph,0)
             elif keym in graph[self.k].adjm.keys():
                 return self.val-graph[self.k].adjm[keym].Iimf(graph,1)
-            # elif keyk in graph[self.k].bUFPC_adjk.keys(): 
-            #     return self.val-graph[self.k].bUFPC_adjk[keyk].Qps(graph)
-            # elif keym in graph[self.k].bUFPC_adjm.keys():
-            #     return self.val-graph[self.k].bUFPC_adjm[keym].Qsp(graph)
+            elif keyk in graph[self.k].bUFPC_adjk.keys(): 
+                return self.val-graph[self.k].bUFPC_adjk[keyk].Ips_im(graph)
+            elif keym in graph[self.k].bUFPC_adjm.keys():
+                return self.val-graph[self.k].bUFPC_adjm[keym].Isp_im(graph)
             else:
                 print("medida de fluxo de potencia reativa com ramo não existente")
                 exit(1)

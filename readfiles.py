@@ -188,7 +188,7 @@ def save_DMED_fp(graph,ram,sys,dUPFC={}):
         Ikm_im.append(linha2)
         #calculate from m to k
         linha=[8,graph[upfc.s].bar.id,graph[upfc.p].bar.id,upfc.Isp_re(graph),1.0]
-        linha2=[9,graph[upfc.s].bar.id,graph[upfc.p].bar.id,upfc.Isp_re(graph),1.0]
+        linha2=[9,graph[upfc.s].bar.id,graph[upfc.p].bar.id,upfc.Isp_im(graph),1.0]
         Imk_re.append(linha)
         Imk_im.append(linha2)
 

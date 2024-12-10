@@ -16,7 +16,7 @@ import scipy.sparse.linalg as sliang
 
 #%% Lê arquivos e constroi a estrutura da rede
 
-sys="IEEE14_rakp2009"
+sys="IEEE14_provaJB"
 
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
@@ -43,19 +43,29 @@ addSVCingraph(graph,busSVC)
 
 addUPFCingraph(graph,ramUPFC)
 
-#%%
-conv=load_flow_FACTS(graph,inici=1,prt=1,itmax=20)
-#%%
 
-
-
-ram.update(ramTCSC)
-
-save_DMED_fp(graph,ram,sys,ramUPFC)
 
 
 #%%
 
+conv_noBC,nits_noBC,dfITsGN=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-4,tol2=1e-4,flatstart=2)
+# %%
 
+
+
+cov=calcCovRes_com_FACTS(graph,dfDMED,ind_i)
+
+df_RES=renorm_com_FACTS(graph,dfDMED,ind_i,cov)
+
+# %%
+
+df_RES["Res"]=np.abs(df_RES["Res"])
+
+df_RES.sort_values(by="Rn",ascending=True,inplace=True)
+#%%
+
+df_RES["Tipo"]=df_RES["Tipo"].map({0:"Pinj",1:"Qinj",2:"Pf",3:"Qf",4:"V"})
+
+print(df_RES.iloc[-1])
 
 # %%
