@@ -80,5 +80,5 @@ priori=calc_priori(graph,dfDMEDSCADA,dfDMEDPMU,ind_i)
 #%%
 
 
-SS_MAP_FACTS_noBC(graph,priori,dfDMEDPMU,ind_i,flatstart=2,tol2=1,tol=1e-4)
+SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMU,ind_i,flatstart=2,tol2=1,tol=1e-4)
 # %%
