@@ -127,6 +127,8 @@ def ini_var_MAP(graph,priori,mode=0):
                 for key in graph.bFACTS_adjk.keys():
                     graph[i].bFACTS_adjk[key].xtcsc=priori.tcsc[key]
                     graph[i].bFACTS_adjk[key].AttY()
+                    
+
             if graph[i].FlagSVC==1:
                 graph[i].SVC.BSVC=priori.svc[key]
                 graph[i].SVC.attYk()  
@@ -138,8 +140,7 @@ def ini_var_MAP(graph,priori,mode=0):
                     graph[i].bUFPC_adjk[key].t_sh=priori.upfc_tsh[key]
             i=i+1
 
-
-    if mode==0:
+    elif mode==0:
 
         tetaini=0
         for no in graph:
@@ -147,10 +148,39 @@ def ini_var_MAP(graph,priori,mode=0):
                 tetaini=no.bar.teta
                 break
 
-
         for no in priori.no:
             graph[i].V=1
             graph[i].teta=tetaini
+            if graph[i].FlagTCSC==1:
+                for key in graph.bFACTS_adjk.keys():
+                    graph[i].bFACTS_adjk[key].xtcsc=graph[i].bFACTS_adjk[key].xtcsc_ini
+                    graph[i].bFACTS_adjk[key].AttY()
+                    key=key.split("-")
+                    m=int(key[1])
+                    graph[m].V=graph[m].V-0.01
+            if graph[i].FlagSVC==1:
+                graph[i].SVC.BSVC=graph[i].SVC.Bini
+                graph[i].SVC.attYk()  
+            if graph[i].FlagUPFC==1:
+                for  key in no.bUFPC_adjk.keys():
+                    graph[i].bUFPC_adjk[key].Vse= graph[i].bUFPC_adjk[key].Vse_ini
+                    graph[i].bUFPC_adjk[key].Vsh=graph[i].bUFPC_adjk[key].Vsh_ini
+                    graph[i].bUFPC_adjk[key].t_se=graph[i].bUFPC_adjk[key].t_se_ini
+                    graph[i].bUFPC_adjk[key].t_sh=graph[i].bUFPC_adjk[key].t_sh_ini
+            i=i+1
+    
+
+    elif mode==2:
+
+        tetaini=0
+        for no in graph:
+            if no.bar.type == 0:
+                tetaini=no.bar.teta
+                break
+
+        for no in priori.no:
+            graph[i].V=graph[i].bar.V
+            graph[i].teta=tetaini.bar.teta
             if graph[i].FlagTCSC==1:
                 for key in graph.bFACTS_adjk.keys():
                     graph[i].bFACTS_adjk[key].xtcsc=graph[i].bFACTS_adjk[key].xtcsc_ini
