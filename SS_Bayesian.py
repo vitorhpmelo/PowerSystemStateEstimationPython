@@ -1,0 +1,267 @@
+from classes import *
+import numpy as np
+import pandas as pd
+from readfiles import *
+import scipy.sparse.linalg as sliang 
+import scipy.sparse as sparse 
+from networkcalc import *
+import numpy.linalg as liang
+import time as tm
+from SS import *
+
+
+def create_x_z_priori(graph,dfDMED_sl_ant,ind_i,flag_PMU_teta_prx=0):
+
+
+    z_sl_ant=[]
+    var_t={}
+    var_v={}
+    i=0
+    j=0
+    for item in graph:
+        if (item.bar.type==1 or item.bar.type==2) or flag_PMU_teta_prx==1:
+            var_t[item.id]=i
+            i=i+1
+        var_v[item.id]=j
+        j=j+1
+    
+    for idx,row in dfDMED_sl_ant.iterrows():
+        if (int(row["type"])==0) or (int(row["type"])==1) or  (int(row["type"])==4) or  (int(row["type"])==5) or  (int(row["type"])==6) or  (int(row["type"])==7)  or (int(row["type"])==11) :
+            mes=meas(ind_i[int(row["de"])],-1,int(row["type"]),row["zmed"],row["prec"])
+        else:  
+            mes=meas(ind_i[int(row["de"])],ind_i[int(row["para"])],int(row["type"]),row["zmed"],row["prec"])
+        z_sl_ant.append(mes)
+
+
+    var_x=create_x_TCSC(graph)
+    var_svc=create_x_SVC(graph)
+    [var_UPFC,c_upfc]=create_c_x_UPFC(graph)
+
+    return z_sl_ant,var_t,var_v,var_x,var_svc,var_UPFC,c_upfc
+    
+
+def calc_priori(graph,dfDMED_sl_ant,dfDMED_sl_atual,indi):
+
+
+
+    flag_PMU_teta_prx=len(dfDMED_sl_atual[dfDMED_sl_atual["type"]==5])>0
+
+    z_sl_ant,var_t,var_v,var_x,var_svc,var_UPFC,c_upfc=create_x_z_priori(graph,dfDMED_sl_ant,indi,flag_PMU_teta_prx=flag_PMU_teta_prx)
+
+
+
+    Htrad=np.zeros((len(z_sl_ant),len(var_t)+len(var_v)))
+    HTCSC=np.zeros((len(z_sl_ant),len(var_x)))
+    HSVC=np.zeros((len(z_sl_ant),len(var_svc)))
+    UPFC=np.zeros((len(z_sl_ant),4*len(var_UPFC)))
+    n_teta=len(var_t)
+    n_v=len(var_v)
+    n_TCSC=len(var_x)
+    n_SVC=len(var_svc)
+    n_UPFC=len(var_UPFC)
+    nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
+    W=create_W(z_sl_ant+list(c_upfc),flag_ones=0) #expandir W para caber as c_FACTS
+        
+    C_UPFC=np.zeros((len(c_upfc),nvar))
+
+
+    calc_H_EE(z_sl_ant,var_t,var_v,graph,Htrad) 
+    calc_H_EE_TCSC(z_sl_ant,var_x,graph,HTCSC) 
+    calc_H_EE_SVC(z_sl_ant,var_svc,graph,HSVC) 
+    calc_H_EE_UPFC(z_sl_ant,var_UPFC,graph,UPFC)
+    calc_C_EE_UPFC(var_t,var_v,var_x,var_svc,var_UPFC,graph,C_UPFC)
+    
+    Hx=np.concatenate((Htrad,HTCSC,HSVC,UPFC),axis=1)
+    H=np.concatenate((Hx,C_UPFC),axis=0)
+
+    priori=prioriMAP(graph,var_x,var_svc,var_UPFC,flag_priori=1,H=H,W=W)
+
+    return priori
+
+
+
+
+
+def calc_dx_sl(dx_sl,graph,priori,var_t,var_v,var_x,var_svc,var_UPFC):
+
+
+    
+    for key,item in var_t.items():
+        dx_sl[item]=graph[key].teta-priori.no[key].teta
+    n_var=len(var_t)
+    for key,item in var_v.items():
+        dx_sl[item+n_var]=graph[key].V-priori.no[key].V
+
+    nvar=n_var+len(var_v)
+    for key,item in var_x.items():
+        k=int(key.split("-")[0])
+        dx_sl[item+nvar]=graph[k].adjk[key].xtcsc-priori.tcsc[key]
+
+    nvar=n_var+len(var_x)
+    for key,item in var_svc.items():
+        dx_sl[item+nvar]=graph[key].SVC.BSVC+priori.svc[key]
+    
+    nvar=n_var+len(var_svc)
+    n_upfc=len(var_UPFC)
+    for key,item in var_UPFC.items():
+        p,s = key.split("-")
+        p=int(p)
+        dx_sl[item+nvar]=graph[p].bUFPC_adjk[key].t_se-priori.upfc_tse[key]
+        dx_sl[nvar+n_upfc+item]=graph[p].bUFPC_adjk[key].t_sh-priori.upfc_tsh[key]
+        dx_sl[nvar+2*n_upfc+item]=graph[p].bUFPC_adjk[key].Vse-priori.upfc_Vse[key]
+        dx_sl[nvar+3*n_upfc+item]=graph[p].bUFPC_adjk[key].Vsh-priori.upfc_Vsh[key]
+
+        
+
+
+
+    
+
+
+
+
+def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+    
+    '''
+    WLS state estimator with FACTS devices (only TCSC implemented yet)
+
+    @param graph with the informations of the network
+    @param prt param indicating if it is printing everyting or not
+    @param tol tolerance for the dx atualization of the variables
+    @param tol2 tolerance for the gradiente reduction
+    @param solver only gain matrix implemented yet
+    @param prec_virtual standard deviation of virtual measurements
+    @param printcond flag for calculating and printing condition number
+    @param printmat flag for calculating and printing the matrix for calculationg the descend direction
+    @param flat start, initialization of the state variables, if -1 uses the DC state estimator to intialize the angles and the X, 0 it ujses
+    the flat start, 1 it uses the DBAR
+    '''
+    conv=0
+    c1=1e-4 #constant for backintracking
+    FACTSini(graph)
+
+    Vinici(graph,flatStart=flatstart,dfDMED=dfDMED,ind_i=ind_i)
+
+    [z,var_t,var_v]=create_z_x(graph,dfDMED,ind_i)
+    var_x=create_x_TCSC(graph)
+    var_svc=create_x_SVC(graph)
+    [var_UPFC,c_upfc]=create_c_x_UPFC(graph)
+    #create var UPFC
+
+    if flatstart==2:
+        for key in var_x.keys():
+            key=key.split("-")
+            m=int(key[1])
+            graph[m].V=graph[m].V-0.01
+
+
+
+    Htrad=np.zeros((len(z),len(var_t)+len(var_v)))
+    HTCSC=np.zeros((len(z),len(var_x)))
+    HSVC=np.zeros((len(z),len(var_svc)))
+    UPFC=np.zeros((len(z),4*len(var_UPFC)))
+    n_teta=len(var_t)
+    n_v=len(var_v)
+    n_TCSC=len(var_x)
+    n_SVC=len(var_svc)
+    n_UPFC=len(var_UPFC)
+    nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
+    dz=np.zeros(len(z))
+    dx_sl=np.zeros(nvar)
+    
+    W=create_W(z+list(c_upfc),flag_ones=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
+    
+    C_UPFC=np.zeros((len(c_upfc),nvar))
+
+    it=0
+    it2=0
+    itmax=2
+    lstdx=[]
+    lstdz=[]
+    lstc_upfc=[]
+
+
+
+    while(it <30):
+        a=1
+        calc_dz(z,graph,dz)
+
+
+        calc_cUPFC(graph,var_UPFC,c_upfc)
+        calc_H_EE(z,var_t,var_v,graph,Htrad) 
+        calc_H_EE_TCSC(z,var_x,graph,HTCSC) 
+        calc_H_EE_SVC(z,var_svc,graph,HSVC) 
+        calc_H_EE_UPFC(z,var_UPFC,graph,UPFC)
+        calc_C_EE_UPFC(var_t,var_v,var_x,var_svc,var_UPFC,graph,C_UPFC)
+        
+
+        calc_dx_sl(dx_sl,graph,priori,var_t,var_v,var_x,var_svc,var_UPFC)
+        
+        Hx=np.concatenate((Htrad,HTCSC,HSVC,UPFC),axis=1)
+        H=np.concatenate((Hx,C_UPFC),axis=0)
+        b=np.append(dz,c_upfc)
+            
+        gradWLS=-np.matmul(np.matmul(H.T,W),b)
+
+        gradMAP=gradWLS+priori.P_inv@dx_sl
+
+
+        try: 
+            dx=NormalEQ_MAP(H,W,gradMAP,priori.P_inv,printcond=printcond,printmat=printmat)
+        except:
+            conv=0
+            it=30
+            break
+
+        Jxk=np.matmul(np.matmul(b,W),b)
+        if it==0:
+            norminicial=liang.norm(gradMAP)
+
+        new_X(graph,var_t,var_v,a*dx)
+        new_X_TCSC(graph,len(var_t)+len(var_v),var_x,a*dx)
+        new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,a*dx)
+        new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,a*dx)
+        calc_dz(z,graph,dz)
+        calc_cUPFC(graph,var_UPFC,c_upfc)
+        b=np.append(dz,c_upfc)
+        Jxn=np.matmul(np.matmul(b,W),b)
+
+        if printgrad==True:
+            print("{:e},{:e}".format( liang.norm(gradMAP)/norminicial,liang.norm(a*dx)))
+        gradredux=liang.norm(gradMAP)/norminicial
+        maxdx= liang.norm(a*dx)
+        lstdx.append(maxdx)
+        lstdz.append(gradredux)
+        if maxdx>1e3:
+            conv=0
+            it=30
+            break
+        if gradredux <tol2 and maxdx<tol:
+            txt="Convergiu em {:d} iteracoes".format(it)
+            upfc_angle(graph)
+            if printres==True:
+                print(liang.norm(gradMAP)/norminicial)
+                print(txt)
+                prt_state(graph)
+                prt_state_FACTS(graph,var_x,var_svc,var_UPFC)
+            conv=1
+            break
+
+        it=it+1
+
+
+    if pirntits==1:
+        iterdict={"dx":lstdx,"dz":lstdz}
+        dfits = pd.DataFrame(iterdict)
+
+        # Save the DataFrame to a CSV file
+        dfits.to_csv('conv_GN.csv', index=False)
+    elif pirntits==2:
+        iterdict={"dx":lstdx,"dz":lstdz}
+        dfits = pd.DataFrame(iterdict)
+    else:
+        dfits=[]
+    return conv,it,dfits
+
+
+

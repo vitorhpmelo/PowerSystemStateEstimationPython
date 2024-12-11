@@ -102,6 +102,27 @@ def NormalEQ_QR(H,W,dz,printcond=0,printmat=0):
     return dx
 
 
+def NormalEQ_MAP(H,W,gradMAP,P_inv,printcond=0,printmat=0):
+    """
+    
+    """
+    
+    
+    M=H.T@W@H+P_inv
+
+
+
+    if(printcond==1):
+        print("Ncond M {:e}, Ncond H(x) {:e}".format(np.linalg.cond(M),np.linalg.cond(H)))
+        with open("conds.csv","a") as f:
+            f.write("{:e}\n".format(np.linalg.cond(M)))
+        
+    A=sparse.csc_matrix(M)
+    if printmat==1:
+        np.savetxt('M.csv',M,delimiter=",",fmt="%.15e")
+    dx=sliang.spsolve(A,-gradMAP)
+    return dx
+
 
 
 def SS_WLS(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-9,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,prinnormgrad=0):
@@ -636,7 +657,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
     nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
     dz=np.zeros(len(z))
     h=np.zeros(len(z))
-    W=create_W(z+list(c_upfc),flag_ones=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
+    W=create_W(z+list(c_upfc),flag_ones=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
     
     C_UPFC=np.zeros((len(c_upfc),nvar))
 
@@ -663,7 +684,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
         b=np.append(dz,c_upfc)
         grad=np.matmul(np.matmul(H.T,W),b)
         try: 
-            dx=NormalEQ_QR(H,W,b,printcond=printcond,printmat=printmat)
+            dx=NormalEQ(H,W,b,printcond=printcond,printmat=printmat)
         except:
             conv=0
             it=30

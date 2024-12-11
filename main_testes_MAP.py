@@ -12,7 +12,7 @@ from networkcalc import *
 from BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
-
+from SS_Bayesian import *
 
 #%% Lê arquivos e constroi a estrutura da rede
 
@@ -49,42 +49,36 @@ addUPFCingraph(graph,ramUPFC)
 prec={"SCADAPF":0.01,"SCADAPI":0.01,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
 
 #%%
-# dfDMED=create_DMED(sys,prec,graph,ram,ramUPFC)
 
 #%%
-
-dfDMED.loc[(dfDMED["type"]==0)|(dfDMED["type"]==1)|(dfDMED["type"]==2)|(dfDMED["type"]==3),"prec"]=0.02
-dfDMED.loc[(dfDMED["type"]==10)|(dfDMED["type"]==11)|(dfDMED["type"]==12)|(dfDMED["type"]==13)|(dfDMED["type"]==14)|(dfDMED["type"]==15),"prec"]=0.001
-dfDMED.loc[(dfDMED["type"]==4)|(dfDMED["type"]==5)|(dfDMED["type"]==6)|(dfDMED["type"]==7)|(dfDMED["type"]==8)|(dfDMED["type"]==9),"prec"]=0.001
 
 
 medidas_virtuais_P=list(set(dfDMED[(dfDMED["type"]==0)&(dfDMED["zmed"]==0)]["de"].to_list()).intersection(dfDMED[(dfDMED["type"]==1)&(dfDMED["zmed"]==0)]["de"].to_list())) 
 
 #%%
 
+dfDMEDSCADA=dfDMED[(dfDMED["type"]<=4)]
 
+#%%
+
+dfDMEDPMU=dfDMED[(dfDMED["type"]>=4)]
+
+dfDMEDSCADA["prec"]=0.02
+
+dfDMEDPMU["prec"]=0.001
+#%%
 
 
 
 #%%
-conv_noBC,nits_noBC,dfITsGN=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2)
+conv_noBC,nits_noBC,dfITsGN=SS_WLS_FACTS_noBC(graph,dfDMEDSCADA,ind_i,flatstart=2,pirntits=1,tol2=1e-1,tol=1e-4)
 
 
+#%%
+priori=calc_priori(graph,dfDMEDSCADA,dfDMEDPMU,ind_i)
 
-# %%
+#%%
 
 
-
-cov=calcCovRes_com_FACTS(graph,dfDMED,ind_i)
-
-df_RES=renorm_com_FACTS(graph,dfDMED,ind_i,cov)
-
-df_RES.to_csv("teste_residuos.csv",index=None)
-# %%
-
-df_RES["Res"]=np.abs(df_RES["Res"])
-df_RES.sort_values(by="Res")
-
-# %%
-df_RES.sort_values(by="Rn")
+SS_MAP_FACTS_noBC(graph,priori,dfDMEDPMU,ind_i,flatstart=2,tol2=1,tol=1e-4)
 # %%

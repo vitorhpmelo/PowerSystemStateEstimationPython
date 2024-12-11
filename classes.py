@@ -2322,3 +2322,46 @@ class state():
         self.v=v
         self.t=t
 
+
+class prioriMAP():
+    def __init__(self,graph,var_tcsc={},var_svc={},var_UPFC={},flag_priori=0,H=[],W=[]) -> None:
+        self.flag_priori=flag_priori
+        self.no=[]
+        self.tcsc={}
+        self.svc={}
+        self.upfc_tse={}
+        self.upfc_tsh={}
+        self.upfc_Vse={}
+        self.upfc_Vsh={}
+        
+        i=0
+        for no in graph:
+            self.no.append(no_priori(graph[i].V,graph[i].teta))
+            i=i+1
+
+        for key, item in var_tcsc.items():
+            k=int(key.split("-")[0])
+            self.tcsc[key]=graph[k].adjk[key].xtcsc
+
+        for key,item in var_svc.items():
+            self.svc[key]=graph[key].SVC.BSVC
+
+        for key,item in var_UPFC.items():
+            p,s = key.split("-")
+            p=int(p)
+            self.upfc_tse[key]=graph[p].bUFPC_adjk[key].t_se
+            self.upfc_tsh[key]=graph[p].bUFPC_adjk[key].t_sh
+            self.upfc_Vse[key]=graph[p].bUFPC_adjk[key].Vse
+            self.upfc_Vsh[key]=graph[p].bUFPC_adjk[key].Vsh
+
+        self.H=H
+        self.W=W
+        self.P_inv=self.H.T@self.W@self.H
+
+
+        
+
+class no_priori():
+    def __init__(self,V,teta):
+        self.V=V
+        self.teta=teta
