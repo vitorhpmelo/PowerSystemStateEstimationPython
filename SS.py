@@ -4,9 +4,9 @@ import pandas as pd
 from readfiles import *
 import scipy.sparse.linalg as sliang 
 import scipy.sparse as sparse 
-from networkcalc import *
 import numpy.linalg as liang
 import time as tm
+from networkcalc import *
 #file with the information of the libary
 
 def NormalEQ(H,W,dz,printcond=0,printmat=0):

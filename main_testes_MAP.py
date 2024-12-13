@@ -16,7 +16,7 @@ from SS_Bayesian import *
 
 #%% Lê arquivos e constroi a estrutura da rede
 
-sys="IEEE14_rakp2009"
+sys="IEEE14"
 
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
@@ -46,32 +46,30 @@ addUPFCingraph(graph,ramUPFC)
 
 
 
-prec={"SCADAPF":0.01,"SCADAPI":0.01,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
+prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
+
+
+#%%
+dfDMED=create_DMED(sys,prec,graph,ram)
+
+
+prec_PMUs=0.001
+prec_SCADAc=0.01
 
 #%%
 
-#%%
-
-
-medidas_virtuais_P=list(set(dfDMED[(dfDMED["type"]==0)&(dfDMED["zmed"]==0)]["de"].to_list()).intersection(dfDMED[(dfDMED["type"]==1)&(dfDMED["zmed"]==0)]["de"].to_list())) 
+dfDMEDSCADA=dfDMED[(dfDMED["prec"]>prec_PMUs)]
 
 #%%
 
-dfDMEDSCADA=dfDMED[(dfDMED["type"]<=4)]
+dfDMEDPMU=dfDMED[(dfDMED["prec"]<prec_SCADAc)]
 
-#%%
-
-dfDMEDPMU=dfDMED[(dfDMED["type"]>=4)]
-
-dfDMEDSCADA["prec"]=0.02
-
-dfDMEDPMU["prec"]=0.001
 #%%
 
 
 
 #%%
-conv_noBC,nits_noBC,dfITsGN=SS_WLS_FACTS_noBC(graph,dfDMEDSCADA,ind_i,flatstart=2,pirntits=1,tol2=1e-1,tol=1e-4)
+conv_noBC,nits_noBC,dfITsGN=SS_WLS_FACTS_noBC(graph,dfDMEDSCADA,ind_i,flatstart=2,pirntits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
 
 
 #%%
@@ -80,5 +78,5 @@ priori=calc_priori(graph,dfDMEDSCADA,dfDMEDPMU,ind_i)
 #%%
 
 
-SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMU,ind_i,flatstart=2,tol2=1,tol=1e-4)
+SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMU,ind_i,tol2=7,tol=1e-3,flatstart=3,prec_virtual=1e-4)
 # %%

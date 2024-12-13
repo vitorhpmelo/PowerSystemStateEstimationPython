@@ -2251,7 +2251,7 @@ def create_z_c_x_LGI(graph,dfDMED,ind_i):
 
     return z,c,var_t,var_v
 
-def create_W(z,prec_virtual=1e-4,flag_ones=0):
+def create_W(z,prec_virtual=1e-5,flag_ones=0):
 
 
     
@@ -2273,11 +2273,9 @@ def create_W(z,prec_virtual=1e-4,flag_ones=0):
         min_sigma=1000
         for item in z:
             if isinstance(item,meas):
-                if (item.sigma<min_sigma) & (item.sigma>0):
-                    if item.sigma<prec_virtual:
-                        item.sigma=prec_virtual
+                if (item.sigma<min_sigma) & (item.val>0):
                     min_sigma=item.sigma
-        prec_virtual= 0.1*min_sigma
+        prec_virtual= min_sigma
         W=np.zeros((len(z),len(z)))
         i=0
         for item in z:
