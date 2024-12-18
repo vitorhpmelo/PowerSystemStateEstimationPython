@@ -16,7 +16,7 @@ from SS_Bayesian import *
 
 #%% Lê arquivos e constroi a estrutura da rede
 
-sys="IEEE4_SVC"
+sys="IEEE14_rakp2009"
 
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
@@ -46,7 +46,7 @@ addUPFCingraph(graph,ramUPFC)
 
 
 
-prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.005,"PMU_Iinj":0.005,"PMUs_V":0.005}
+prec={"SCADAPF":0.01,"SCADAPI":0.01,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.005,"PMU_Iinj":0.005,"PMUs_V":0.005}
 
 
 #%%
