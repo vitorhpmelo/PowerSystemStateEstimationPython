@@ -60,7 +60,7 @@ def calc_priori(graph,dfDMED_sl_ant,dfDMED_sl_atual,indi):
     n_SVC=len(var_svc)
     n_UPFC=len(var_UPFC)
     nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
-    W=create_W(z_sl_ant+list(c_upfc),flag_ones=0) #expandir W para caber as c_FACTS
+    W=create_W(z_sl_ant+list(c_upfc),flag_ones=1) #expandir W para caber as c_FACTS
         
     C_UPFC=np.zeros((len(c_upfc),nvar))
 
@@ -99,7 +99,7 @@ def calc_dx_sl(dx_sl,graph,priori,var_t,var_v,var_x,var_svc,var_UPFC):
 
     nvar=n_var+len(var_x)
     for key,item in var_svc.items():
-        dx_sl[item+nvar]=graph[key].SVC.BSVC+priori.svc[key]
+        dx_sl[item+nvar]=graph[key].SVC.BSVC-priori.svc[key]
     
     nvar=n_var+len(var_svc)
     n_upfc=len(var_UPFC)
@@ -206,14 +206,14 @@ def ini_var_MAP(graph,priori,mode=0):
                     graph[i].bFACTS_adjk[key].AttY()
 
             if graph[i].FlagSVC==1:
-                graph[i].SVC.BSVC=priori.svc[i]+np.random.normal(0,0.01)
+                graph[i].SVC.BSVC=priori.svc[i]+np.random.normal(0,0.001)
                 graph[i].SVC.attYk()  
             if graph[i].FlagUPFC==1:
                 for  key in graph[i].bUFPC_adjk.keys():
-                    graph[i].bUFPC_adjk[key].Vse=priori.upfc_Vse[key]+np.random.normal(0,0.01)
-                    graph[i].bUFPC_adjk[key].Vsh=priori.upfc_Vsh[key]+np.random.normal(0,0.01)
-                    graph[i].bUFPC_adjk[key].t_se=priori.upfc_tse[key]+np.random.normal(0,0.01)
-                    graph[i].bUFPC_adjk[key].t_sh=priori.upfc_tsh[key]+np.random.normal(0,0.01)
+                    graph[i].bUFPC_adjk[key].Vse=priori.upfc_Vse[key]+np.random.normal(0,0.001)
+                    graph[i].bUFPC_adjk[key].Vsh=priori.upfc_Vsh[key]+np.random.normal(0,0.001)
+                    graph[i].bUFPC_adjk[key].t_se=priori.upfc_tse[key]+np.random.normal(0,0.001)
+                    graph[i].bUFPC_adjk[key].t_sh=priori.upfc_tsh[key]+np.random.normal(0,0.001)
             i=i+1
 
 
@@ -557,13 +557,13 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
     dz=np.zeros(len(z))
     dx_sl=np.zeros(nvar)
     
-    W=create_W(z+list(c_upfc),flag_ones=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
+    W=create_W(z+list(c_upfc),flag_ones=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
     
     C_UPFC=np.zeros((len(c_upfc),nvar))
 
     it=0
     it2=0
-    itmax=10
+    itmax=20
     lstdx=[]
     lstdz=[]
     lstc_upfc=[]
@@ -573,7 +573,6 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
     while(it <30):
         a=1
         calc_dz(z,graph,dz)
-
 
         calc_cUPFC(graph,var_UPFC,c_upfc)
         calc_H_EE(z,var_t,var_v,graph,Htrad) 
@@ -596,6 +595,8 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
 
         try: 
             dx=NormalEQ_MAP(H,W,gradMAP,priori.P_inv,printcond=printcond,printmat=printmat)
+            # dx=NormalEQ_MAP_QR(H,W,priori,b,dx_sl)
+            
         except:
             conv=0
             it=30
@@ -614,7 +615,6 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
             new_X_TCSC(graph,len(var_t)+len(var_v),var_x,a*dx)
             new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,a*dx)
             new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,a*dx)
-            # new_X_EE_UPFC_lim(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,dx,a)
             calc_dz(z,graph,dz)
             calc_cUPFC(graph,var_UPFC,c_upfc)
             calc_dx_sl(dx_sl,graph,priori,var_t,var_v,var_x,var_svc,var_UPFC)
@@ -631,16 +631,15 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
                 new_X_TCSC(graph,len(var_t)+len(var_v),var_x,-a*dx)
                 new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,-a*dx)
                 new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,-a*dx)
-                # new_X_EE_UPFC_lim(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,-dx,a)
-                a=a/2
+                a=a/5
         if printgrad==True:   
-            print("{:e},{:e}".format( liang.norm(gradMAP)/norminicial,liang.norm(a*dx)))
+            print("{:e},{:e},{:e}".format( liang.norm(gradMAP)/norminicial,liang.norm(dx),Jxk))
         gradredux=liang.norm(gradMAP)/norminicial
-        maxdx= liang.norm(a*dx)
+        maxdx= liang.norm(dx)
 
         lstdx.append(maxdx)
         lstdz.append(gradredux)
-        if maxdx>1e3:
+        if maxdx>1e100:
             conv=0
             it=30
             break

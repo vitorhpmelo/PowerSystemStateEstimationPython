@@ -2358,6 +2358,11 @@ class prioriMAP():
         self.W=W
         self.P_inv=self.H.T@self.W@self.H
 
+        Wmei_prio=np.diag(np.sqrt(np.diag(W)))
+
+        self.WmeiH=Wmei_prio@H
+        
+
 
         
 

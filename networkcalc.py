@@ -156,6 +156,8 @@ def Vinici(graph,flatStart=0,dfDMED=[],ind_i=[]):
             if key in graph[k].adjk.keys():
                 graph[k].adjk[key].xtcsc=x[i+len(var_t)]
                 graph[k].adjk[key].AttY()
+    elif flatStart==6:
+        pass
     else:
         for no in graph:
             no.V=1
@@ -2080,7 +2082,7 @@ def load_flow_FACTS(graph,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres=
 
         if (it>5):
             new_X_TCSC(graph,len(var_t)+len(var_v),var_x,dx)
-            new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,dx)
+        new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,dx)
         new_X_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,var_UPFC_vsh,dx)#
 
         maxdx=np.max(np.abs(dx))
@@ -2275,7 +2277,7 @@ def create_W(z,prec_virtual=1e-5,flag_ones=0):
             if isinstance(item,meas):
                 if (item.sigma<min_sigma) & (item.val>0):
                     min_sigma=item.sigma
-        prec_virtual= min_sigma
+        prec_virtual= 0.01*min_sigma
         W=np.zeros((len(z),len(z)))
         i=0
         for item in z:

@@ -16,7 +16,7 @@ from SS_Bayesian import *
 
 #%% Lê arquivos e constroi a estrutura da rede
 
-sys="IEEE14"
+sys="IEEE4_SVC"
 
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
@@ -46,20 +46,31 @@ addUPFCingraph(graph,ramUPFC)
 
 
 
-prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
+prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.005,"PMU_Iinj":0.005,"PMUs_V":0.005}
 
 
 #%%
-dfDMED=create_DMED(sys,prec,graph,ram)
+dfDMEDsr=create_DMED(sys,prec,graph,ram)
 
 
-prec_PMUs=0.001
+prec_PMUs=0.007
 prec_SCADAc=0.01
 
 #%%
 
+dfDMED=insert_res(dfDMEDsr)
+
+
+# dfDMED=dfDMEDsr.copy()
+
+
+#%%
+d={"type":[5],"de":[1],"para":[-1],"zmed":[0.000],"prec":[0.02]}
+
+
 dfDMEDSCADA=dfDMED[(dfDMED["prec"]>prec_PMUs)]
 
+dfDMEDSCADA=pd.concat([dfDMEDSCADA,pd.DataFrame(d)])
 #%%
 
 dfDMEDPMU=dfDMED[(dfDMED["prec"]<prec_SCADAc)]
@@ -75,8 +86,34 @@ conv_noBC,nits_noBC,dfITsGN=SS_WLS_FACTS_noBC(graph,dfDMEDSCADA,ind_i,flatstart=
 #%%
 priori=calc_priori(graph,dfDMEDSCADA,dfDMEDPMU,ind_i)
 
+
 #%%
 
 
-SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMU,ind_i,tol2=7,tol=1e-3,flatstart=3,prec_virtual=1e-4)
+#%%
+
+# priori.P_inv=np.eye(len(priori.P_inv))
+SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMU,ind_i,tol2=7,tol=1e-4,flatstart=1,prec_virtual=1e-4)
+# %%
+
+# H2=np.loadtxt("Hit0.txt")
+
+#%%
+
+# graph[1].SVC.Bini=graph[1].SVC.BSVC
+
+conv_noBC,nits_noBC,dfITsGN=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2,pirntits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
+
+
+# %%
+H2=np.loadtxt("Hit0.txt")
+W2=np.loadtxt("Wit0.txt")
+
+W2=W2[0:14,0:14]
+#%%
+W2-W
+# %%
+diff=np.abs(H2[0:14,:]-H)
+# %%
+np.savetxt("Hdiff.csv",diff)
 # %%

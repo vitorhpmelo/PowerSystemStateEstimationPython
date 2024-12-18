@@ -124,6 +124,37 @@ def NormalEQ_MAP(H,W,gradMAP,P_inv,printcond=0,printmat=0):
     return dx
 
 
+def NormalEQ_MAP_QR(H,W,priori,dz,dx_sl,printcond=0,printmat=0):
+    """
+    
+    """
+    
+    
+
+    Pslmei=priori.WmeiH
+
+    Wmei=np.diag(np.sqrt(np.diag(W)))
+    H2=np.matmul(Wmei,H)
+    
+    M=np.concatenate((Pslmei,H2),axis=0)
+
+    [Q,R]=np.linalg.qr(M)
+
+    b1=-np.matmul(Pslmei,dx_sl)
+    b2=np.matmul(Wmei,dz)
+
+    b=Q.T@np.concatenate((b1,b2),axis=0)
+
+
+        
+    A=sparse.csr_matrix(R)
+    if printmat==1:
+        np.savetxt('Rqr.csv',R,delimiter=",",fmt="%.15e")
+    dx=sliang.spsolve_triangular(A,b,lower=False)
+
+    return dx
+
+
 
 def SS_WLS(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-9,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,prinnormgrad=0):
     """
@@ -657,7 +688,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
     nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
     dz=np.zeros(len(z))
     h=np.zeros(len(z))
-    W=create_W(z+list(c_upfc),flag_ones=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
+    W=create_W(z+list(c_upfc),flag_ones=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
     
     C_UPFC=np.zeros((len(c_upfc),nvar))
 
@@ -666,7 +697,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
     itmax=2
     lstdx=[]
     lstdz=[]
-    lstc_upfc=[]
+    
     
     while(it <30):
         a=1
@@ -684,7 +715,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
         b=np.append(dz,c_upfc)
         grad=np.matmul(np.matmul(H.T,W),b)
         try: 
-            dx=NormalEQ(H,W,b,printcond=printcond,printmat=printmat)
+            dx=NormalEQ_QR(H,W,b,printcond=printcond,printmat=printmat)
         except:
             conv=0
             it=30
@@ -693,6 +724,9 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
         Jxk=np.matmul(np.matmul(b,W),b)
         if it==0:
             norminicial=liang.norm(grad)
+        if it==0:
+            np.savetxt("Hit{}.txt".format(it),H)
+            np.savetxt("Wit{}.txt".format(it),W)
 
         new_X(graph,var_t,var_v,a*dx)
         new_X_TCSC(graph,len(var_t)+len(var_v),var_x,a*dx)
