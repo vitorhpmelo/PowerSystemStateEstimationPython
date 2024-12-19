@@ -519,7 +519,7 @@ def SS_WLS_lagrangian_clean(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-9,printcond=0,pr
 
 
 
-def SS_WLS_FACTS(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -631,7 +631,7 @@ def SS_WLS_FACTS(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         df = pd.DataFrame(iterdict)
 
@@ -640,7 +640,7 @@ def SS_WLS_FACTS(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=
 
     return conv
 
-def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -724,9 +724,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
         Jxk=np.matmul(np.matmul(b,W),b)
         if it==0:
             norminicial=liang.norm(grad)
-        if it==0:
-            np.savetxt("Hit{}.txt".format(it),H)
-            np.savetxt("Wit{}.txt".format(it),W)
+
 
         new_X(graph,var_t,var_v,a*dx)
         new_X_TCSC(graph,len(var_t)+len(var_v),var_x,a*dx)
@@ -760,20 +758,20 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
 
         # Save the DataFrame to a CSV file
         dfits.to_csv('conv_GN.csv', index=False)
-    elif pirntits==2:
+    elif printits==2:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
     else:
         dfits=[]
     return conv,it,dfits
 
-def SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printres=1,printgrad=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printres=1,printgrad=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -819,13 +817,13 @@ def SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_v
     n_UPFC=len(var_UPFC)
     nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
     dz=np.zeros(len(z))
-    W=create_W(z+list(c_upfc),flag_ones=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
+    W=create_W(z+list(c_upfc),flag_ones=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
     
     C_UPFC=np.zeros((len(c_upfc),nvar))
 
     it=0
     it2=0
-    itmax=2
+    itmax=3
     lstdx=[]
     lstdz=[]
     lstc_upfc=[]
@@ -845,13 +843,12 @@ def SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_v
         b=np.append(dz,c_upfc)
         grad=np.matmul(np.matmul(H.T,W),b)
         try: 
-            dx=NormalEQ(H,W,b,printcond=printcond,printmat=printmat)
+            dx=NormalEQ_QR(H,W,b,printcond=printcond,printmat=printmat)
         except:
             conv=0
             it=30
             break
 
-        # dx=NormalEQ_QR(H,W,b,printcond=printcond,printmat=printmat)
         Jxk=np.matmul(np.matmul(b,W),b)
         if it==0:
             norminicial=liang.norm(grad)
@@ -861,13 +858,12 @@ def SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_v
             new_X_TCSC(graph,len(var_t)+len(var_v),var_x,a*dx)
             new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,a*dx)
             new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,a*dx)
-            # new_X_EE_UPFC_lim(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,dx,a)
             calc_dz(z,graph,dz)
             calc_cUPFC(graph,var_UPFC,c_upfc)
             b=np.append(dz,c_upfc)
             Jxn=np.matmul(np.matmul(b,W),b)
             it2=it2+1
-            if it2==itmax:
+            if (it2==itmax) | (liang.norm(a*dx) <1e-2):
                 break
             if Jxn < Jxk + c1*a*np.dot(grad,dx):
                 break
@@ -881,7 +877,7 @@ def SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_v
         if printgrad==True:   
             print("{:e},{:e}".format( liang.norm(grad)/norminicial,liang.norm(a*dx)))
         gradredux=liang.norm(grad)/norminicial
-        maxdx= liang.norm(a*dx)
+        maxdx= liang.norm(dx)
 
         lstdx.append(maxdx)
         lstdz.append(gradredux)
@@ -904,13 +900,13 @@ def SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_v
         it=it+1
 
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
 
         # Save the DataFrame to a CSV file
         dfits.to_csv('conv_GNbc.csv', index=False)
-    elif pirntits==2:
+    elif printits==2:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
     else:
@@ -918,7 +914,7 @@ def SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_v
 
     return conv,it,dfits
 
-def SS_WLS_FACTS_grad(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_grad(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -1043,7 +1039,7 @@ def SS_WLS_FACTS_grad(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         df = pd.DataFrame(iterdict)
 
@@ -1053,7 +1049,7 @@ def SS_WLS_FACTS_grad(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
     return it
 
 
-def SS_WLS_FACTS_LM(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_LM(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices LevenberMerquard
@@ -1164,7 +1160,7 @@ def SS_WLS_FACTS_LM(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtu
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         df = pd.DataFrame(iterdict)
 
@@ -1175,7 +1171,7 @@ def SS_WLS_FACTS_LM(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtu
 
 
 
-def SS_WLS_FACTS_LM_BC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_LM_BC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices LevenberMerquard
@@ -1300,13 +1296,13 @@ def SS_WLS_FACTS_LM_BC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
 
         # Save the DataFrame to a CSV file
         dfits.to_csv('conv_LM.csv', index=False)
-    elif pirntits==2:
+    elif printits==2:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
     else:
@@ -1314,7 +1310,7 @@ def SS_WLS_FACTS_LM_BC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
 
     return conv,it,dfits
 
-def SS_WLS_FACTS_LM_3(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_LM_3(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices LevenberMerquard
@@ -1486,7 +1482,7 @@ def SS_WLS_FACTS_LM_3(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         df = pd.DataFrame(iterdict)
 
@@ -1519,7 +1515,7 @@ def cal_model_2(grad,dx,damp):
     
 
 
-def SS_WLS_FACTS_withBC_limalphavarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_withBC_limalphavarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -1635,7 +1631,7 @@ def SS_WLS_FACTS_withBC_limalphavarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,s
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         df = pd.DataFrame(iterdict)
 
@@ -1645,7 +1641,7 @@ def SS_WLS_FACTS_withBC_limalphavarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,s
     return it
 
 
-def SS_WLS_FACTS_withBC_itvarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_withBC_itvarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -1765,7 +1761,7 @@ def SS_WLS_FACTS_withBC_itvarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver=
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         df = pd.DataFrame(iterdict)
 
@@ -1777,7 +1773,7 @@ def SS_WLS_FACTS_withBC_itvarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver=
 
 
 
-def SS_WLS_FACTS_withBC_limvarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_withBC_limvarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -1895,7 +1891,7 @@ def SS_WLS_FACTS_withBC_limvarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         df = pd.DataFrame(iterdict)
 
@@ -1904,7 +1900,7 @@ def SS_WLS_FACTS_withBC_limvarfacts(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver
 
     return it
 
-def SS_WLS_FACTS_clean(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_clean(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -1988,7 +1984,7 @@ def SS_WLS_FACTS_clean(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
 
 
 
-def SS_WLS_FACTS_2(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,pirntits=0,printmat=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_2(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printits=0,printmat=0,prinnormgrad=0,flatstart=-1):
    
     '''
 
@@ -2069,13 +2065,13 @@ def SS_WLS_FACTS_2(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtua
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         df = pd.DataFrame(iterdict)
         # Save the DataFrame to a CSV file
         df.to_csv('conv_B.csv', index=False)
 
-def SS_WLS_FACTS_2_clean(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,pirntits=0,printmat=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_2_clean(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printcond=0,printits=0,printmat=0,prinnormgrad=0,flatstart=-1):
    
     '''
 
@@ -2166,7 +2162,7 @@ def SS_WLS_FACTS_2_clean(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_
 
 
 
-def SS_WLS_FACTS_noBC_Btcsc(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_noBC_Btcsc(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -2280,13 +2276,13 @@ def SS_WLS_FACTS_noBC_Btcsc(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",pr
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
 
         # Save the DataFrame to a CSV file
         dfits.to_csv('conv_GN.csv', index=False)
-    elif pirntits==2:
+    elif printits==2:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
     else:
@@ -2298,7 +2294,7 @@ def SS_WLS_FACTS_noBC_Btcsc(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",pr
 
 
 
-def SS_WLS_FACTS_noBC_ktcsc(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_noBC_ktcsc(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -2412,13 +2408,13 @@ def SS_WLS_FACTS_noBC_ktcsc(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",pr
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
 
         # Save the DataFrame to a CSV file
         dfits.to_csv('conv_GN.csv', index=False)
-    elif pirntits==2:
+    elif printits==2:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
     else:
@@ -2427,7 +2423,7 @@ def SS_WLS_FACTS_noBC_ktcsc(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",pr
 
 
 
-def SS_WLS_FACTS_withBC_kTCSC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printres=1,printgrad=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_withBC_kTCSC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printres=1,printgrad=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -2559,13 +2555,13 @@ def SS_WLS_FACTS_withBC_kTCSC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",
         it=it+1
 
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
 
         # Save the DataFrame to a CSV file
         dfits.to_csv('conv_GNbc.csv', index=False)
-    elif pirntits==2:
+    elif printits==2:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
     else:
@@ -2574,7 +2570,7 @@ def SS_WLS_FACTS_withBC_kTCSC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",
     return conv,it,dfits
 
 
-def SS_WLS_FACTS_LM_BC_kTCSC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_LM_BC_kTCSC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices LevenberMerquard with ktcsc as the state variable
@@ -2699,13 +2695,13 @@ def SS_WLS_FACTS_LM_BC_kTCSC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",p
 
         it=it+1
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
 
         # Save the DataFrame to a CSV file
         dfits.to_csv('conv_LM.csv', index=False)
-    elif pirntits==2:
+    elif printits==2:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
     else:

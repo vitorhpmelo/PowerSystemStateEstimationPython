@@ -223,7 +223,7 @@ def ini_var_MAP(graph,priori,mode=0):
 
 
 
-def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -353,13 +353,13 @@ def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",p
         it=it+1
 
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
 
         # Save the DataFrame to a CSV file
         dfits.to_csv('conv_GN.csv', index=False)
-    elif pirntits==2:
+    elif printits==2:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
     else:
@@ -368,7 +368,7 @@ def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",p
 
 
 
-def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=-1):
+def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -498,13 +498,13 @@ def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",p
         it=it+1
 
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
 
         # Save the DataFrame to a CSV file
         dfits.to_csv('conv_GN.csv', index=False)
-    elif pirntits==2:
+    elif printits==2:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
     else:
@@ -513,7 +513,7 @@ def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",p
 
 
 
-def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,pirntits=0,prinnormgrad=0,flatstart=0):
+def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=0):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -563,14 +563,14 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
 
     it=0
     it2=0
-    itmax=3
+    itmax=10
     lstdx=[]
     lstdz=[]
     lstc_upfc=[]
 
 
 
-    while(it <4):
+    while(it <30):
         a=1
         calc_dz(z,graph,dz)
 
@@ -598,7 +598,7 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
         try: 
             dx=NormalEQ_MAP(H,W,gradMAP,priori.P_inv,printcond=printcond,printmat=printmat)
             # dx=NormalEQ_MAP_QR(H,W,priori,b,dx_sl)
-            # print(dx)
+            
         except:
             conv=0
             it=30
@@ -660,13 +660,13 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
         it=it+1
 
 
-    if pirntits==1:
+    if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
 
         # Save the DataFrame to a CSV file
         dfits.to_csv('conv_GN.csv', index=False)
-    elif pirntits==2:
+    elif printits==2:
         iterdict={"dx":lstdx,"dz":lstdz}
         dfits = pd.DataFrame(iterdict)
     else:
