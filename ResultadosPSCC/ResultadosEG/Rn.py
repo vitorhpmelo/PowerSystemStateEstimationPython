@@ -101,8 +101,8 @@ caso=0
 i=0
 axprime=ax.copy()
 d={0:"a) ",1:"b) "}
-fstitle=18
-fslabel=15
+fstitle=16
+fslabel=16
 fslegend=12
 
 xmax=[14,9]
@@ -115,7 +115,7 @@ dfDATA=pd.concat([dfx1_smed,dfx1_cmed])
 #%%
 for med in [0,1]:
 
-    tit=["FACTS not measured", "FACTS measured"]
+    tit=[r"without $Z_{FACTS}$", r"with $Z_{FACTS}$"]
 
     ax[i].set_title(d[i]+tit[i],fontsize=fstitle)
     mask1=(dfDATA["med"]==med)
@@ -123,7 +123,7 @@ for med in [0,1]:
     ax[i].set_xticks(range(len(dfDATA[mask1])),labels=dfDATA[(mask1)]["label"],rotation=90)
 
     ax[i].set_xlabel("Measurement",fontsize=fslabel)
-    ax[i].set_ylabel(r"$r^{N}$",fontsize=fslabel)
+    ax[i].set_ylabel(r"$r^{N}$",fontsize=fslabel,rotation=0)
     ax[i].grid()
 
     i=i+1

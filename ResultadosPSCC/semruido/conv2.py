@@ -27,15 +27,16 @@ for key, name in dmeas.items():
 
 # %%
 k=0.55
-fig, ax =plt.subplots(ncols=2,nrows=1,figsize=(k*15,k*6))
+fig, ax =plt.subplots(ncols=2,nrows=1,figsize=(k*16,k*6))
 6
 caso=1
 i=0
 axprime=ax.copy()
 d={0:"a) ",1:"b) "}
-fstitle=18
-fslabel=15
+fstitle=16
+fslabel=14
 fslegend=12
+fsticks=11
 
 for key, name in dmeas.items():
     xmax=-1
@@ -72,6 +73,8 @@ for key, name in dmeas.items():
     ax[i].set_xlim(xmin=0,xmax=xmax)
     ax[i].set_ylim(ymin=1e-5,ymax=1e2)
     ax[i].set_xticks(range(0,xmax,2))
+    ax[i].tick_params(axis='both', labelsize=fsticks)
+
 
     ax[i].grid()
     LM_patch=mpatches.Patch(color=colors[1],label="LM")

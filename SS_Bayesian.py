@@ -484,6 +484,7 @@ def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",p
             conv=0
             it=30
             break
+        it=it+1
         if gradredux <tol2 and maxdx<tol:
             txt="Convergiu em {:d} iteracoes".format(it)
             upfc_angle(graph)
@@ -592,7 +593,8 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
             
         gradWLS=-np.matmul(np.matmul(H.T,W),b)
 
-        gradMAP=gradWLS+priori.P_inv@dx_sl
+        k=1
+        gradMAP=gradWLS+k*priori.P_inv@dx_sl
 
 
         try: 
@@ -646,6 +648,7 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
             conv=0
             it=30
             break
+        it=it+1
         if gradredux <tol2 and maxdx<tol:
             txt="Convergiu em {:d} iteracoes".format(it)
             upfc_angle(graph)
@@ -657,7 +660,7 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
             conv=1
             break
 
-        it=it+1
+        
 
 
     if printits==1:

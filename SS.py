@@ -108,7 +108,7 @@ def NormalEQ_MAP(H,W,gradMAP,P_inv,printcond=0,printmat=0):
     """
     
     
-    M=H.T@W@H+P_inv
+    M=H.T@W@H+1*P_inv
 
 
 
@@ -734,14 +734,14 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
         calc_cUPFC(graph,var_UPFC,c_upfc)
         b=np.append(dz,c_upfc)
         Jxn=np.matmul(np.matmul(b,W),b)
-
+        it=it+1
         if printgrad==True:
             print("{:e},{:e}".format( liang.norm(grad)/norminicial,liang.norm(a*dx)))
         gradredux=liang.norm(grad)/norminicial
         maxdx= liang.norm(a*dx)
         lstdx.append(maxdx)
         lstdz.append(gradredux)
-        if maxdx>1e3:
+        if maxdx>1e5:
             conv=0
             it=30
             break
@@ -756,7 +756,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
             conv=1
             break
 
-        it=it+1
+        
 
     if printits==1:
         iterdict={"dx":lstdx,"dz":lstdz}
@@ -885,6 +885,7 @@ def SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_v
             conv=0
             it=30
             break
+        it=it+1
         if gradredux <tol2 and maxdx<tol:
             txt="Convergiu em {:d} iteracoes".format(it)
             upfc_angle(graph)
@@ -897,7 +898,7 @@ def SS_WLS_FACTS_withBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_v
             break
 
 
-        it=it+1
+        
 
 
     if printits==1:

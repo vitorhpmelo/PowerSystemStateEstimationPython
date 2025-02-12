@@ -98,25 +98,26 @@ dfx1_original=label_df(dfx1_original)
 
 
 # %%
-k=0.55
-fig, ax =plt.subplots(ncols=1,nrows=1,figsize=(k*16,k*5))
+k=0.57
+fig, ax =plt.subplots(ncols=1,nrows=1,figsize=(k*16,k*5.5))
 
 caso=0
 i=0
 # axprime=ax.copy()
-fstitle=18
-fslabel=15
-fslegend=12
+fstitle=14
+fslabel=14
+fslegend=13
 
 #%%
-ax.set_title(r"Ordered elements of the diagonal of the $\Omega$ matrix")
-ax.semilogy(range(len(dfx1_smed)),dfx1_smed["dCov"],marker="d",color=colors[2],label="FACTS not monitored")
-ax.semilogy(range(len(dfx1_cmed)),dfx1_cmed["dCov"],marker="o",color=colors[1],label="FACTS monitored")
+ax.set_title(r"Ordered elements of the diagonal of the $\Omega$ matrix",fontsize=fstitle)
+ax.semilogy(range(len(dfx1_smed)),dfx1_smed["dCov"],marker="d",color=colors[2],label=r"without $Z_{FCATS}$")
+ax.semilogy(range(len(dfx1_cmed)),dfx1_cmed["dCov"],marker="o",color=colors[1],label=r"with $Z_{FCATS}$")
 ax.semilogy(range(len(dfx1_original)),dfx1_original["dCov"],marker="x",color=colors[0],label="Traditional IEEE 14")
-ax.set_xlabel("Measurments")
-ax.set_ylabel("Cov")
+ax.set_xlabel("Measurements",fontsize=fslabel)
+ax.set_ylabel("Cov",fontsize=fslabel)
+ax.tick_params(axis="both",labelsize=fslegend)
 ax.grid()
-ax.legend()
+ax.legend(fontsize=fslegend)
 
 #%%
 
