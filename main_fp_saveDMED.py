@@ -15,8 +15,13 @@ import scipy.sparse.linalg as sliang
 
 
 #%% Lê arquivos e constroi a estrutura da rede
+<<<<<<< HEAD:main_fp_saveDMED.py
 
 sys="IEEE14"
+=======
+#"testand"
+sys="IEEE14_rakp2009"
+>>>>>>> refs/remotes/origin/EE_PMUs:main_FP.py
 
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
