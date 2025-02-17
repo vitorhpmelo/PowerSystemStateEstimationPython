@@ -2293,8 +2293,6 @@ def create_W(z,prec_virtual=1e-5,flag_ones=0):
             i=i+1
 
 
-
-
     else:
         W=np.eye(len(z))
     return W

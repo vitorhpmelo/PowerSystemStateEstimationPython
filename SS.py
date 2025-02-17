@@ -672,7 +672,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
         for key in var_x.keys():
             key=key.split("-")
             m=int(key[1])
-            graph[m].V=graph[m].V-0.01
+            graph[m].V=graph[m].V-0.1
 
 
 

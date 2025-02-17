@@ -67,7 +67,7 @@ for key,upfc in ramUPFC.items():
 
 #casos de compensação
 
-dfcasos=pd.DataFrame(data={"TCSC":[-10],"SVC":[1],"UPFC_flow":[10],"UPFC_V":[2],"TCSC_ini":[-0.05],"SVC_ini":[0.10]})
+dfcasos=pd.DataFrame(data={"TCSC":[10],"SVC":[1],"UPFC_flow":[-10],"UPFC_V":[1],"TCSC_ini":[-0.05],"SVC_ini":[0.10]})
 #%%
 dDMEDfps={}
 dState_ref={}
@@ -112,8 +112,8 @@ for key,item in dStateTCSC_ref.items():
     df["scenario"]=key
     dfSATES_FACTS_ref=pd.concat([dfSATES_FACTS_ref,df])
 #%%
-dfSATES_ref.to_csv("ResultadosPowerTech/state_ref"+sys+".csv")
-dfSATES_FACTS_ref.to_csv("ResultadosPowerTech/state_FACTS_ref"+sys+".csv")
+dfSATES_ref.to_csv("ResultadosISGT/state_ref"+sys+".csv")
+dfSATES_FACTS_ref.to_csv("ResultadosISGT/state_FACTS_ref"+sys+".csv")
 
 #%%
 
@@ -138,8 +138,8 @@ prec_LIM=0.005
 
 
 #%%
-TCSCini=-0.05
-Bini=0.1
+TCSCini=-0.1
+Bini=0.4
 V_sh_ini=1.0
 t_sh_ini=0
 V_se_ini=0.05
@@ -270,7 +270,14 @@ for idx, row in dfcasos.iterrows():
 #%%        
 dfConvs=pd.DataFrame(dconv)
 # %%
+print("Nconvs WLS")
+print(sum(dfConvs["convWLS"]))
+print("Nconvs MAP SACADA")
+print(sum(dfConvs["convMAP_SCADA"]))
+print("Nconvs MAP PMUs")
+print(sum(dfConvs["convMAP_PMU"]))
 
+#%%
 
 dfSATES=pd.DataFrame()
 dfSATES_FACTS=pd.DataFrame()
@@ -329,8 +336,8 @@ for key,item in dStateFACTS_MAP_PMU.items():
 
 #%%
 dfconv=pd.DataFrame(data=dconv)
-dfconv.to_csv("ResultadosPowerTech/resultados_conv_"+sys+str(cx)+Meas+".csv")
+dfconv.to_csv("ResultadosISGT/resultados_conv_"+sys+str(cx)+Meas+".csv")
 #%%
-dfSATES.to_csv("ResultadosPowerTech/state_"+sys+str(cx)+Meas+".csv")
-dfSATES_FACTS.to_csv("ResultadosPowerTech/state_FACTS_"+sys+str(cx)+Meas+".csv")
+dfSATES.to_csv("ResultadosISGT/state_"+sys+str(cx)+Meas+".csv")
+dfSATES_FACTS.to_csv("ResultadosISGT/state_FACTS_"+sys+str(cx)+Meas+".csv")
 #%%
