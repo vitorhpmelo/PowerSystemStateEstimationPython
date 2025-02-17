@@ -16,7 +16,7 @@ import scipy.sparse.linalg as sliang
 
 #%% Lê arquivos e constroi a estrutura da rede
 
-sys="IEEE14_rakp2009"
+sys="IEEE14"
 
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
@@ -26,22 +26,11 @@ dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
 [bars,nbars,pv,pq,ind_i]=creat_bar(dfDBAR)
 [ram,nbran]=create_bran(dfDBRAN,ind_i)
 #%%
-[ramTCSC,nbranTCSC]=create_TCSC(dfDFACTS,ind_i)
-
-[busSVC,BUS_SVC]=create_SVC(dfDFACTS,ind_i)
-
-[ramUPFC,nbranUPFC]=create_UPFC(dfDFACTS,ind_i)
-
-
 
 
 graph=create_graph(bars,ram)
 
-addTCSCingraph(graph,ramTCSC)
 
-addSVCingraph(graph,busSVC)
-
-addUPFCingraph(graph,ramUPFC)
 
 #%%
 conv=load_flow_FACTS(graph,inici=1,prt=1,itmax=20)
@@ -49,9 +38,20 @@ conv=load_flow_FACTS(graph,inici=1,prt=1,itmax=20)
 
 
 
-ram.update(ramTCSC)
 
-save_DMED_fp(graph,ram,sys,ramUPFC)
+dfDMED_fp=save_DMED_fp(graph,ram,sys)
+
+prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
+
+dfDMED_sr=create_DMED(sys,prec,graph,ram,dfDMEDfp=dfDMED_fp)
 
 
+dfDMED=insert_res(dfDMED_sr,100)
+
+conv_noWLS,nits_noWLS,dfITsWLS=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
 #%%
+
+
+
+dState=get_state(graph,1)
+#%%s

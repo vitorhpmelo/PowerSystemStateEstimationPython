@@ -1,3 +1,7 @@
+"""
+Arquivo com as funções utilizadas para cálculos de BadData/Erros Grosseiros 
+"""
+
 from classes import *
 import numpy as np
 import pandas as pd
@@ -7,6 +11,9 @@ import scipy.sparse.linalg as sliang
 import scipy.sparse as sparse 
 from networkcalc import *
 import numpy.linalg as liang
+
+
+
 
 def calcCovRes(graph,dfDMED,ind_i):
     """

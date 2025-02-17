@@ -13,7 +13,6 @@ from networkcalc import *
 from BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
-import copy
 
 
 #%% Lê arquivos e constroi a estrutura da rede

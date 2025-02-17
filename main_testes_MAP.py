@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Script de excução simples do Estimador Bayesiano para fusão de informação em comparação com o EE WLS tradicional
+"""
+
+
 #%%
+
+
 from classes import *
 from readfiles import *
 from networkstruc import *

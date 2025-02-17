@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Definições das classes uilizadas no EE
+"""
+
 
 import numpy as np
 
