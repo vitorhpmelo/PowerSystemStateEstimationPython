@@ -146,7 +146,7 @@ def renorm_com_FACTS(graph,dfDMED,ind_i,cov):
     for m in z:
         zT.append(m.type)
         zde.append(graph[m.k].bar.id)
-        if m.type ==2 or m.type ==3 or  m.type ==8 or m.type ==9or m.type ==10:
+        if m.type ==2 or m.type ==3 or  m.type ==8 or m.type ==9 or m.type ==10:
             zpara.append(graph[m.m].bar.id)
         else:
             zpara.append(-1) # cria listas
