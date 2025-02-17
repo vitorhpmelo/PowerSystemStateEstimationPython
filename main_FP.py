@@ -15,7 +15,7 @@ import scipy.sparse.linalg as sliang
 
 
 #%% Lê arquivos e constroi a estrutura da rede
-
+#"testand"
 sys="IEEE14_rakp2009"
 
 
