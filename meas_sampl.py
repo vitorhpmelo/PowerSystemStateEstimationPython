@@ -289,7 +289,7 @@ def insert_res(dfDMEDsr,N=100):
     Inserts gaussian noise in the measurement set, with variance according with the 
     precision and the magnitude of the measurement.
     """
-    np.random.seed(N)
+    # np.random.seed(N)
     e=np.random.normal(size=(len(dfDMEDsr)))
     for i in range(len(e)):
         if e[i]>2.5:

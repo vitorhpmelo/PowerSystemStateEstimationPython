@@ -209,7 +209,7 @@ dfcasos=pd.DataFrame(data={"TCSC":[-15],"SVC":[1],"UPFC_flow":[10],"UPFC_V":[2],
 
 #%%
 barras_mod=[4,5,12]
-per=0.01
+per=0.03
 
 
 
@@ -337,7 +337,7 @@ dconv_WLS={}
 dnits_MAP_SCADA={}
 dnits_MAP_PMU={}
 dnits_WLS={}
-N=10
+N=100
 
 dState_MAP_SCADA={}
 dStateFACTS_MAP_SCADA={}
