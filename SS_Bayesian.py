@@ -40,7 +40,7 @@ def create_x_z_priori(graph,dfDMED_sl_ant,ind_i,flag_PMU_teta_prx=0):
     return z_sl_ant,var_t,var_v,var_x,var_svc,var_UPFC,c_upfc
     
 
-def calc_priori(graph,dfDMED_sl_ant,dfDMED_sl_atual,indi):
+def calc_priori(graph,dfDMED_sl_ant,dfDMED_sl_atual,indi,lamb=1.0):
 
 
 
@@ -74,7 +74,7 @@ def calc_priori(graph,dfDMED_sl_ant,dfDMED_sl_atual,indi):
     Hx=np.concatenate((Htrad,HTCSC,HSVC,UPFC),axis=1)
     H=np.concatenate((Hx,C_UPFC),axis=0)
 
-    priori=prioriMAP(graph,var_x,var_svc,var_UPFC,flag_priori=1,H=H,W=W)
+    priori=prioriMAP(graph,var_x,var_svc,var_UPFC,flag_priori=1,H=H,W=W,lamb=lamb)
 
     return priori
 
@@ -593,8 +593,8 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
             
         gradWLS=-np.matmul(np.matmul(H.T,W),b)
 
-        k=1
-        gradMAP=gradWLS+k*priori.P_inv@dx_sl
+        
+        gradMAP=gradWLS+priori.P_inv@dx_sl
 
 
         try: 

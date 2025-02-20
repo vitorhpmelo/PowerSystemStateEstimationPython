@@ -4,9 +4,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+sys="IEEE14_rakp2009"
 
-dfErrorV=pd.read_csv("ErrorsV_loadvar3.csv")
-dfErrorFACTS=pd.read_csv("ErrorsFACTS_loadvar3.csv")
+caso="cargas1"
+ini="x1"
+medidasFACTS="SemMedidas"
+
+
+dfErrorV=pd.read_csv("state_"+sys+ini+medidasFACTS+caso+".csv",index_col=None)
+dfErrorFACTS=pd.read_csv("state_FACTS_"+sys+ini+medidasFACTS+caso+".csv",index_col=None)
 #%%
 
 
@@ -43,9 +49,9 @@ dfFACTS=pd.DataFrame(dFACTS)
 
 
 # %%
-dfV.to_csv("errosV_compilados4.csv",index=None)
-dfteta.to_csv("errosteta_compilados4.csv",index=None)
-dfFACTS.to_csv("errosFACTS_compilados4.csv",index=None)
+dfV.to_csv("errosV_compilados"+caso+".csv",index=None)
+dfteta.to_csv("errosteta_compilados"+caso+".csv",index=None)
+dfFACTS.to_csv("errosFACTS_compilados"+caso+".csv",index=None)
 
 
 #%%

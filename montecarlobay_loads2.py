@@ -14,6 +14,7 @@ from BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
 from SS_Bayesian import *
+from tqdm.notebook import tqdm
 
 
 def modifica_cargas(dfDBAR,barras_mod,namostras_PMUs,per=0.01,seed=100):
@@ -43,7 +44,8 @@ def modifica_cargas(dfDBAR,barras_mod,namostras_PMUs,per=0.01,seed=100):
     return dfDBARs
 
 
-def modifica_cargas_2(dfDBAR,barras_mod,namostras_PMUs,per=0.01,seed=100):
+def modifica_cargas_aleatorio(dfDBAR,barras_mod,namostras_PMUs,per=0.01,seed=100):
+    #modifica carga em um lista de barras relação ao último instante de temopo 
     np.random.seed(seed)
     dfDBARs={}
     for amostra in range(namostras_PMUs):
@@ -71,6 +73,35 @@ def modifica_cargas_2(dfDBAR,barras_mod,namostras_PMUs,per=0.01,seed=100):
                 uq=-2.5*sigmaq
             dfDBARs[amostra].loc[mask,"Pd"]=dfDBARs[amostra].loc[mask,"Pd"]+up
             dfDBARs[amostra].loc[mask,"Qd"]=dfDBARs[amostra].loc[mask,"Qd"]+uq
+    return dfDBARs
+
+
+def modifica_cargas_rampa(dfDBAR,barras_mod,namostras_PMUs,amostra_ini,delta,perP=0.01,perQ=0.01):
+    #modifica carga em um lista de barras relação ao último instante de temopo 
+    
+    dfDBARs={}
+
+
+
+    for amostra in range(namostras_PMUs):
+        if amostra==0:
+            dfDBARs[amostra]=dfDBAR.copy()
+        else:
+            dfDBARs[amostra]=dfDBARs[amostra-1].copy()
+
+        if (amostra > amostra_ini)& (amostra < amostra_ini+delta):
+
+            amostra_ini
+            for barra in barras_mod:
+                mask=dfDBARs[amostra]["id"]==barra
+
+                deltap=np.abs(dfDBARs[amostra_ini].loc[mask,"Pd"].values[0]*per)/delta
+                deltaq=np.abs(dfDBARs[amostra_ini].loc[mask,"Qd"].values[0]*per)/delta
+
+                dfDBARs[amostra].loc[mask,"Pd"]=dfDBARs[amostra-1].loc[mask,"Pd"]+deltap
+                dfDBARs[amostra].loc[mask,"Qd"]=dfDBARs[amostra-1].loc[mask,"Qd"]+deltaq
+
+
     return dfDBARs
 
 
@@ -124,7 +155,8 @@ def cria_setpoint_FACTS(graph,ramTCSC,busSVC,ramUPFC,namostras_PMUs,pertcsc,pers
 
 sys="IEEE14_rakp2009"
 measFACTS=False
-nome="loadvar4"
+nome="cargas1"
+lamb=1
 
 if measFACTS==True: #nomeclatura dos arquivos de entrada
     Meas="ComMedidas"
@@ -161,7 +193,7 @@ addUPFCingraph(graph,ramUPFC)
 #casos de compensação
 #tempo de simulação em segundos
 #%%
-t=6
+t=8
 ts_SCADA=2
 ts_PMU=0.1
 
@@ -181,7 +213,8 @@ per=0.01
 
 
 
-dfDBARs=modifica_cargas_2(dfDBAR,barras_mod,namostras_PMUs,per,seed=30)
+dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,namostras_PMUs,per)
+# dfDBARs=modifica_cargas_rampa(dfDBAR,barras_mod,namostras_PMUs,amostra_ini=25,delta=50,perP=0.30,perQ=0.30)
 #%%
 #%%
 #cria_setpointsFACTS
@@ -198,15 +231,11 @@ perupfc_vp=1
 
 #%%
 
-# lst=["1-14"]
-# s=25
-# for item in lst:
-#     for i in range(25,namostras_PMUs):
-#         tcsc_setpoint[item][i]=tcsc_setpoint[item][i]*1.1
+# for i in range(45,80): 
 
+#     tcsc_setpoint["1-14"][i]=tcsc_setpoint["1-14"][i]*1.05
 
-
-
+#%%
 
 xtcsc_ini=-0.01
 svc_ini=0.1
@@ -216,7 +245,7 @@ svc_ini=0.1
 
 dDMEDfps={}
 dState_ref={}
-dStateTCSC_ref={}
+dStateFACTS_ref={}
 amostras_convergidas=0
 for amostra in range(namostras_PMUs):
     for key ,tcsc in ramTCSC.items():
@@ -246,7 +275,7 @@ for amostra in range(namostras_PMUs):
         ram.update(ramTCSC)
         dDMEDfps[amostra]=save_DMED_fp(graph,ram,sys,ramUPFC)
         dState_ref[amostra]=get_state(graph)
-        dStateTCSC_ref[amostra]=get_state_FACTS(ramTCSC,busSVC,ramUPFC)
+        dStateFACTS_ref[amostra]=get_state_FACTS(ramTCSC,busSVC,ramUPFC)
 
 #%%
 dfSATES_ref=pd.DataFrame() #salva os valores de referência das variáveis de estado normais
@@ -258,14 +287,18 @@ for key,item in dState_ref.items():
     df["scenario"]=key
     dfSATES_ref=pd.concat([dfSATES_ref,df])
     
-for key,item in dStateTCSC_ref.items():
+for key,item in dStateFACTS_ref.items():
     df=item
     df["method"]="PF"
     df["scenario"]=key
     dfSATES_FACTS_ref=pd.concat([dfSATES_FACTS_ref,df])
+#%%
+dfSATES_ref.sort_values(by=["scenario","de","tipo"],ignore_index=True,inplace=True)
+dfSATES_FACTS_ref.sort_values(by=["scenario","de","tipo"],ignore_index=True,inplace=True)
 
-dfSATES_ref.to_csv("ResultadosPowerTech/state_ref"+sys+nome+".csv")
-dfSATES_FACTS_ref.to_csv("ResultadosPowerTech/state_FACTS_ref"+sys+nome+".csv")
+#%%
+dfSATES_ref.to_csv("ResultadosISGT/state_ref"+sys+nome+".csv")
+dfSATES_FACTS_ref.to_csv("ResultadosISGT/state_FACTS_ref"+sys+nome+".csv")
 
 #%%
 
@@ -275,7 +308,7 @@ if measFACTS==True:
     for ts in range(namostras_PMUs):
         prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.005,"PMU_Iinj":0.005,"PMUs_V":0.005}
         dfDMED=create_DMED(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[ts])
-        dfDMEDFACTs=create_DMED_FACTS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[idx])
+        dfDMEDFACTs=create_DMED_FACTS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[ts])
         dfDMEDsr=pd.concat([dfDMED.copy(),dfDMEDFACTs.copy()])
         dfDMEDs[ts]=dfDMEDsr.copy()
 else:
@@ -304,7 +337,7 @@ dconv_WLS={}
 dnits_MAP_SCADA={}
 dnits_MAP_PMU={}
 dnits_WLS={}
-N=5
+N=10
 
 dState_MAP_SCADA={}
 dStateFACTS_MAP_SCADA={}
@@ -322,10 +355,9 @@ dconv["nitsMAP_SCADA"]=[]
 dconv["nitsMAP_PMU"]=[]
 dconv["nitsWLS"]=[]
 dconv["caso"]=[]
+#%%
+for n in tqdm(range(N)): 
 
-for n in range(N): 
-
-    
     for ts in range(namostras_PMUs):
 
         if n==0:
@@ -366,33 +398,39 @@ for n in range(N):
             upfc.Vse_ini=V_se_ini
             upfc.tse_ini=t_se_ini
     
-        conv_WLS,nits_WLS,dfITsWLS=SS_WLS_FACTS_noBC(graph,dfDMED_WLSn,ind_i,printgrad=0,printres=1,printits=2,flatstart=2,tol=1e-6,tol2=1e-1)
+        conv_WLS,nits_WLS,dfITsWLS=SS_WLS_FACTS_noBC(graph,dfDMED_WLSn,ind_i,printgrad=0,printres=0,printits=2,flatstart=2,tol=1e-6,tol2=1e-1)
 
 
-        
+        if conv_WLS==0:
+            print("caso divergente")
+            exit()
+
         if conv_WLS==True:
-            dState_WLS[ts].append(get_state(graph,n))
-            dStateFACTS_WLS[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n))
+            dState_WLS[ts].append(get_state(graph,n,df_ref=dState_ref[ts]))
+            dStateFACTS_WLS[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n,df_ref=dStateFACTS_ref[ts]))
         
 
-        conv_MAP_SCADA,nits_MAP_SCADA,dfITsMAP_SCADA=SS_WLS_FACTS_noBC(graph,dfDMEDSCADAn,ind_i,flatstart=2,printres=0,printits=2,tol2=1e-1,tol=1e-6)
+        conv_MAP_SCADA,nits_MAP_SCADA,dfITsMAP_SCADA=SS_WLS_FACTS_noBC(graph,dfDMEDSCADAn,ind_i,printgrad=0,flatstart=2,printres=0,printits=2,tol2=1e-1,tol=1e-6)
         
+        if conv_MAP_SCADA==0:
+            print("caso divergente")
+            exit()
 
         if conv_MAP_SCADA==True:
-            dState_MAP_SCADA[ts].append(get_state(graph,n))
-            dStateFACTS_MAP_SCADA[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n))
+            dState_MAP_SCADA[ts].append(get_state(graph,n,df_ref=dState_ref[ts]))
+            dStateFACTS_MAP_SCADA[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n,df_ref=dStateFACTS_ref[ts]))
 
         if conv_MAP_SCADA==True:
-            priori=calc_priori(graph,dfDMEDSCADAn,dfDMEDPMUn,ind_i)
-            conv_MAP_PMU,nits_MAP_PMU,dfITsMAP_PMU=SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMUn,ind_i,tol2=7,tol=1e-6,flatstart=1,printres=1,printits=2)
+            priori=calc_priori(graph,dfDMEDSCADAn,dfDMEDPMUn,ind_i,lamb=lamb)
+            conv_MAP_PMU,nits_MAP_PMU,dfITsMAP_PMU=SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMUn,ind_i,tol2=7,tol=1e-6,flatstart=1,printres=0,printits=2,printgrad=0)
         else:
             conv_MAP_PMU=0
             nits_MAP_PMU=30
             dfITsMAP_PMU=pd.DataFrame()
             
         if conv_MAP_PMU==True:
-            dState_MAP_PMU[ts].append(get_state(graph,n))
-            dStateFACTS_MAP_PMU[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n))
+            dState_MAP_PMU[ts].append(get_state(graph,n,df_ref=dState_ref[ts]))
+            dStateFACTS_MAP_PMU[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n,df_ref=dStateFACTS_ref[ts]))
 
         
         dconv_WLS[ts].append(conv_WLS)
@@ -485,8 +523,12 @@ for key,item in dStateFACTS_MAP_PMU.items():
 
 #%%
 dfconv=pd.DataFrame(data=dconv)
-dfconv.to_csv("ResultadosPowerTech/resultados_conv_"+sys+str(cx)+Meas+nome+".csv")
+dfconv.to_csv("ResultadosISGT/resultados_conv_"+sys+str(cx)+Meas+nome+".csv")
 #%%
-dfSATES.to_csv("ResultadosPowerTech/state_"+sys+str(cx)+Meas+nome+".csv")
-dfSATES_FACTS.to_csv("ResultadosPowerTech/state_FACTS_"+sys+str(cx)+Meas+nome+".csv")
+dfSATES["error"]=np.abs(dfSATES["val"]-dfSATES["val_ref"])
+
+dfSATES.to_csv("ResultadosISGT/state_"+sys+str(cx)+Meas+nome+".csv")
+
+dfSATES_FACTS["error"]=np.abs(dfSATES_FACTS["val"]-dfSATES_FACTS["val_ref"])
+dfSATES_FACTS.to_csv("ResultadosISGT/state_FACTS_"+sys+str(cx)+Meas+nome+".csv")
 #%%

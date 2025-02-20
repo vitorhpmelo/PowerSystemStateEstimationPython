@@ -2,13 +2,15 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-dfV=pd.read_csv("errosV_compilados4.csv")
-dfteta=pd.read_csv("errosteta_compilados4.csv")
-dfFACTS=pd.read_csv("errosFACTS_compilados4.csv")
+caso="cargas1"
+
+dfV=pd.read_csv("errosV_compilados"+caso+".csv")
+dfteta=pd.read_csv("errosteta_compilados"+caso+".csv")
+dfFACTS=pd.read_csv("errosFACTS_compilados"+caso+".csv")
 #%%
 
 
-fig, ax = plt.subplots(nrows=1,ncols=3,figsize=(16,6))
+fig, ax = plt.subplots(nrows=1,ncols=3,figsize=(16,5))
 
 ax[0].set_xlabel("tempo (s)")
 ax[0].set_ylabel("MAE")
@@ -37,4 +39,8 @@ ax[2].semilogy(dfFACTS.index/10,dfFACTS.MAP_PMU,label="MAP PMU",ls=":")
 ax[0].legend()
 ax[1].legend()
 ax[2].legend()
+
+ax[0].grid()
+ax[1].grid()
+ax[2].grid()
 # %%

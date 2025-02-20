@@ -7,7 +7,10 @@ import scipy.sparse as sparse
 import numpy.linalg as liang
 import time as tm
 from networkcalc import *
+import copy as copy
 #file with the information of the libary
+
+
 
 def NormalEQ(H,W,dz,printcond=0,printmat=0):
     grad=np.matmul(np.matmul(H.T,W),dz)
@@ -108,7 +111,7 @@ def NormalEQ_MAP(H,W,gradMAP,P_inv,printcond=0,printmat=0):
     """
     
     
-    M=H.T@W@H+1*P_inv
+    M=H.T@W@H+P_inv
 
 
 
@@ -321,24 +324,40 @@ def fbacktracking(graph,dx,z,var_t,var_v,H,dz,W):
             print("backtrackin falhou")
         break
     
-def get_state(graph,sample="ref"):
+def get_state(graph,sample="ref",df_ref=pd.DataFrame()):
     d={}
     d["tipo"]=[]
     d["de"]=[]
     d["val"]=[]
     d["sample"]=[]
+    d["val_ref"]=[]
     for no in graph:
-        #v
-        d["tipo"].append("v")
-        d["de"].append(no.id)
-        d["val"].append(no.V)
-        d["sample"].append(sample)
         #teta
         d["tipo"].append("teta")
-        d["de"].append(no.id)
-        d["val"].append(no.teta)
-        d["sample"].append(sample)
+        d["de"].append(copy.deepcopy(no.id))
+        d["val"].append(copy.deepcopy(no.teta))
+        d["sample"].append(copy.deepcopy(sample))
+        #v
+        d["tipo"].append("v")
+        d["de"].append(copy.deepcopy(no.id))
+        d["val"].append(copy.deepcopy(no.V))
+        d["sample"].append(copy.deepcopy(sample))
+        if df_ref.empty:
+            d["val_ref"].append(np.nan)
+            d["val_ref"].append(np.nan)
+        else:
+            #teta
+            mask=(df_ref["tipo"]=="teta") & (df_ref["de"]==no.id)
+            val=df_ref.loc[mask,"val"].values[0]
+            d["val_ref"].append(val)
+            #v 
+            mask=(df_ref["tipo"]=="v") & (df_ref["de"]==no.id)
+            val=df_ref.loc[mask,"val"].values[0]
+            d["val_ref"].append(val)
+
+
     dfAns=pd.DataFrame(data=d)
+
     return dfAns
 
 
@@ -348,46 +367,82 @@ def get_state_TCSC(ramTCSC):
         x[key]=float(ram.xtcsc)
     return x
 
-def get_state_FACTS(TCSC={},svc={},UPFC={},sample="ref"):
+def get_state_FACTS(TCSC={},svc={},UPFC={},sample="ref",df_ref=pd.DataFrame()):
     d={}
     d["tipo"]=[]
     d["de"]=[]
     d["val"]=[]
     d["sample"]=[]
+    d["val_ref"]=[]
     if isinstance(TCSC,dict):
         for key,ram in TCSC.items():
             d["tipo"].append("x_tcsc")
-            d["de"].append(key)
-            d["val"].append(ram.xtcsc)
-            d["sample"].append(sample)
+            d["de"].append(copy.deepcopy(key))
+            d["val"].append(copy.deepcopy(ram.xtcsc))
+            d["sample"].append(copy.deepcopy(sample))
+            if df_ref.empty:
+                d["val_ref"].append(np.nan)
+            else:
+                mask=(df_ref["tipo"]=="x_tcsc") & (df_ref["de"]==key)
+                val=df_ref.loc[mask,"val"].values[0]
+                d["val_ref"].append(val)
+
     if isinstance(svc,dict):
         for key,s in svc.items():
             d["tipo"].append("B_svc")
-            d["de"].append(key)
-            d["val"].append(s.BSVC)
-            d["sample"].append(sample)
+            d["de"].append(copy.deepcopy(key))
+            d["val"].append(copy.deepcopy(s.BSVC))
+            d["sample"].append(copy.deepcopy(sample))
+            if df_ref.empty:
+                d["val_ref"].append(np.nan)
+            else:
+                mask=(df_ref["tipo"]=="B_svc") & (df_ref["de"]==key)
+                val=df_ref.loc[mask,"val"].values[0]
+                d["val_ref"].append(val)
     if isinstance(UPFC,dict):
         for key,u in UPFC.items():
             ##Vsh
             d["tipo"].append("UPFC_Vsh")
-            d["de"].append(key)
-            d["val"].append(u.Vsh)
-            d["sample"].append(sample)
+            d["de"].append(copy.deepcopy(key))
+            d["val"].append(copy.deepcopy(u.Vsh))
+            d["sample"].append(copy.deepcopy(sample))
             ##tsh
             d["tipo"].append("UPFC_tsh")
-            d["de"].append(key)
-            d["val"].append(u.t_sh)
-            d["sample"].append(sample)
+            d["de"].append(copy.deepcopy(key))
+            d["val"].append(copy.deepcopy(u.t_sh))
+            d["sample"].append(copy.deepcopy(sample))
             #vse
             d["tipo"].append("UPFC_Vse")
-            d["de"].append(key)
-            d["val"].append(u.Vse)
-            d["sample"].append(sample)
+            d["de"].append(copy.deepcopy(key))
+            d["val"].append(copy.deepcopy(u.Vse))
+            d["sample"].append(copy.deepcopy(sample))
             #tse
             d["tipo"].append("UPFC_tse")
-            d["de"].append(key)
-            d["val"].append(u.t_se)
-            d["sample"].append(sample)
+            d["de"].append(copy.deepcopy(key))
+            d["val"].append(copy.deepcopy(u.t_se))
+            d["sample"].append(copy.deepcopy(sample))
+
+            if df_ref.empty:
+                d["val_ref"].append(np.nan)
+                d["val_ref"].append(np.nan)
+                d["val_ref"].append(np.nan)
+                d["val_ref"].append(np.nan)
+            else:
+                mask=(df_ref["tipo"]=="UPFC_Vsh") & (df_ref["de"]==key)
+                val=df_ref.loc[mask,"val"].values[0]
+                d["val_ref"].append(val)
+
+                mask=(df_ref["tipo"]=="UPFC_tsh") & (df_ref["de"]==key)
+                val=df_ref.loc[mask,"val"].values[0]
+                d["val_ref"].append(val)
+
+                mask=(df_ref["tipo"]=="UPFC_Vse") & (df_ref["de"]==key)
+                val=df_ref.loc[mask,"val"].values[0]
+                d["val_ref"].append(val)
+
+                mask=(df_ref["tipo"]=="UPFC_tse") & (df_ref["de"]==key)
+                val=df_ref.loc[mask,"val"].values[0]
+                d["val_ref"].append(val)
 
     dfANS=pd.DataFrame(data=d)
     return dfANS

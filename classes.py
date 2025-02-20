@@ -2328,7 +2328,7 @@ class state():
 
 
 class prioriMAP():
-    def __init__(self,graph,var_tcsc={},var_svc={},var_UPFC={},flag_priori=0,H=[],W=[]) -> None:
+    def __init__(self,graph,var_tcsc={},var_svc={},var_UPFC={},flag_priori=0,H=[],W=[],lamb=1.0) -> None:
         self.flag_priori=flag_priori
         self.no=[]
         self.tcsc={}
@@ -2360,11 +2360,11 @@ class prioriMAP():
 
         self.H=H
         self.W=W
-        self.P_inv=self.H.T@self.W@self.H
+        self.P_inv=lamb*self.H.T@self.W@self.H
 
         Wmei_prio=np.diag(np.sqrt(np.diag(W)))
 
-        self.WmeiH=Wmei_prio@H
+        self.WmeiH=np.sqrt(k)*Wmei_prio@H
         
 
 
