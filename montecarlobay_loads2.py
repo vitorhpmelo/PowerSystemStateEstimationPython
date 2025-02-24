@@ -155,8 +155,9 @@ def cria_setpoint_FACTS(graph,ramTCSC,busSVC,ramUPFC,namostras_PMUs,pertcsc,pers
 
 sys="IEEE14_rakp2009"
 measFACTS=False
-nome="cargas1"
-lamb=1
+lamb=0.0001
+nome="cargas4"
+lamb=0.0001
 
 if measFACTS==True: #nomeclatura dos arquivos de entrada
     Meas="ComMedidas"

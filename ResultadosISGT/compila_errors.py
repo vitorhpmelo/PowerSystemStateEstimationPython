@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 sys="IEEE14_rakp2009"
 
-caso="cargas1"
+caso="cargas4"
 ini="x1"
 medidasFACTS="SemMedidas"
 
