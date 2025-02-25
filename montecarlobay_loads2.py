@@ -89,17 +89,42 @@ def modifica_cargas_rampa(dfDBAR,barras_mod,namostras_PMUs,amostra_ini,delta,per
         else:
             dfDBARs[amostra]=dfDBARs[amostra-1].copy()
 
-        if (amostra > amostra_ini)& (amostra < amostra_ini+delta):
+        if (amostra > amostra_ini)& (amostra <= amostra_ini+delta):
 
-            amostra_ini
             for barra in barras_mod:
                 mask=dfDBARs[amostra]["id"]==barra
 
-                deltap=np.abs(dfDBARs[amostra_ini].loc[mask,"Pd"].values[0]*per)/delta
-                deltaq=np.abs(dfDBARs[amostra_ini].loc[mask,"Qd"].values[0]*per)/delta
+                deltap=np.abs(dfDBARs[amostra_ini].loc[mask,"Pd"].values[0]*perP)/delta
+                deltaq=np.abs(dfDBARs[amostra_ini].loc[mask,"Qd"].values[0]*perQ)/delta
 
                 dfDBARs[amostra].loc[mask,"Pd"]=dfDBARs[amostra-1].loc[mask,"Pd"]+deltap
                 dfDBARs[amostra].loc[mask,"Qd"]=dfDBARs[amostra-1].loc[mask,"Qd"]+deltaq
+
+
+    return dfDBARs
+
+
+
+def modifica_cargas_rampa_existente(dfDBARs,barras_mod,namostras_PMUs,amostra_ini,delta,perP=0.01,perQ=0.01):
+    #modifica carga em um lista de barras relação ao último instante de temopo 
+
+
+    for amostra in range(namostras_PMUs):
+
+        
+    
+        if (amostra > amostra_ini)& (amostra <= amostra_ini+delta):
+
+            for barra in barras_mod:
+                mask=dfDBARs[amostra]["id"]==barra
+
+                deltap=np.abs(dfDBARs[amostra_ini].loc[mask,"Pd"].values[0]*perP)/delta
+                deltaq=np.abs(dfDBARs[amostra_ini].loc[mask,"Qd"].values[0]*perQ)/delta
+
+                dfDBARs[amostra].loc[mask,"Pd"]=dfDBARs[amostra-1].loc[mask,"Pd"]+deltap
+                dfDBARs[amostra].loc[mask,"Qd"]=dfDBARs[amostra-1].loc[mask,"Qd"]+deltaq
+        elif (amostra > amostra_ini+delta):
+            dfDBARs[amostra]=dfDBARs[amostra-1].copy()
 
 
     return dfDBARs
@@ -155,9 +180,8 @@ def cria_setpoint_FACTS(graph,ramTCSC,busSVC,ramUPFC,namostras_PMUs,pertcsc,pers
 
 sys="IEEE14_rakp2009"
 measFACTS=False
-lamb=0.0001
-nome="cargas4"
-lamb=0.0001
+nome="degrau4"
+lamb=0.001
 
 if measFACTS==True: #nomeclatura dos arquivos de entrada
     Meas="ComMedidas"
@@ -209,13 +233,21 @@ dfcasos=pd.DataFrame(data={"TCSC":[-15],"SVC":[1],"UPFC_flow":[10],"UPFC_V":[2],
 
 
 #%%
-barras_mod=[4,5,12]
+
 per=0.03
 
+# barras_mod=[4,5,12]
 
+# dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,namostras_PMUs,per)
 
-dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,namostras_PMUs,per)
-# dfDBARs=modifica_cargas_rampa(dfDBAR,barras_mod,namostras_PMUs,amostra_ini=25,delta=50,perP=0.30,perQ=0.30)
+barras_mod=[4]
+dfDBARs=modifica_cargas_rampa(dfDBAR,barras_mod,namostras_PMUs,amostra_ini=15,delta=1,perP=0.05,perQ=0.05)
+
+barras_mod=[5]
+dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,namostras_PMUs,amostra_ini=25,delta=1,perP=-0.10,perQ=-0.10)
+
+barras_mod=[12]
+dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,namostras_PMUs,amostra_ini=45,delta=1,perP=0.10,perQ=0.10)
 #%%
 #%%
 #cria_setpointsFACTS
@@ -357,6 +389,7 @@ dconv["nitsMAP_PMU"]=[]
 dconv["nitsWLS"]=[]
 dconv["caso"]=[]
 #%%
+print("Lambda {:f}".format(lamb))
 for n in tqdm(range(N)): 
 
     for ts in range(namostras_PMUs):
