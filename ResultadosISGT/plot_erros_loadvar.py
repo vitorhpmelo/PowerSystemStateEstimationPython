@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 
-casos_ler=["degrau"+str(i) for i in range(1,5)]
+casos_ler=["v2cargas"+str(i) for i in range(1,5)]
 #%%
 
 

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 sys="IEEE14_rakp2009"
 
-casos=["degrau"+str(i+1) for i in range(4)]
+casos=["v2cargas"+str(i+1) for i in range(4)]
 
 for caso in casos:
 
