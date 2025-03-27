@@ -4,9 +4,10 @@ import matplotlib.pyplot as plt
 
 
 
-casos_ler=["v2cargas"+str(i) for i in range(1,5)]
+# casos_ler=["v2facts"+str(i) for i in range(1,4)]
+# casos_ler=casos_ler+["v3cargas1"]
 #%%
-
+casos_ler=["v2cargas5","v2degrau5","v2rampa5","v2facts5"]
 
 #%%
 
@@ -14,7 +15,9 @@ dfV={}
 dfteta={}
 dfFACTS={}
 
-casos_plot=["caso"+str(i) for i in range(1,5)]
+casos_plot=["caso"+str(i) for i in range(1,4)]
+
+
 for i in range(len(casos_ler)):
     dfV[casos_plot[i]]=pd.read_csv("errosV_compilados"+casos_ler[i]+".csv")
     dfteta[casos_plot[i]]=pd.read_csv("errosteta_compilados"+casos_ler[i]+".csv")
@@ -46,7 +49,7 @@ ax[2].set_title("FACTS")
 ax[2].semilogy(dfFACTS["caso1"].index/10,dfFACTS["caso1"].WLS,label="WLS",ls=":",marker="s",zorder=2)
 
 
-marker=["d","x","o","+"]
+marker=["d","x","o","+","X"]
 
 dmark={}
 i=0
@@ -72,5 +75,6 @@ ax[1].grid()
 ax[2].grid()
 
 fig.tight_layout()
+
 
 # %%

@@ -187,8 +187,8 @@ def get_var_loads(dfDBARs,n_simulacoes,barras_mod):
 
 sys="IEEE14_rakp2009"
 measFACTS=False
-nome="v2cargas1"
-lamb=1
+nome="v3facts5"
+lamb=0.01
 
 if measFACTS==True: #nomeclatura dos arquivos de entrada
     Meas="ComMedidas"
@@ -246,30 +246,35 @@ dfcasos=pd.DataFrame(data={"TCSC":[-15],"SVC":[1],"UPFC_flow":[10],"UPFC_V":[2],
 
 #%%
 
-per=0.03
+per=0.01
 
 barras_mod=[4,5,12]
 
-dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per,seed=160)
+dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per,seed=120) #loads and facts
+# dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per,seed=160) #loads var only
 
 #%%
-loads_P,loads_Q=get_var_loads(dfDBARs,n_simulacoes,barras_mod)
+# loads_P,loads_Q=get_var_loads(dfDBARs,n_simulacoes,barras_mod)
 
-plt.plot(loads_P[4])
+# plt.plot(loads_P[4])
 
 #%%
 # barras_mod=[4]
 # amostrain=1.5/ts_simu
-# dfDBARs=modifica_cargas_rampa(dfDBAR,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=1,perP=0.05,perQ=0.05)
+# delta=1
+# #%%
+# dfDBARs=modifica_cargas_rampa(dfDBAR,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=0.05,perQ=0.05)
 
 # barras_mod=[5]
 # amostrain=2.5/ts_simu
-# dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=1,perP=-0.10,perQ=-0.10)
+# delta=2
+# dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=-0.10,perQ=-0.10)
 
 # barras_mod=[12]
 # amostrain=4.5/ts_simu
-# dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=1,perP=0.10,perQ=0.10)
-#%%
+# delta=2
+# dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=0.15,perQ=0.15)
+# #%%
 #%%
 #cria_setpointsFACTS
 
@@ -285,11 +290,11 @@ perupfc_vp=1
 
 #%%
 
-# for i in range(2*45,2*80): 
+for i in range(2*45,2*80): 
 
-#     tcsc_setpoint["1-14"][i]=tcsc_setpoint["1-14"][i]*1.05
+    tcsc_setpoint["1-14"][i]=tcsc_setpoint["1-14"][i]*1.05
 
-#%%
+
 
 xtcsc_ini=-0.01
 svc_ini=0.1
@@ -377,7 +382,7 @@ prec_LIM=0.007
 
 
 #%%
-TCSCini=-0.05
+TCSCini=-0.01
 Bini=0.1
 V_sh_ini=1.0
 t_sh_ini=0
@@ -423,8 +428,12 @@ simulacoes.sort()
 #%%
 print("Lambda {:f}".format(lamb))
 
+# namostras= int(ts_SCADA/ts_PMU)
 
+# lamdas= np.linspace(0.5,0.005,namostras)
 
+#%%
+cont=0
 for n in tqdm(range(N)): 
 
     for ts in simulacoes:
@@ -436,10 +445,13 @@ for n in tqdm(range(N)):
 
         if ts in amostras_SCADA:
             dfDMEDSCADAn=dfDEMEDruido[(dfDEMEDruido["prec"]>prec_LIM)].copy()
+            cont=0
             continue
         elif ts in amostras_PMU:
             dfDMEDPMUn=dfDEMEDruido[(dfDEMEDruido["prec"]<prec_LIM)].copy()
 
+        # lamb=lamdas[cont]
+        cont=cont+1
         if n==0:
             dconv_MAP_SCADA[ts]=[]
             dconv_MAP_PMU[ts]=[]

@@ -6,7 +6,12 @@ import matplotlib.pyplot as plt
 
 sys="IEEE14_rakp2009"
 
-casos=["v2cargas"+str(i+1) for i in range(4)]
+# casos=["v2facts"+str(i+1) for i in range(3)]
+
+# casos=["v2cargas5","v2degrau5","v2rampa5","v2facts5"]
+
+casos=["v3facts5"]
+
 
 for caso in casos:
 
