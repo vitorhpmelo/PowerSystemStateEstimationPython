@@ -10,7 +10,7 @@ sys="IEEE14_rakp2009"
 
 # casos=["v2cargas5","v2degrau5","v2rampa5","v2facts5"]
 
-casos=["v3facts5"]
+casos=["loadvar_sudden"]
 
 
 for caso in casos:

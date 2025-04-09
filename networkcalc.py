@@ -260,7 +260,7 @@ def FACTSini(graph,useDFACTS=1):
                     no.bUFPC_adjk[key].Vsh=1.00
                     no.bUFPC_adjk[key].t_se=-90/np.pi()
                     no.bUFPC_adjk[key].t_sh=0
-    if useDFACTS==1:
+    elif useDFACTS==1:
         for no in graph:
             if no.FlagTCSC==1:
                 for  key in no.bFACTS_adjk.keys():
@@ -279,6 +279,8 @@ def FACTSini(graph,useDFACTS=1):
                     no.bUFPC_adjk[key].Vsh=no.bUFPC_adjk[key].Vsh_ini
                     no.bUFPC_adjk[key].t_se=no.bUFPC_adjk[key].t_se_ini
                     no.bUFPC_adjk[key].t_sh=no.bUFPC_adjk[key].t_sh_ini
+    elif useDFACTS == 6:
+        pass
 
 
 def FACTSini_Btcsc(graph,useDFACTS=1):
@@ -2275,9 +2277,9 @@ def create_W(z,prec_virtual=1e-5,flag_ones=0):
         min_sigma=1000
         for item in z:
             if isinstance(item,meas):
-                if (item.sigma<min_sigma) & (item.val>0):
+                if (item.sigma<min_sigma) & (np.abs(item.val)>1e6):
                     min_sigma=item.sigma
-        prec_virtual= 0.01*min_sigma
+        prec_virtual= 0.1*min_sigma
         W=np.zeros((len(z),len(z)))
         i=0
         for item in z:

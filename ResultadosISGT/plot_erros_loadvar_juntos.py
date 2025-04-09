@@ -2,7 +2,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-caso="cargas4"
+caso="loadvar"
 
 dfV=pd.read_csv("errosV_compilados"+caso+".csv")
 

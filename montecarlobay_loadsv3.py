@@ -19,32 +19,6 @@ from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
 
 
-def modifica_cargas(dfDBAR,barras_mod,namostras_PMUs,per=0.01,seed=100):
-    np.random.seed(seed)
-    dfDBARs={}
-    for amostra in range(namostras_PMUs):
-        dfDBARs[amostra]=dfDBAR.copy()
-        for barra in barras_mod:
-            mask=dfDBARs[amostra]["id"]==barra
-
-            sigmap=np.abs(dfDBARs[amostra].loc[mask,"Pd"].values[0]*per)
-            sigmaq=np.abs(dfDBARs[amostra].loc[mask,"Qd"].values[0]*per)
-
-            up=np.random.normal(0,sigmap)
-            uq=np.random.normal(0,sigmaq)
-            if  up > 2.5*sigmap:
-                up=2.5*sigmap
-            elif up < -2.5*sigmap:
-                up=-2.5*sigmap
-
-            if  uq > 2.5*sigmaq:
-                uq=2.5*sigmaq
-            elif uq < -2.5*sigmaq:
-                uq=-2.5*sigmaq
-            dfDBARs[amostra].loc[mask,"Pd"]=dfDBARs[amostra].loc[mask,"Pd"]+up
-            dfDBARs[amostra].loc[mask,"Qd"]=dfDBARs[amostra].loc[mask,"Qd"]+uq
-    return dfDBARs
-
 
 def modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per=0.01,seed=100):
     #modifica carga em um lista de barras relação ao último instante de temopo 
@@ -187,8 +161,9 @@ def get_var_loads(dfDBARs,n_simulacoes,barras_mod):
 
 sys="IEEE14_rakp2009"
 measFACTS=False
-nome="v3facts5"
-lamb=0.01
+file="SE_data/"
+nome="loadvar_sudden3"
+lamb=0.001
 
 if measFACTS==True: #nomeclatura dos arquivos de entrada
     Meas="ComMedidas"
@@ -218,10 +193,6 @@ addSVCingraph(graph,busSVC)
 addUPFCingraph(graph,ramUPFC)
 
 
-#%% Guarda os Set points originais do ramo, para calcular o percentual em relação a eles
-
-
-
 #casos de compensação
 #tempo de simulação em segundos
 #%%
@@ -246,35 +217,29 @@ dfcasos=pd.DataFrame(data={"TCSC":[-15],"SVC":[1],"UPFC_flow":[10],"UPFC_V":[2],
 
 #%%
 
-per=0.01
+per=0.005
 
-barras_mod=[4,5,12]
+barras_mod=[3,
+4,
+5,
+6,
+9,
+10,
+11,
+12,
+13,
+14]
 
-dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per,seed=120) #loads and facts
+dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per,seed=10) #loads and facts
 # dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per,seed=160) #loads var only
 
 #%%
-# loads_P,loads_Q=get_var_loads(dfDBARs,n_simulacoes,barras_mod)
 
-# plt.plot(loads_P[4])
-
+barras_mod=[4]
+amostrain=1.5/ts_simu
+delta=2
+dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=0.10,perQ=0.10)
 #%%
-# barras_mod=[4]
-# amostrain=1.5/ts_simu
-# delta=1
-# #%%
-# dfDBARs=modifica_cargas_rampa(dfDBAR,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=0.05,perQ=0.05)
-
-# barras_mod=[5]
-# amostrain=2.5/ts_simu
-# delta=2
-# dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=-0.10,perQ=-0.10)
-
-# barras_mod=[12]
-# amostrain=4.5/ts_simu
-# delta=2
-# dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=0.15,perQ=0.15)
-# #%%
 #%%
 #cria_setpointsFACTS
 
@@ -290,10 +255,20 @@ perupfc_vp=1
 
 #%%
 
-for i in range(2*45,2*80): 
 
-    tcsc_setpoint["1-14"][i]=tcsc_setpoint["1-14"][i]*1.05
 
+
+for i in range(2*35,2*80): 
+    svc_setpoint[2][i]=svc_setpoint[2][i]*1.02
+
+
+for i in range(2*50,2*80): 
+    tcsc_setpoint["1-14"][i]=tcsc_setpoint["1-14"][i]*1.02
+
+
+for i in range(2*70,2*80):
+    upfcs_Vp_setpoint["5-15"][i]=upfcs_Vp_setpoint["5-15"][i]*1.02
+    
 
 
 xtcsc_ini=-0.01
@@ -356,8 +331,7 @@ dfSATES_ref.sort_values(by=["scenario","de","tipo"],ignore_index=True,inplace=Tr
 dfSATES_FACTS_ref.sort_values(by=["scenario","de","tipo"],ignore_index=True,inplace=True)
 
 #%%
-dfSATES_ref.to_csv("ResultadosISGT/state_ref"+sys+nome+".csv")
-dfSATES_FACTS_ref.to_csv("ResultadosISGT/state_FACTS_ref"+sys+nome+".csv")
+
 
 #%%
 
@@ -433,6 +407,7 @@ print("Lambda {:f}".format(lamb))
 # lamdas= np.linspace(0.5,0.005,namostras)
 
 #%%
+np.random.seed(1)
 cont=0
 for n in tqdm(range(N)): 
 
@@ -441,7 +416,7 @@ for n in tqdm(range(N)):
 
 
         dfDMEDatual=dfDMEDs[ts].copy()
-        dfDEMEDruido=insert_res(dfDMEDatual,ts*n)
+        dfDEMEDruido=insert_res(dfDMEDatual)
 
         if ts in amostras_SCADA:
             dfDMEDSCADAn=dfDEMEDruido[(dfDEMEDruido["prec"]>prec_LIM)].copy()
@@ -484,7 +459,7 @@ for n in tqdm(range(N)):
 
         if conv_WLS==0:
             print("caso divergente")
-            exit()
+
 
         if conv_WLS==True:
             dState_WLS[ts].append(get_state(graph,n,df_ref=dState_ref[ts]))
@@ -495,16 +470,17 @@ for n in tqdm(range(N)):
         
         if conv_MAP_SCADA==0:
             print("caso divergente")
-            exit()
+
 
         if conv_MAP_SCADA==True:
             dState_MAP_SCADA[ts].append(get_state(graph,n,df_ref=dState_ref[ts]))
             dStateFACTS_MAP_SCADA[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n,df_ref=dStateFACTS_ref[ts]))
-
+        
         if conv_MAP_SCADA==True:
             priori=calc_priori(graph,dfDMEDSCADAn,dfDMEDPMUn,ind_i,lamb=lamb)
             conv_MAP_PMU,nits_MAP_PMU,dfITsMAP_PMU=SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMUn,ind_i,tol2=7,tol=1e-6,flatstart=1,printres=0,printits=2,printgrad=0)
         else:
+            print("divergencia no MAP PMU")
             conv_MAP_PMU=0
             nits_MAP_PMU=30
             dfITsMAP_PMU=pd.DataFrame()
@@ -604,12 +580,12 @@ for key,item in dStateFACTS_MAP_PMU.items():
 
 #%%
 dfconv=pd.DataFrame(data=dconv)
-dfconv.to_csv("ResultadosISGT/resultados_conv_"+sys+str(cx)+Meas+nome+".csv")
+dfconv.to_csv("ResultadosISGT/"+file+"resultados_conv_"+sys+str(cx)+Meas+nome+".csv")
 #%%
 dfSATES["error"]=np.abs(dfSATES["val"]-dfSATES["val_ref"])
 
-dfSATES.to_csv("ResultadosISGT/state_"+sys+str(cx)+Meas+nome+".csv")
+dfSATES.to_csv("ResultadosISGT/"+file+"state_"+sys+str(cx)+Meas+nome+".csv")
 
 dfSATES_FACTS["error"]=np.abs(dfSATES_FACTS["val"]-dfSATES_FACTS["val_ref"])
-dfSATES_FACTS.to_csv("ResultadosISGT/state_FACTS_"+sys+str(cx)+Meas+nome+".csv")
+dfSATES_FACTS.to_csv("ResultadosISGT/"+file+"state_FACTS_"+sys+str(cx)+Meas+nome+".csv")
 #%%

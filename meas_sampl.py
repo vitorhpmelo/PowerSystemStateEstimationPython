@@ -284,12 +284,12 @@ def create_DMED(sys,prec,graph,ram,dUPFC={},dfDMEDfp=pd.DataFrame()):
     dfDMED=pd.concat([dfPISCADA,dfIPSM,dfPSEUDO,dfVirtuais,dfPFSCADA,dfFPSM,dfVSCADA,dfVSM,dfIfPMU,dfIinjPMU,dfVPMU])
     return dfDMED
 
-def insert_res(dfDMEDsr,N=100):
+def insert_res(dfDMEDsr):
     """
     Inserts gaussian noise in the measurement set, with variance according with the 
     precision and the magnitude of the measurement.
     """
-    # np.random.seed(N)
+
     e=np.random.normal(size=(len(dfDMEDsr)))
     for i in range(len(e)):
         if e[i]>2.5:

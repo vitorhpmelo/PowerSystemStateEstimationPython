@@ -695,7 +695,7 @@ def SS_WLS_FACTS(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=
 
     return conv
 
-def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1,useDFACTS=1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -713,7 +713,9 @@ def SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vir
     '''
     conv=0
     c1=1e-4 #constant for backintracking
-    FACTSini(graph)
+
+
+    FACTSini(graph,useDFACTS=useDFACTS)
 
     Vinici(graph,flatStart=flatstart,dfDMED=dfDMED,ind_i=ind_i)
 
