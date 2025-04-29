@@ -96,8 +96,6 @@ def modifica_cargas_rampa_existente(dfDBARs,barras_mod,namostras_PMUs,amostra_in
 
                 dfDBARs[amostra].loc[mask,"Pd"]=dfDBARs[amostra-1].loc[mask,"Pd"]+deltap
                 dfDBARs[amostra].loc[mask,"Qd"]=dfDBARs[amostra-1].loc[mask,"Qd"]+deltaq
-        elif (amostra > amostra_ini+delta):
-            dfDBARs[amostra]=dfDBARs[amostra-1].copy()
 
 
     return dfDBARs
@@ -231,6 +229,8 @@ barras_mod=[3,
 14]
 
 dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per,seed=10) #loads and facts
+
+
 # dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per,seed=160) #loads var only
 
 #%%
@@ -240,6 +240,12 @@ amostrain=1.5/ts_simu
 delta=2
 dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=0.10,perQ=0.10)
 #%%
+#%%
+loads_P,loads_Q=get_var_loads(dfDBARs,n_simulacoes,[5])
+
+plt.plot(loads_P[5])
+#%%
+# plt.ylim(ymin=44,ymax=51)
 #%%
 #cria_setpointsFACTS
 

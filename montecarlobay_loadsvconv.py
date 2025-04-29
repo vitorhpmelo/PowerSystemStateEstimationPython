@@ -188,8 +188,9 @@ def get_var_loads(dfDBARs,n_simulacoes,barras_mod):
 
 sys="IEEE14_rakp2009"
 measFACTS=False
+file="ResultadosISGT/SE_data/"
 nome="v3facts5"
-lamb=0.01
+lamb=0.001
 
 if measFACTS==True: #nomeclatura dos arquivos de entrada
     Meas="ComMedidas"
@@ -249,33 +250,37 @@ dfcasos=pd.DataFrame(data={"TCSC":[-15],"SVC":[1],"UPFC_flow":[10],"UPFC_V":[2],
 
 per=0.01
 
-barras_mod=[4,5,12]
+per=0.005
 
-dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per,seed=120) #loads and facts
+barras_mod=[3,
+4,
+5,
+6,
+9,
+10,
+11,
+12,
+13,
+14]
+
+dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per,seed=10) #loads and facts
+
+
 # dfDBARs=modifica_cargas_aleatorio(dfDBAR,barras_mod,n_simulacoes,per,seed=160) #loads var only
 
 #%%
-# loads_P,loads_Q=get_var_loads(dfDBARs,n_simulacoes,barras_mod)
 
-# plt.plot(loads_P[4])
-
+barras_mod=[4]
+amostrain=1.5/ts_simu
+delta=2
+dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=0.10,perQ=0.10)
 #%%
-# barras_mod=[4]
-# amostrain=1.5/ts_simu
-# delta=1
-# #%%
-# dfDBARs=modifica_cargas_rampa(dfDBAR,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=0.05,perQ=0.05)
+#%%
+loads_P,loads_Q=get_var_loads(dfDBARs,n_simulacoes,[5])
 
-# barras_mod=[5]
-# amostrain=2.5/ts_simu
-# delta=2
-# dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=-0.10,perQ=-0.10)
-
-# barras_mod=[12]
-# amostrain=4.5/ts_simu
-# delta=2
-# dfDBARs=modifica_cargas_rampa_existente(dfDBARs,barras_mod,n_simulacoes,amostra_ini=amostrain,delta=delta,perP=0.15,perQ=0.15)
-# #%%
+plt.plot(loads_P[5])
+#%%
+# plt.ylim(ymin=44,ymax=51)
 #%%
 #cria_setpointsFACTS
 
@@ -291,11 +296,20 @@ perupfc_vp=1
 
 #%%
 
-for i in range(2*45,2*80): 
-
-    tcsc_setpoint["1-14"][i]=tcsc_setpoint["1-14"][i]*1.05
 
 
+
+for i in range(2*35,2*80): 
+    svc_setpoint[2][i]=svc_setpoint[2][i]*1.02
+
+
+for i in range(2*50,2*80): 
+    tcsc_setpoint["1-14"][i]=tcsc_setpoint["1-14"][i]*1.02
+
+
+for i in range(2*70,2*80):
+    upfcs_Vp_setpoint["5-15"][i]=upfcs_Vp_setpoint["5-15"][i]*1.02
+    
 
 xtcsc_ini=-0.01
 svc_ini=0.1
@@ -397,7 +411,7 @@ dconv_WLS={}
 dnits_MAP_SCADA={}
 dnits_MAP_PMU={}
 dnits_WLS={}
-N=1
+N=100
 
 dState_MAP_SCADA={}
 dStateFACTS_MAP_SCADA={}
@@ -439,6 +453,9 @@ print("Lambda {:f}".format(lamb))
 # namostras= int(ts_SCADA/ts_PMU)
 
 # lamdas= np.linspace(0.5,0.005,namostras)
+
+flat_start=2
+useDFACTS=1
 
 #%%
 np.random.seed(100)
@@ -490,31 +507,31 @@ for n in tqdm(range(N)):
 
         
         
-        if cont_ts==-1:
-            flat_start=2
-            useDFACTS=1
-        else:
-            flat_start=6
-            useDFACTS=6
-            for idx, row in dState_WLS[cont_ts][n].iterrows():
-                no=int(row["de"])
-                if row["tipo"]=="v":
-                    graph[no].V=row["val"] 
-                elif row["tipo"]=="teta":
-                    graph[no].teta=row["val"] 
-            for idx, row in dStateFACTS_WLS[cont_ts][n].iterrows():
-                if row["tipo"]=="x_tcsc":
-                    ramTCSC[row["de"]].xtcsc=row["val"]
-                elif row["tipo"]=="B_svc":
-                    busSVC[row["de"]].BSVC=row["val"]
-                elif row["tipo"]=="UPFC_Vsh":
-                    ramUPFC[row["de"]].Vsh=row["val"]
-                elif row["tipo"]=="UPFC_Vse":
-                    ramUPFC[row["de"]].Vse=row["val"]
-                elif row["tipo"]=="UPFC_tse":
-                    ramUPFC[row["de"]].t_se=row["val"]
-                elif row["tipo"]=="UPFC_tsh":
-                    ramUPFC[row["de"]].t_sh=row["val"]
+        # if cont_ts==-1:
+        #     flat_start=2
+        #     useDFACTS=1
+        # else:
+        #     flat_start=6
+        #     useDFACTS=6
+        #     for idx, row in dState_WLS[cont_ts][n].iterrows():
+        #         no=int(row["de"])
+        #         if row["tipo"]=="v":
+        #             graph[no].V=row["val"] 
+        #         elif row["tipo"]=="teta":
+        #             graph[no].teta=row["val"] 
+        #     for idx, row in dStateFACTS_WLS[cont_ts][n].iterrows():
+        #         if row["tipo"]=="x_tcsc":
+        #             ramTCSC[row["de"]].xtcsc=row["val"]
+        #         elif row["tipo"]=="B_svc":
+        #             busSVC[row["de"]].BSVC=row["val"]
+        #         elif row["tipo"]=="UPFC_Vsh":
+        #             ramUPFC[row["de"]].Vsh=row["val"]
+        #         elif row["tipo"]=="UPFC_Vse":
+        #             ramUPFC[row["de"]].Vse=row["val"]
+        #         elif row["tipo"]=="UPFC_tse":
+        #             ramUPFC[row["de"]].t_se=row["val"]
+        #         elif row["tipo"]=="UPFC_tsh":
+        #             ramUPFC[row["de"]].t_sh=row["val"]
 
 
         
@@ -602,70 +619,25 @@ for n in tqdm(range(N)):
 dfConvs=pd.DataFrame(dconv)
 dftime=pd.DataFrame(d_time)
 # %%
+dfConvs.to_csv(file+"dconvs.csv")
+dftime.to_csv(file+"dtime.csv")
+# %%
+print(np.mean(dfConvs["nitsMAP_SCADA"]))
+print(np.mean(dfConvs["nitsMAP_PMU"]))
+print(np.mean(dfConvs["nitsWLS"]))
 
-
-dfSATES=pd.DataFrame()
-dfSATES_FACTS=pd.DataFrame()
-
-
-#%%
-
-
-for key,item in dState_WLS.items():
-    if len(item)>0:
-        df=pd.concat(item)
-        df["method"]="WLS"
-        df["scenario"]=key
-        dfSATES=pd.concat([dfSATES,df])
-        
-for key,item in dStateFACTS_WLS.items():
-    if len(item)>0:
-        df=pd.concat(item)
-        df["method"]="WLS"
-        df["scenario"]=key
-        dfSATES_FACTS=pd.concat([dfSATES_FACTS,df])
-
-for key,item in dState_MAP_SCADA.items():
-    if len(item)>0:
-        df=pd.concat(item)
-        df["method"]="MAP_SCADA"
-        df["scenario"]=key
-        
-        dfSATES=pd.concat([dfSATES,df])
-
-for key,item in dStateFACTS_MAP_SCADA.items():
-    if len(item)>0:
-        df=pd.concat(item)
-        df["method"]="MAP_SCADA"
-        df["scenario"]=key
-        dfSATES_FACTS=pd.concat([dfSATES_FACTS,df])
-
-
-for key,item in dState_MAP_PMU.items():
-    if len(item)>0:
-        df=pd.concat(item)
-        df["method"]="MAP_PMU"
-        df["scenario"]=key
-        dfSATES=pd.concat([dfSATES,df])
-
-
-for key,item in dStateFACTS_MAP_PMU.items():
-    if len(item)>0:
-        df=pd.concat(item)
-        df["method"]="MAP_PMU"
-        df["scenario"]=key
-        dfSATES_FACTS=pd.concat([dfSATES_FACTS,df])
+print(np.std(dfConvs["nitsMAP_SCADA"]))
+print(np.std(dfConvs["nitsMAP_PMU"]))
+print(np.std(dfConvs["nitsWLS"]))
 
 
 
-#%%
-dfconv=pd.DataFrame(data=dconv)
-dfconv.to_csv("ResultadosISGT/resultados_conv_"+sys+str(cx)+Meas+nome+".csv")
-#%%
-dfSATES["error"]=np.abs(dfSATES["val"]-dfSATES["val_ref"])
+print(np.mean(dftime["t_MAP_SCADA"]))
+print(np.mean(dftime["t_MAP_PMU"]))
+print(np.mean(dftime["t_WLS"]))
 
-dfSATES.to_csv("ResultadosISGT/state_"+sys+str(cx)+Meas+nome+".csv")
+print(np.std(dftime["t_MAP_SCADA"]))
+print(np.std(dftime["t_MAP_PMU"]))
+print(np.std(dftime["t_WLS"]))
 
-dfSATES_FACTS["error"]=np.abs(dfSATES_FACTS["val"]-dfSATES_FACTS["val_ref"])
-dfSATES_FACTS.to_csv("ResultadosISGT/state_FACTS_"+sys+str(cx)+Meas+nome+".csv")
-#%%
+# %%
