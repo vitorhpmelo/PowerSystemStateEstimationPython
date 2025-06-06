@@ -3,221 +3,221 @@ import numpy as np
 from networkcalc import *
 
 
-def create_dfmeasTCSC(dfDMEDfp,lstTCSC):
+def create_dfmeasTCSC(dfDMEASpf,lstTCSC):
     """
-    function to filter the TCSC measurements in the dfDMEDfp given the branches in the
-    lstFP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    function to filter the TCSC measurements in the dfDMEASpf given the branches in the
+    lstFP. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lstFP: list with the branches with that type of measurement
     @return: dfFLOW: pandas dataframe with the measurements filterd
     """
     dfTCSC=pd.DataFrame()
 
     if len(lstTCSC)<1:
-        return dfDMEDfp[dfDMEDfp['type']==-1]
+        return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstTCSC:
-        [de,para]=item.split("-")
-        dfTCSC=pd.concat([dfTCSC,dfDMEDfp[((dfDMEDfp["type"]==10)) &(dfDMEDfp["de"]==int(de)) & (dfDMEDfp["para"]==int(para))]])
+        [fr,to]=item.split("-")
+        dfTCSC=pd.concat([dfTCSC,dfDMEASpf[((dfDMEASpf["type"]==10)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfTCSC
 
 
 
-def create_dfmeasUPFCVsh(dfDMEDfp,lstUPFC):
+def create_dfmeasUPFCVsh(dfDMEASpf,lstUPFC):
     """
-    function to filter the UPFC Vsh measurements in the dfDMEDfp given the branches in the
-    lstFP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    function to filter the UPFC Vsh measurements in the dfDMEASpf given the branches in the
+    lstFP. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lstUPFC: list with the branches with that type of measurement
     @return: dfmeasUPFCVsh: pandas dataframe with the measurements filterd
     """
     dfmeasUPFCVsh=pd.DataFrame()
 
     if len(lstUPFC)<1:
-        return dfDMEDfp[dfDMEDfp['type']==-1]
+        return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstUPFC:
-        [de,para]=item.split("-")
-        dfmeasUPFCVsh=pd.concat([dfmeasUPFCVsh,dfDMEDfp[((dfDMEDfp["type"]==12)) &(dfDMEDfp["de"]==int(de)) & (dfDMEDfp["para"]==int(para))]])
+        [fr,to]=item.split("-")
+        dfmeasUPFCVsh=pd.concat([dfmeasUPFCVsh,dfDMEASpf[((dfDMEASpf["type"]==12)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfmeasUPFCVsh
 
 
 
-def create_dfmeasUPFCtsh(dfDMEDfp,lstUPFC):
+def create_dfmeasUPFCtsh(dfDMEASpf,lstUPFC):
     """
-    function to filter the UPFC tsh measurements in the dfDMEDfp given the branches in the
-    lstFP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    function to filter the UPFC tsh measurements in the dfDMEASpf given the branches in the
+    lstFP. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lstUPFC: list with the branches with that type of measurement
     @return: dfmeasUPFCtsh: pandas dataframe with the measurements filterd
     """
     dfmeasUPFCtsh=pd.DataFrame()
 
     if len(lstUPFC)<1:
-        return dfDMEDfp[dfDMEDfp['type']==-1]
+        return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstUPFC:
-        [de,para]=item.split("-")
-        dfmeasUPFCtsh=pd.concat([dfmeasUPFCtsh,dfDMEDfp[((dfDMEDfp["type"]==13)) &(dfDMEDfp["de"]==int(de)) & (dfDMEDfp["para"]==int(para))]])
+        [fr,to]=item.split("-")
+        dfmeasUPFCtsh=pd.concat([dfmeasUPFCtsh,dfDMEASpf[((dfDMEASpf["type"]==13)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfmeasUPFCtsh
 
-def create_dfmeasUPFCVse(dfDMEDfp,lstUPFC):
+def create_dfmeasUPFCVse(dfDMEASpf,lstUPFC):
     """
-    function to filter the UPFC Vse measurements in the dfDMEDfp given the branches in the
-    lstFP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    function to filter the UPFC Vse measurements in the dfDMEASpf given the branches in the
+    lstFP. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lstUPFC: list with the branches with that type of measurement
     @return: dfmeasUPFCVse: pandas dataframe with the measurements filterd
     """
     dfmeasUPFCVse=pd.DataFrame()
 
     if len(lstUPFC)<1:
-        return dfDMEDfp[dfDMEDfp['type']==-1]
+        return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstUPFC:
-        [de,para]=item.split("-")
-        dfmeasUPFCVse=pd.concat([dfmeasUPFCVse,dfDMEDfp[((dfDMEDfp["type"]==14)) &(dfDMEDfp["de"]==int(de)) & (dfDMEDfp["para"]==int(para))]])
+        [fr,to]=item.split("-")
+        dfmeasUPFCVse=pd.concat([dfmeasUPFCVse,dfDMEASpf[((dfDMEASpf["type"]==14)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfmeasUPFCVse
 
-def create_dfmeasUPFCtse(dfDMEDfp,lstUPFC):
+def create_dfmeasUPFCtse(dfDMEASpf,lstUPFC):
     """
-    function to filter the UPFC tse measurements in the dfDMEDfp given the branches in the
-    lstFP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    function to filter the UPFC tse measurements in the dfDMEASpf given the branches in the
+    lstFP. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lstUPFC: list with the branches with that type of measurement
     @return: create_dfmeasUPFCtse: pandas dataframe with the measurements filterd
     """
     dfmeasUPFCVse=pd.DataFrame()
 
     if len(lstUPFC)<1:
-        return dfDMEDfp[dfDMEDfp['type']==-1]
+        return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstUPFC:
-        [de,para]=item.split("-")
-        dfmeasUPFCVse=pd.concat([dfmeasUPFCVse,dfDMEDfp[((dfDMEDfp["type"]==15)) &(dfDMEDfp["de"]==int(de)) & (dfDMEDfp["para"]==int(para))]])
+        [fr,to]=item.split("-")
+        dfmeasUPFCVse=pd.concat([dfmeasUPFCVse,dfDMEASpf[((dfDMEASpf["type"]==15)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfmeasUPFCVse
 
 
 
-def create_dfmeasSVC(dfDMEDfp,lst_svc):
+def create_dfmeasSVC(dfDMEASpf,lst_svc):
     """
-    Funcion to filter the SVC variable measurements in the the dfDMEDfp given buses in the
-    list lst_IP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    Funcion to filter the SVC variable measurements in the the dfDMEASpf given buses in the
+    list lst_IP. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow  and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lst_svc: list with the buses with that type of measurement
     """
     if len(lst_svc)<1:
-        return dfDMEDfp[dfDMEDfp['type']==-1]
-    return dfDMEDfp[((dfDMEDfp["type"]==11)) & (dfDMEDfp["de"].isin(lst_svc))]
+        return dfDMEASpf[dfDMEASpf['type']==-1]
+    return dfDMEASpf[((dfDMEASpf["type"]==11)) & (dfDMEASpf["from"].isin(lst_svc))]
 
 
 
-def create_dfFluxo(dfDMEDfp,lstFP):
+def create_dfFluxo(dfDMEASpf,lstFP):
     """
-    function to filter the flow measurements in the dfDMEDfp given the branches in the
-    lstFP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    function to filter the flow measurements in the dfDMEASpf given the branches in the
+    lstFP. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lstFP: list with the branches with that type of measurement
     @return: dfFLOW: pandas dataframe with the measurements filterd
     """
     dfFLOW=pd.DataFrame()
 
     if len(lstFP)<1:
-        return dfDMEDfp[dfDMEDfp['type']==-1]
+        return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstFP:
-        [de,para]=item.split("-")
-        dfFLOW=pd.concat([dfFLOW,dfDMEDfp[((dfDMEDfp["type"]==2) |(dfDMEDfp["type"]==3)) &(dfDMEDfp["de"]==int(de)) & (dfDMEDfp["para"]==int(para))]])
+        [fr,to]=item.split("-")
+        dfFLOW=pd.concat([dfFLOW,dfDMEASpf[((dfDMEASpf["type"]==2) |(dfDMEASpf["type"]==3)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfFLOW
 
-def create_dfFluxo_PMU(dfDMEDfp,lstFP):
+def create_dfFluxo_PMU(dfDMEASpf,lstFP):
     """
-    function to filter the current flow measurements in the dfDMEDfp given the branches in the
-    lstFP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    function to filter the current flow measurements in the dfDMEASpf given the branches in the
+    lstFP. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lstFP: list with the branches with that type of measurement
     @return: dfFLOW: pandas dataframe with the measurements filterd
     """
     dfFLOW=pd.DataFrame()
 
     if len(lstFP)<1:
-        return dfDMEDfp[dfDMEDfp['type']==-1]
+        return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstFP:
-        [de,para]=item.split("-")
-        dfFLOW=pd.concat([dfFLOW,dfDMEDfp[((dfDMEDfp["type"]==8) |(dfDMEDfp["type"]==9)) &(dfDMEDfp["de"]==int(de)) & (dfDMEDfp["para"]==int(para))]])
+        [fr,to]=item.split("-")
+        dfFLOW=pd.concat([dfFLOW,dfDMEASpf[((dfDMEASpf["type"]==8) |(dfDMEASpf["type"]==9)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfFLOW
 
-def create_dfIP(dfDMEDfp,lst_IP):
+def create_dfIP(dfDMEASpf,lst_IP):
     """
-    Funcion to filter the power injection measurements in the the dfDMEDfp given buses in the
-    list lst_IP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    Funcion to filter the power injection measurements in the the dfDMEASpf given buses in the
+    list lst_IP. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow  and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lst_IP: list with the buses with that type of measurement
     """
     if len(lst_IP)<1:
-        return dfDMEDfp[dfDMEDfp['type']==-1]
-    return dfDMEDfp[((dfDMEDfp["type"]==0)|(dfDMEDfp["type"]==1)) & (dfDMEDfp["de"].isin(lst_IP))]
+        return dfDMEASpf[dfDMEASpf['type']==-1]
+    return dfDMEASpf[((dfDMEASpf["type"]==0)|(dfDMEASpf["type"]==1)) & (dfDMEASpf["from"].isin(lst_IP))]
 
 
-def create_dfIC_PMUs(dfDMEDfp,lst_IP):
+def create_dfIC_PMUs(dfDMEASpf,lst_IP):
     """
-    Funcion to filter the current PMUs injection measurements in the the dfDMEDfp given buses in the
-    list lst_IP. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    Funcion to filter the current PMUs injection measurements in the the dfDMEASpf given buses in the
+    list lst_IP. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow  and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lst_IP: list with the buses with that type of measurement
     """
     if len(lst_IP)<1:
-        return dfDMEDfp[dfDMEDfp['type']==-1]
-    return dfDMEDfp[((dfDMEDfp["type"]==6)|(dfDMEDfp["type"]==7)) & (dfDMEDfp["de"].isin(lst_IP))]
+        return dfDMEASpf[dfDMEASpf['type']==-1]
+    return dfDMEASpf[((dfDMEASpf["type"]==6)|(dfDMEASpf["type"]==7)) & (dfDMEASpf["from"].isin(lst_IP))]
 
 
-def create_dfV(dfDMEDfp,lst_V):
+def create_dfV(dfDMEASpf,lst_V):
     """
-    Funcion to filter the voltage magnitude measurements in the the dfDMEDfp given buses in the
-    list lst_V. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    Funcion to filter the voltage magnitude measurements in the the dfDMEASpf given buses in the
+    list lst_V. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow  and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lst_V: list with the buses with that type of measurement
     """
-    return dfDMEDfp[(dfDMEDfp["type"]==4)& (dfDMEDfp["de"].isin(lst_V))]
+    return dfDMEASpf[(dfDMEASpf["type"]==4)& (dfDMEASpf["from"].isin(lst_V))]
 
-def create_dfV_PMUs(dfDMEDfp,lst_V):
+def create_dfV_PMUs(dfDMEASpf,lst_V):
     """
-    Funcion to filter the voltage magnitude measurements in the the dfDMEDfp given buses in the
-    list lst_V. It recives the dfDMEDfp data frame with all the possible measurements avaible in the network
+    Funcion to filter the voltage magnitude measurements in the the dfDMEASpf given buses in the
+    list lst_V. It recives the dfDMEASpf data frame with all the possible measurements avaible in the network
     obatined by the load flow  and returns only the ones desired.
-    @param: dfDMEDfp: pandas dataframe with all the measurements avaible in the loadflow
+    @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lst_V: list with the buses with that type of measurement
     """
-    return dfDMEDfp[((dfDMEDfp["type"]==4)|(dfDMEDfp["type"]==5))& (dfDMEDfp["de"].isin(lst_V))]
+    return dfDMEASpf[((dfDMEASpf["type"]==4)|(dfDMEASpf["type"]==5))& (dfDMEASpf["from"].isin(lst_V))]
 
 
 
-def create_DMED(sys,prec,graph,ram,dUPFC={},dfDMEDfp=pd.DataFrame()):
+def create_DMEAS(sys,prec,graph,bran,dUPFC={},dfDMEASpf=pd.DataFrame()):
     """
-    Creates a DMED file with the measurements according to the "measplan.csv" file
-    if, it reads the measurements avaible in the "DMED_fp.csv" file, if it do not exits it runs
+    Creates a DMEAS file with the measurements according to the "measplan.csv" file
+    if, it reads the measurements avaible in the "DMEAS_pf.csv" file, if it do not exits it runs
     the load flow and creates it. The function recives @sys a string with the name of the system's file
     and the prec dictionary with the pr parameter for each measurement
     @param: sys-string with the name of the system's file
     @param: prec - dictionary with the precision of each measurement type
-    @return: dfDMED - pandas dictionary with the measurement set   
+    @return: dfDMEAS - pandas dictionary with the measurement set   
     """
     #read the file with the measurement pla
-    if dfDMEDfp.empty:
+    if dfDMEASpf.empty:
 
-        try: # if the DMED exists the program reads it, this file is not mandatory for power flow 
-            dfDMEDfp=pd.read_csv(sys+"/DMED_fp.csv",header=None)
-            dfDMEDfp.columns=["type","de","para","zmed","prec"]
+        try: # if the DMEAS exists the program reads it, this file is not mandatory for power flow 
+            dfDMEASpf=pd.read_csv(sys+"/DMEAS_pf.csv",header=None)
+            dfDMEASpf.columns=["type","from","to","zmeas","prec"]
         except:
             conv = load_flow(graph,tol=1e-10)
-            save_DMED_fp(graph,ram,sys,dUPFC)
-            dfDMEDfp=pd.read_csv(sys+"/DMED_fp.csv",header=None)
-            dfDMEDfp.columns=["type","de","para","zmed","prec"]
+            save_DMEAS_pf(graph,bran,sys,dUPFC)
+            dfDMEASpf=pd.read_csv(sys+"/DMEAS_pf.csv",header=None)
+            dfDMEASpf.columns=["type","from","to","zmeas","prec"]
 
     try:
         df=pd.read_csv(sys+"/measplan.csv",keep_default_na=False)
@@ -242,30 +242,30 @@ def create_DMED(sys,prec,graph,ram,dUPFC={},dfDMEDfp=pd.DataFrame()):
     SMlstFP=list(filter(None,df["PFSM"].to_list()))
     SMlstV=list(np.int32(list(filter(None,df["VSM"].to_list()))))
     PSEUDOlst=list(np.int32(list(filter(None,df["PSEUDO"].to_list()))))
-    Plst=dfDMEDfp[((dfDMEDfp["prec"]<0.0001) &(dfDMEDfp["zmed"]==0.000) & (dfDMEDfp["type"]==0))]["de"].tolist()
-    Qlst=dfDMEDfp[((dfDMEDfp["prec"]<0.0001) &(dfDMEDfp["zmed"]==0.000) & (dfDMEDfp["type"]==1))]["de"].tolist()
+    Plst=dfDMEASpf[((dfDMEASpf["prec"]<0.0001) &(dfDMEASpf["zmeas"]==0.000) & (dfDMEASpf["type"]==0))]["from"].tolist()
+    Qlst=dfDMEASpf[((dfDMEASpf["prec"]<0.0001) &(dfDMEASpf["zmeas"]==0.000) & (dfDMEASpf["type"]==1))]["from"].tolist()
     Vistuaislst=list(set(Plst).intersection(Qlst))
     Vistuaislst=list(set(Vistuaislst)-set(Vistuaislst).intersection(SCADAlstIP+SMlstIP+PSEUDOlst))
 
-    dfPISCADA=create_dfIP(dfDMEDfp,SCADAlstIP)
+    dfPISCADA=create_dfIP(dfDMEASpf,SCADAlstIP)
 
-    dfPFSCADA=create_dfFluxo(dfDMEDfp,SCADAlstFP)
+    dfPFSCADA=create_dfFluxo(dfDMEASpf,SCADAlstFP)
 
-    dfVSCADA=create_dfV(dfDMEDfp,SCADAlstV)
+    dfVSCADA=create_dfV(dfDMEASpf,SCADAlstV)
 
-    dfIfPMU=create_dfFluxo_PMU(dfDMEDfp,PMUslst_If)
-    dfIinjPMU=create_dfIC_PMUs(dfDMEDfp,PMUslst_Iinj)
-    dfVPMU=create_dfV_PMUs(dfDMEDfp,PMUslst_V)
+    dfIfPMU=create_dfFluxo_PMU(dfDMEASpf,PMUslst_If)
+    dfIinjPMU=create_dfIC_PMUs(dfDMEASpf,PMUslst_Iinj)
+    dfVPMU=create_dfV_PMUs(dfDMEASpf,PMUslst_V)
 
-    dfIPSM=create_dfIP(dfDMEDfp,SMlstIP)
+    dfIPSM=create_dfIP(dfDMEASpf,SMlstIP)
 
-    dfFPSM=create_dfFluxo(dfDMEDfp,SMlstFP)
+    dfFPSM=create_dfFluxo(dfDMEASpf,SMlstFP)
 
-    dfVSM=create_dfV(dfDMEDfp,SMlstV)
+    dfVSM=create_dfV(dfDMEASpf,SMlstV)
 
-    dfPSEUDO=create_dfIP(dfDMEDfp,PSEUDOlst)
+    dfPSEUDO=create_dfIP(dfDMEASpf,PSEUDOlst)
 
-    dfVirtuais=create_dfIP(dfDMEDfp,Vistuaislst)
+    dfVirtuais=create_dfIP(dfDMEASpf,Vistuaislst)
     dfPFSCADA.loc[:,"prec"]=prec["SCADAPF"]
     dfPISCADA.loc[:,"prec"]=prec["SCADAPI"]
     dfVSCADA.loc[:,"prec"]=prec["SCADAV"]
@@ -281,26 +281,26 @@ def create_DMED(sys,prec,graph,ram,dUPFC={},dfDMEDfp=pd.DataFrame()):
     dfPSEUDO.loc[:,"prec"]=prec["PSEUDO"]
     dfVirtuais.loc[:,"prec"]=prec["VIRTUAL"]
 
-    dfDMED=pd.concat([dfPISCADA,dfIPSM,dfPSEUDO,dfVirtuais,dfPFSCADA,dfFPSM,dfVSCADA,dfVSM,dfIfPMU,dfIinjPMU,dfVPMU])
-    return dfDMED
+    dfDMEAS=pd.concat([dfPISCADA,dfIPSM,dfPSEUDO,dfVirtuais,dfPFSCADA,dfFPSM,dfVSCADA,dfVSM,dfIfPMU,dfIinjPMU,dfVPMU])
+    return dfDMEAS
 
-def insert_res(dfDMEDsr):
+def insert_res(dfDMEASsr):
     """
     Inserts gaussian noise in the measurement set, with variance according with the 
     precision and the magnitude of the measurement.
     """
 
-    e=np.random.normal(size=(len(dfDMEDsr)))
+    e=np.random.normal(size=(len(dfDMEASsr)))
     for i in range(len(e)):
         if e[i]>2.5:
             e[i]=2.5
         elif e[i]<-2.5:
             e[i]=-2.5
-    dfDMEDr=dfDMEDsr.copy()
-    dfDMEDr.loc[:,"zmed"]=dfDMEDsr["zmed"]+e*dfDMEDsr["prec"]*np.abs(dfDMEDsr["zmed"])/3
-    return dfDMEDr
+    dfDMEASr=dfDMEASsr.copy()
+    dfDMEASr.loc[:,"zmeas"]=dfDMEASsr["zmeas"]+e*dfDMEASsr["prec"]*np.abs(dfDMEASsr["zmeas"])/3
+    return dfDMEASr
 
-def insert_EG(dfDMEDsr,dfEG,duplicate=False):
+def insert_EG(dfDMEASsr,dfEG,duplicate=False):
     """
     Inserts Gross Error in measruements in the measurement set, the measurements are selected following the LST file.
 
@@ -308,27 +308,27 @@ def insert_EG(dfDMEDsr,dfEG,duplicate=False):
     
     for idx,meas in dfEG.iterrows():
         tipo=meas["type"]
-        de=meas["de"]
-        para=meas["para"]
+        fr=meas["from"]
+        to=meas["to"]
         mag=meas["magnitude"]
         mul=meas["multi"]
 
         if tipo in [0,1,4,11]:
-            mask=(dfDMEDsr["type"]==tipo) & (dfDMEDsr["de"]==de)
+            mask=(dfDMEASsr["type"]==tipo) & (dfDMEASsr["from"]==fr)
         else: 
-            mask=(dfDMEDsr["type"]==tipo) & (dfDMEDsr["de"]==de) & (dfDMEDsr["para"]==para)
+            mask=(dfDMEASsr["type"]==tipo) & (dfDMEASsr["from"]==fr) & (dfDMEASsr["to"]==to)
         if mul == 0:
-            for idx2, row in dfDMEDsr[mask].iterrows():
-                    sigma=row["prec"]*np.abs(row["zmed"])/3
-                    dfDMEDsr.at[idx2,"zmed"]=-row["zmed"]
+            for idx2, row in dfDMEASsr[mask].iterrows():
+                    sigma=row["prec"]*np.abs(row["zmeas"])/3
+                    dfDMEASsr.at[idx2,"zmeas"]=-row["zmeas"]
                     # +mag*sigma
 
                     break
         else:
             i=0
-            for idx2, row in dfDMEDsr[mask].iterrows():
-                sigma=row["prec"]*np.abs(row["zmed"])/3
-                dfDMEDsr.at[idx2,"zmed"]=row["zmed"]+mag*sigma
+            for idx2, row in dfDMEASsr[mask].iterrows():
+                sigma=row["prec"]*np.abs(row["zmeas"])/3
+                dfDMEASsr.at[idx2,"zmeas"]=row["zmeas"]+mag*sigma
                 if i == mul:
                     break
                 i=i+1
@@ -337,30 +337,30 @@ def insert_EG(dfDMEDsr,dfEG,duplicate=False):
 
     
 
-    return dfDMEDsr
+    return dfDMEASsr
 
 
 
-def create_DMED_FACTS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=pd.DataFrame()):
+def create_DMEAS_FACTS(sys,prec,graph,bran,branUPFC,dfDMEASpf=pd.DataFrame()):
     """
-    Creates a DMED part for the FACTS with the measurements according to the "measplan_FACTS.csv" file
-    if, it reads the measurements avaible in the "DMED_fp.csv" file, if it do not exits it runs
+    Creates a DMEAS part for the FACTS with the measurements according to the "measplan_FACTS.csv" file
+    if, it reads the measurements avaible in the "DMEAS_pf.csv" file, if it do not exits it runs
     the load flow and creates it. The function recives @sys a string with the name of the system's file
     and the prec dictionary with the pr parameter for each measurement
     @param: sys-string with the name of the system's file
     @param: prec - dictionary with the precision of each measurement type
-    @return: dfDMED - pandas dictionary with the measurement set   
+    @return: dfDMEAS - pandas dictionary with the measurement set   
     """
     #read the file with the measurement plan
-    if dfDMEDfp.empty:
-        try: # if the DMED exists the program reads it, this file is not mandatory for power flow 
-            dfDMEDfp=pd.read_csv(sys+"/DMED_fp.csv",header=None)
-            dfDMEDfp.columns=["type","de","para","zmed","prec"]
+    if dfDMEASpf.empty:
+        try: # if the DMEAS exists the program reads it, this file is not mandatory for power flow 
+            dfDMEASpf=pd.read_csv(sys+"/DMEAS_pf.csv",header=None)
+            dfDMEASpf.columns=["type","from","to","zmeas","prec"]
         except:
-            conv = load_flow(graph,tol=1e-10)
-            save_DMED_fp(graph,ram,sys,ramUPFC)
-            dfDMEDfp=pd.read_csv(sys+"/DMED_fp.csv",header=None)
-            dfDMEDfp.columns=["type","de","para","zmed","prec"]
+            conv = power_flow(graph,tol=1e-10)
+            save_DMEAS_pf(graph,bran,sys,branUPFC)
+            dfDMEASpf=pd.read_csv(sys+"/DMEAS_pf.csv",header=None)
+            dfDMEASpf.columns=["type","from","to","zmeas","prec"]
     try:
         df=pd.read_csv(sys+"/measplanFACTS.csv",keep_default_na=False)
     except:
@@ -383,14 +383,14 @@ def create_DMED_FACTS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=pd.DataFrame()):
     UPFCV_sh=list(filter(None,df["UPFCV_sh"].to_list()))
 
 
-    dfmeasTCSC=create_dfmeasTCSC(dfDMEDfp,TCSCvar)
+    dfmeasTCSC=create_dfmeasTCSC(dfDMEASpf,TCSCvar)
 
-    dfmeasSVCvar=create_dfmeasSVC(dfDMEDfp,SVCvar)
+    dfmeasSVCvar=create_dfmeasSVC(dfDMEASpf,SVCvar)
 
-    dfcreate_dfmeasUPFCVsh=create_dfmeasUPFCVsh(dfDMEDfp,UPFCV_sh)
-    dfcreate_dfmeasUPFCtsh=create_dfmeasUPFCtsh(dfDMEDfp,UPFCt_sh)
-    dfcreate_dfmeasUPFCVse=create_dfmeasUPFCVse(dfDMEDfp,UPFCV_se)
-    dfcreate_dfmeasUPFCtse=create_dfmeasUPFCtse(dfDMEDfp,UPFCt_se)
+    dfcreate_dfmeasUPFCVsh=create_dfmeasUPFCVsh(dfDMEASpf,UPFCV_sh)
+    dfcreate_dfmeasUPFCtsh=create_dfmeasUPFCtsh(dfDMEASpf,UPFCt_sh)
+    dfcreate_dfmeasUPFCVse=create_dfmeasUPFCVse(dfDMEASpf,UPFCV_se)
+    dfcreate_dfmeasUPFCtse=create_dfmeasUPFCtse(dfDMEASpf,UPFCt_se)
 
 
     dfmeasTCSC.loc[:,"prec"]=prec["TCSCvar"]
@@ -401,5 +401,5 @@ def create_DMED_FACTS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=pd.DataFrame()):
     dfcreate_dfmeasUPFCtse.loc[:,"prec"]=prec["UPFCV_se"]
  
 
-    dfDMED=pd.concat([dfmeasTCSC,dfmeasSVCvar,dfcreate_dfmeasUPFCVsh,dfcreate_dfmeasUPFCtsh,dfcreate_dfmeasUPFCVse,dfcreate_dfmeasUPFCtse])
-    return dfDMED
+    dfDMEAS=pd.concat([dfmeasTCSC,dfmeasSVCvar,dfcreate_dfmeasUPFCVsh,dfcreate_dfmeasUPFCtsh,dfcreate_dfmeasUPFCVse,dfcreate_dfmeasUPFCtse])
+    return dfDMEAS

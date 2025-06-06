@@ -3,24 +3,24 @@ from classes import *
 import pandas as pd
 import numpy as np
 
-def creat_bar(dfDBAR):  
+def creat_bus(dfDBUS):  
     """
     Function to read the information about the network in the data frame and put it into the bar struture
-    @param: dfDBAR - data frame with the informations about the network
+    @param: dfDBUS - data frame with the informations about the network buses
     @return: vector of instances bar class, with the information about the netowrk buses
     @return: i - number of buses
     @return: pv - index of the pv buses
     @return: pq - index of the pq buses
     @return: ind_id - dict to convert the name of the bus to its index
     """
-    bars=[]
+    buses=[]
     i=0
     nvar=0
     pv=[]
     pq=[]
     ind_id={}
-    for idx, row in dfDBAR.iterrows():#reads each line of the data frame
-        item=bar(int(row["id"]),int(row["type"]),i) 
+    for idx, row in dfDBUS.iterrows():#reads each line of the data frame
+        item=bus(int(row["id"]),int(row["type"]),i) 
         item.V=row.V
         item.teta=row.teta*np.pi/180 # converts the angle to radians
         item.Pg=row["Pg"]/100#converts the power from MW to p.u.
@@ -32,10 +32,10 @@ def creat_bar(dfDBAR):
             pv.append(i)#create the list of PV buses
         elif int(row["type"])==2:
             pq.append(i)#create the list of PQ buses
-        bars.append(item)
+        buses.append(item)
         ind_id[int(row["id"])]=i # create the dictionary relating the name of the bus to it index
         i=i+1
-    return bars,i,pv,pq,ind_id
+    return buses,i,pv,pq,ind_id
 
 def create_bran(dfDBRAN,ind_i):
     """
@@ -43,29 +43,29 @@ def create_bran(dfDBRAN,ind_i):
     branch class. This ditc contains all the information about the network branches.
     @param: dfDBRAN - Data Frame with the information about the buses
     @param: ind_i - dict to translate the name of the bus to it index
-    @return ram - list of instances of branch class with the information about the network branches
+    @return bran - list of instances of branch class with the information about the network branches
     @return i - number of branches 
     """
-    ram={}
+    bran={}
     i=0
     d={}
   
 
-  ##determina linhas paralelas
-    dparalelas={}
+    ## determines paralel lines
+    dparallel={}
     for idx, row in dfDBRAN.iterrows():
-        mask1=(dfDBRAN["de"]== row["de"]) & (dfDBRAN["para"]== row["para"])
-        mask2=(dfDBRAN["de"]== row["para"]) & (dfDBRAN["para"]== row["de"])
+        mask1=(dfDBRAN["from"]== row["from"]) & (dfDBRAN["to"]== row["to"])
+        mask2=(dfDBRAN["from"]== row["to"]) & (dfDBRAN["to"]== row["from"])
         if sum(mask1) + sum(mask2)>1:
-            if str(row["de"])+"-"+str(row["para"]) in dparalelas.keys():
-                dparalelas[str(row["de"])+"-"+str(row["para"])].append(idx)
-            elif str(row["para"])+"-"+str(row["de"]) in dparalelas.keys():
-                dparalelas[str(row["para"])+"-"+str(row["de"])].append(idx)
+            if str(row["from"])+"-"+str(row["to"]) in dparallel.keys():
+                dparallel[str(row["from"])+"-"+str(row["to"])].append(idx)
+            elif str(row["to"])+"-"+str(row["from"]) in dparallel.keys():
+                dparallel[str(row["to"])+"-"+str(row["from"])].append(idx)
             else:
-                dparalelas[str(row["de"])+"-"+str(row["para"])]=[idx]
+                dparallel[str(row["from"])+"-"+str(row["to"])]=[idx]
 
     # remove linhas paralelas
-    for key,item in dparalelas.items():
+    for key,item in dparallel.items():
         bsh=0
         y=0
         for line in item:
@@ -80,17 +80,17 @@ def create_bran(dfDBRAN,ind_i):
     dfDBRAN.reindex()
 
     for id, row in dfDBRAN.iterrows():
-        key=str(ind_i[int(row["de"])])+"-"+str(ind_i[int(row["para"])])
-        item=branch(int(row["id"]),ind_i[int(row["de"])],ind_i[int(row["para"])],int(row["type"]),i)
+        key=str(ind_i[int(row["from"])])+"-"+str(ind_i[int(row["to"])])
+        item=branch(int(row["id"]),ind_i[int(row["from"])],ind_i[int(row["to"])],int(row["type"]),i)
         item.x=row["x"]
         item.r=row["r"]
         item.bsh=complex(0,row["bsh"]/2) #divides the shunt suceptance by two
         item.tap=row["tap"]
         item.cykm()#calculates the ykm
         item.twoPortCircuit()#creates the two port circuit
-        ram[key]=item    
+        bran[key]=item    
         i+=1
-    return ram,i
+    return bran,i
 
 
 

@@ -340,7 +340,7 @@ def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",p
             it=30
             break
         if gradredux <tol2 and maxdx<tol:
-            txt="Convergiu em {:d} iteracoes".format(it)
+            txt="Converged in {:d} iterations".format(it)
             upfc_angle(graph)
             if printres==True:
                 print(liang.norm(gradMAP)/norminicial)
@@ -650,7 +650,7 @@ def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
             break
         it=it+1
         if gradredux <tol2 and maxdx<tol:
-            txt="Convergiu em {:d} iteracoes".format(it)
+            txt="Converged in {:d} iterations".format(it)
             upfc_angle(graph)
             if printres==True:
                 print(liang.norm(gradMAP)/norminicial)

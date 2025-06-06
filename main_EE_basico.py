@@ -19,36 +19,37 @@ import scipy.sparse.linalg as sliang
 sys="IEEE14"
 
 
-dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
+dfDBUS,dfDBRAN,dfDMEAS,dfDFACTS=read_files(sys)
 
 
 
-[bars,nbars,pv,pq,ind_i]=creat_bar(dfDBAR)
-[ram,nbran]=create_bran(dfDBRAN,ind_i)
+[bus,nbus,pv,pq,ind_i]=creat_bus(dfDBUS)
+[bran,nbran]=create_bran(dfDBRAN,ind_i)
 #%%
 
 
-graph=create_graph(bars,ram)
+graph=create_graph(bus,bran)
 
 
 
 #%%
-conv=load_flow_FACTS(graph,inici=1,prt=1,itmax=20)
+conv=power_flow(graph,inici=1,prt=1,itmax=20)
 #%%
 
 
 
 
-dfDMED_fp=save_DMED_fp(graph,ram,sys)
+dfDMEAS_pf=save_DMEAS_pf(graph,bran,sys)
 
+#%%
 prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
 
-dfDMED_sr=create_DMED(sys,prec,graph,ram,dfDMEDfp=dfDMED_fp)
+dfDMEAS_nnois=create_DMEAS(sys,prec,graph,bran,dfDMEASpf=dfDMEAS_pf)
+#%%
 
-
-dfDMED=insert_res(dfDMED_sr,100)
-
-conv_noWLS,nits_noWLS,dfITsWLS=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
+dfDMEAS=insert_res(dfDMEAS_nnois)
+#%%
+conv_noWLS,nits_noWLS,dfITsWLS=SS_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
 #%%
 
 

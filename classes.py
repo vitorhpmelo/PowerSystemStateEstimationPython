@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Definições das classes uilizadas no EE
+Classes used in the SE
 """
 
 
 import numpy as np
 
-class bar():
-    def __init__(self,id,type,contador):
+class bus():
+    def __init__(self,id,type,counter):
         self.id=id
         self.type=type
-        self.i=contador
+        self.i=counter
         self.V=1
-        self.teta=0
+        self.theta=0
         self.Sbase=100
         self.Vbase=138
         self.Pg=0
@@ -26,10 +26,10 @@ class bar():
         self.ngds=0
 
 class branch():
-    def __init__(self,id,de,para,type,i):
+    def __init__(self,id,fr,to,type,i):
         self.id=id
-        self.de=de
-        self.para=para
+        self.fr=fr
+        self.to=to
         self.type=type
         self.i=i
         self.x=-1
@@ -53,43 +53,43 @@ class branch():
             self.Y[1][1]=self.ykm
             self.Y[1][0]=-(1/self.tap)*self.ykm
             self.Y[0][1]=-(1/self.tap)*self.ykm
-    def Pf(self,grafo,flagT):
-        k=self.de
-        m=self.para
+    def Pf(self,graph,flagT):
+        k=self.fr
+        m=self.to
         if flagT==0:
-            P=(grafo[k].V**2)*np.real(self.Y[0][0]) + grafo[k].V* grafo[m].V*(\
-            np.real(self.Y[0][1])*np.cos(grafo[k].teta-grafo[m].teta)\
-            +np.imag(self.Y[0][1])*np.sin(grafo[k].teta-grafo[m].teta))
+            P=(graph[k].V**2)*np.real(self.Y[0][0]) + graph[k].V* graph[m].V*(\
+            np.real(self.Y[0][1])*np.cos(graph[k].theta-graph[m].theta)\
+            +np.imag(self.Y[0][1])*np.sin(graph[k].theta-graph[m].theta))
             return P
         elif flagT==1:
-            P=(grafo[m].V**2)*np.real(self.Y[1][1]) + grafo[m].V* grafo[k].V*(\
-            np.real(self.Y[1][0])*np.cos(grafo[m].teta-grafo[k].teta)\
-            +np.imag(self.Y[0][1])*np.sin(grafo[m].teta-grafo[k].teta))
+            P=(graph[m].V**2)*np.real(self.Y[1][1]) + graph[m].V* graph[k].V*(\
+            np.real(self.Y[1][0])*np.cos(graph[m].theta-graph[k].theta)\
+            +np.imag(self.Y[0][1])*np.sin(graph[m].theta-graph[k].theta))
             return P
         else:
             return 0
-    def Qf(self,grafo,flagT):
-        k=self.de
-        m=self.para
+    def Qf(self,graph,flagT):
+        k=self.fr
+        m=self.to
         if flagT==0:
-            Qf=-(grafo[k].V**2)*np.imag(self.Y[0][0]) - grafo[k].V* grafo[m].V*(\
-            np.imag(self.Y[0][1])*np.cos(grafo[k].teta-grafo[m].teta)\
-            -np.real(self.Y[0][1])*np.sin(grafo[k].teta-grafo[m].teta))
+            Qf=-(graph[k].V**2)*np.imag(self.Y[0][0]) - graph[k].V* graph[m].V*(\
+            np.imag(self.Y[0][1])*np.cos(graph[k].theta-graph[m].theta)\
+            -np.real(self.Y[0][1])*np.sin(graph[k].theta-graph[m].theta))
             return Qf
         elif flagT==1:
-            Qf=-(grafo[m].V**2)*np.imag(self.Y[1][1]) - grafo[m].V* grafo[k].V*(\
-            np.imag(self.Y[1][0])*np.cos(grafo[m].teta-grafo[k].teta)\
-            -np.real(self.Y[1][0])*np.sin(grafo[m].teta-grafo[k].teta))
+            Qf=-(graph[m].V**2)*np.imag(self.Y[1][1]) - graph[m].V* graph[k].V*(\
+            np.imag(self.Y[1][0])*np.cos(graph[m].theta-graph[k].theta)\
+            -np.real(self.Y[1][0])*np.sin(graph[m].theta-graph[k].theta))
             return Qf
         else:
             return 0                
-    def dPfdt(self,grafo,flagT,var):
-        k=self.de
-        m=self.para
-        Vk=grafo[k].V
-        Vm=grafo[m].V
-        tk=grafo[k].teta
-        tm=grafo[m].teta
+    def dPfdt(self,graph,flagT,var):
+        k=self.fr
+        m=self.to
+        Vk=graph[k].V
+        Vm=graph[m].V
+        tk=graph[k].theta
+        tm=graph[m].theta
         if flagT==0:
             Bkm=np.imag(self.Y[0][1])
             Gkm=np.real(self.Y[0][1])
@@ -108,13 +108,13 @@ class branch():
                 return Vk*Vm*(Bmk*np.cos(tk-tm)+Gmk*np.sin(tk-tm))
             else : 
                 return 0
-    def dPfdV(self,grafo,flagT,var):
-        k=self.de
-        m=self.para
-        Vk=grafo[k].V
-        Vm=grafo[m].V
-        tk=grafo[k].teta
-        tm=grafo[m].teta  
+    def dPfdV(self,graph,flagT,var):
+        k=self.fr
+        m=self.to
+        Vk=graph[k].V
+        Vm=graph[m].V
+        tk=graph[k].theta
+        tm=graph[m].theta  
         if flagT==0: #dPkm
             Gkk=np.real(self.Y[0][0])
             Bkm=np.imag(self.Y[0][1])
@@ -135,13 +135,13 @@ class branch():
                 return 2*Gmm*Vm + Vk*(-Bmk*np.sin(tk-tm)+Gmk*np.cos(tk-tm))
             else:
                 return 0
-    def dQfdt(self,grafo,flagT,var):
-        k=self.de
-        m=self.para
-        Vk=grafo[k].V
-        Vm=grafo[m].V
-        tk=grafo[k].teta
-        tm=grafo[m].teta  
+    def dQfdt(self,graph,flagT,var):
+        k=self.fr
+        m=self.to
+        Vk=graph[k].V
+        Vm=graph[m].V
+        tk=graph[k].theta
+        tm=graph[m].theta  
         if flagT==0: #dQkm
             Bkm=np.imag(self.Y[0][1])
             Gkm=np.real(self.Y[0][1])
@@ -158,13 +158,13 @@ class branch():
                 return Vk*Vm*(-Bmk*np.sin(tk-tm)+Gmk*np.cos(tk-tm))
             else:
                 return 0
-    def dQfdV(self,grafo,flagT,var):
-        k=self.de
-        m=self.para
-        Vk=grafo[k].V
-        Vm=grafo[m].V
-        tk=grafo[k].teta
-        tm=grafo[m].teta
+    def dQfdV(self,graph,flagT,var):
+        k=self.fr
+        m=self.to
+        Vk=graph[k].V
+        Vm=graph[m].V
+        tk=graph[k].theta
+        tm=graph[m].theta
         if flagT==0: #dQkm  
             Bkk=np.imag(self.Y[0][0])
             Bkm=np.imag(self.Y[0][1])
@@ -185,14 +185,14 @@ class branch():
                 return -2*Bmm*Vm + Vk*(-Bmk*np.cos(tk-tm)-Gmk*np.sin(tk-tm))
             else:
                 return 0
-    #equações correntes
-    def Iref(self,grafo,flagT):
-        k=self.de
-        m=self.para
-        Vk=grafo[k].V
-        Vm=grafo[m].V
-        tk=grafo[k].teta
-        tm=grafo[m].teta
+    #equations currents
+    def Iref(self,graph,flagT):
+        k=self.fr
+        m=self.to
+        Vk=graph[k].V
+        Vm=graph[m].V
+        tk=graph[k].theta
+        tm=graph[m].theta
         if flagT == 0:
             Bkk=np.imag(self.Y[0][0])
             Gkk=np.real(self.Y[0][0])
@@ -205,13 +205,13 @@ class branch():
             Bmk=np.imag(self.Y[1][0])
             Gmk=np.real(self.Y[1][0])
             return -Vk*Bmk*np.sin(tk) + Vk*Gmk*np.cos(tk) - Vm*Bmm*np.sin(tm) + Vm*Gmm*np.cos(tm)
-    def Iimf(self,grafo,flagT):
-        k=self.de
-        m=self.para
-        Vk=grafo[k].V
-        Vm=grafo[m].V
-        tk=grafo[k].teta
-        tm=grafo[m].teta
+    def Iimf(self,graph,flagT):
+        k=self.fr
+        m=self.to
+        Vk=graph[k].V
+        Vm=graph[m].V
+        tk=graph[k].theta
+        tm=graph[m].theta
         if flagT == 0:
             Bkk=np.imag(self.Y[0][0])
             Gkk=np.real(self.Y[0][0])
@@ -224,13 +224,13 @@ class branch():
             Bmk=np.imag(self.Y[1][0])
             Gmk=np.real(self.Y[1][0])
             return Vk*Bmk*np.cos(tk) + Vk*Gmk*np.sin(tk) + Vm*Bmm*np.cos(tm) + Vm*Gmm*np.sin(tm)
-    def dIrefdt(self,grafo,flagT,var):
-        k=self.de
-        m=self.para
-        Vk=grafo[k].V
-        Vm=grafo[m].V
-        tk=grafo[k].teta
-        tm=grafo[m].teta
+    def dIrefdt(self,graph,flagT,var):
+        k=self.fr
+        m=self.to
+        Vk=graph[k].V
+        Vm=graph[m].V
+        tk=graph[k].theta
+        tm=graph[m].theta
         if flagT==0: #dIkm
             Bkm=np.imag(self.Y[0][1])
             Gkm=np.real(self.Y[0][1])
@@ -253,13 +253,13 @@ class branch():
                 return -Vm*Bmm*np.cos(tm) - Vm*Gmm*np.sin(tm)
             else:
                 return 0
-    def dIrefdv(self,grafo,flagT,var):
-        k=self.de
-        m=self.para
-        Vk=grafo[k].V
-        Vm=grafo[m].V
-        tk=grafo[k].teta
-        tm=grafo[m].teta
+    def dIrefdv(self,graph,flagT,var):
+        k=self.fr
+        m=self.to
+        Vk=graph[k].V
+        Vm=graph[m].V
+        tk=graph[k].theta
+        tm=graph[m].theta
         if flagT==0: #dIkm
             Bkm=np.imag(self.Y[0][1])
             Gkm=np.real(self.Y[0][1])
@@ -282,13 +282,13 @@ class branch():
                 return -Bmm*np.sin(tm) + Gmm*np.cos(tm)
             else:
                 return 0
-    def dIimfdt(self,grafo,flagT,var):
-        k=self.de
-        m=self.para
-        Vk=grafo[k].V
-        Vm=grafo[m].V
-        tk=grafo[k].teta
-        tm=grafo[m].teta
+    def dIimfdt(self,graph,flagT,var):
+        k=self.fr
+        m=self.to
+        Vk=graph[k].V
+        Vm=graph[m].V
+        tk=graph[k].theta
+        tm=graph[m].theta
         if flagT==0: #dIkm
             Bkm=np.imag(self.Y[0][1])
             Gkm=np.real(self.Y[0][1])
@@ -311,13 +311,13 @@ class branch():
                 return -Vm*Bmm*np.sin(tm) + Vm*Gmm*np.cos(tm)
             else:
                 return 0
-    def dIimfdv(self,grafo,flagT,var):
-        k=self.de
-        m=self.para
-        Vk=grafo[k].V
-        Vm=grafo[m].V
-        tk=grafo[k].teta
-        tm=grafo[m].teta
+    def dIimfdv(self,graph,flagT,var):
+        k=self.fr
+        m=self.to
+        Vk=graph[k].V
+        Vm=graph[m].V
+        tk=graph[k].theta
+        tm=graph[m].theta
         if flagT==0: #dIkm
             Bkm=np.imag(self.Y[0][1])
             Gkm=np.real(self.Y[0][1])
@@ -353,8 +353,8 @@ class branch():
             
 
 class branTCSC(branch):
-    def __init__(self,id,de,para,type,i,a=1,xtcsc_ini=-1,Pfesp=0):
-        super().__init__(id,de,para,type,i)
+    def __init__(self,id,fr,to,type,i,a=1,xtcsc_ini=-1,Pfesp=0):
+        super().__init__(id,fr,to,type,i)
         self.a=a
         self.xtcsc_ini=xtcsc_ini
         self.xtcsc=xtcsc_ini
@@ -379,80 +379,80 @@ class branTCSC(branch):
         self.Y[1][0]=complex(0,self.k/self.xtcsc)
         self.Y[0][1]=complex(0,self.k/self.xtcsc)
 
-    def dPfdx(self,grafo,flagT):
+    def dPfdx(self,graph,flagT):
         if flagT==0:
-            k=self.de
-            m=self.para
+            k=self.fr
+            m=self.to
         elif flagT==1:
-            k=self.para
-            m=self.de
-        return -grafo[k].V*grafo[m].V*((1/self.xtcsc)**2)*np.sin(grafo[k].teta-grafo[m].teta)
-    def dQfdx(self,grafo,flagT):
+            k=self.to
+            m=self.fr
+        return -graph[k].V*graph[m].V*((1/self.xtcsc)**2)*np.sin(graph[k].theta-graph[m].theta)
+    def dQfdx(self,graph,flagT):
         if flagT==0:
-            k=self.de
-            m=self.para
+            k=self.fr
+            m=self.to
         elif flagT==1:
-            k=self.para
-            m=self.de
-        return -(1/self.xtcsc**2)*((grafo[k].V**2)-grafo[k].V*grafo[m].V*np.cos(grafo[k].teta-grafo[m].teta))
-    def dPfdB(self,grafo,flagT):
+            k=self.to
+            m=self.fr
+        return -(1/self.xtcsc**2)*((graph[k].V**2)-graph[k].V*graph[m].V*np.cos(graph[k].theta-graph[m].theta))
+    def dPfdB(self,graph,flagT):
         if flagT==0:
-            k=self.de
-            m=self.para
+            k=self.fr
+            m=self.to
         elif flagT==1:
-            k=self.para
-            m=self.de
-        return -grafo[k].V*grafo[m].V*np.sin(grafo[k].teta-grafo[m].teta)
-    def dQfdB(self,grafo,flagT):
+            k=self.to
+            m=self.fr
+        return -graph[k].V*graph[m].V*np.sin(graph[k].theta-graph[m].theta)
+    def dQfdB(self,graph,flagT):
         if flagT==0:
-            k=self.de
-            m=self.para
+            k=self.fr
+            m=self.to
         elif flagT==1:
-            k=self.para
-            m=self.de
-        return -(grafo[k].V**2)+grafo[k].V*grafo[m].V*np.cos(grafo[k].teta-grafo[m].teta)
-    def dPfdk(self,grafo,flagT):
+            k=self.to
+            m=self.fr
+        return -(graph[k].V**2)+graph[k].V*graph[m].V*np.cos(graph[k].theta-graph[m].theta)
+    def dPfdk(self,graph,flagT):
         if flagT==0:
-            k=self.de
-            m=self.para
+            k=self.fr
+            m=self.to
         elif flagT==1:
-            k=self.para
-            m=self.de
-        return grafo[k].V*grafo[m].V*((1/self.xtcsc))*np.sin(grafo[k].teta-grafo[m].teta)
-    def dQfdk(self,grafo,flagT):
+            k=self.to
+            m=self.fr
+        return graph[k].V*graph[m].V*((1/self.xtcsc))*np.sin(graph[k].theta-graph[m].theta)
+    def dQfdk(self,graph,flagT):
         if flagT==0:
-            k=self.de
-            m=self.para
+            k=self.fr
+            m=self.to
         elif flagT==1:
-            k=self.para
-            m=self.de
-        return (1/self.xtcsc)*((grafo[k].V**2)-grafo[k].V*grafo[m].V*np.cos(grafo[k].teta-grafo[m].teta))
+            k=self.to
+            m=self.fr
+        return (1/self.xtcsc)*((graph[k].V**2)-graph[k].V*graph[m].V*np.cos(graph[k].theta-graph[m].theta))
     
-    def dI_refdx(self,grafo,flagT):
+    def dI_refdx(self,graph,flagT):
         if flagT==0:
-            k=self.de
-            m=self.para
+            k=self.fr
+            m=self.to
         elif flagT==1:
-            k=self.para
-            m=self.de
-        return (-grafo[k].V*np.sin(grafo[k].teta) + grafo[m].V*np.sin(grafo[m].teta))/(self.xtcsc**2)
+            k=self.to
+            m=self.fr
+        return (-graph[k].V*np.sin(graph[k].theta) + graph[m].V*np.sin(graph[m].theta))/(self.xtcsc**2)
 
-    def dI_imdx(self,grafo,flagT):
+    def dI_imdx(self,graph,flagT):
         if flagT==0:
-            k=self.de
-            m=self.para
+            k=self.fr
+            m=self.to
         elif flagT==1:
-            k=self.para
-            m=self.de
-        return (grafo[k].V*np.cos(grafo[k].teta) - grafo[m].V*np.cos(grafo[m].teta))/(self.xtcsc**2)
+            k=self.to
+            m=self.fr
+        return (graph[k].V*np.cos(graph[k].theta) - graph[m].V*np.cos(graph[m].theta))/(self.xtcsc**2)
     
 
 
 
 class node_graph():
-    def __init__(self,id,bar):
+    def __init__(self,id,bus):
         self.V=1
-        self.teta=0
+        self.theta=0
         self.Bs=0
         self.adjk=dict()
         self.adjm=dict()
@@ -460,9 +460,9 @@ class node_graph():
         self.ladjm=[]
         self.SVC=None
         self.id=id
-        self.bar=bar
+        self.bus=bus
         self.V=1
-        self.teta=0
+        self.theta=0
         self.FlagBS=0
         self.FlagTCSC=0
         self.FlagSVC=0
@@ -504,53 +504,53 @@ class node_graph():
         if np.abs(Q)<1e-12:
             Q=0
         return Q
-    def dPdt(self,graph,bar):
-        if self.i==bar:
+    def dPdt(self,graph,bus):
+        if self.i==bus:
             dPdt=0
             for key,item in self.adjk.items(): 
-                dPdt=dPdt+item.dPfdt(graph,FlagT=0,var=bar)
+                dPdt=dPdt+item.dPfdt(graph,FlagT=0,var=bus)
             for key,item in self.adjm.items():
-                dPdt=dPdt+item.dPfdt(graph,FlagT=0,var=bar)
+                dPdt=dPdt+item.dPfdt(graph,FlagT=0,var=bus)
             return dPdt
-        elif str(self.i)+"-"+str(bar) in self.adjk.keys():
-            return self.adjk[str(self.i)+"-"+str(bar)].dPfdt(graph,0,bar)
-        elif str(bar)+"-"+str(self.i) in self.adjk.keys():
-            return self.adjk[str(self.i)+"-"+str(bar)].dPfdt(graph,1,bar)
+        elif str(self.i)+"-"+str(bus) in self.adjk.keys():
+            return self.adjk[str(self.i)+"-"+str(bus)].dPfdt(graph,0,bus)
+        elif str(bus)+"-"+str(self.i) in self.adjk.keys():
+            return self.adjk[str(self.i)+"-"+str(bus)].dPfdt(graph,1,bus)
         else:
             return 0
-    def dPdV(self,graph,bar):
+    def dPdV(self,graph,bus):
         dPdV=0
         if self.FlagSVC==1:
             dPdV=dPdV+2*self.SVC.Gk*self.V      
-        if self.i==bar:
+        if self.i==bus:
             for key,item in self.adjk.items(): 
-                dPdV=dPdV+item.dPfdV(graph,FlagT=0,var=bar)
+                dPdV=dPdV+item.dPfdV(graph,FlagT=0,var=bus)
             for key,item in self.adjm.items():
-                dPdV=dPdV+item.dPfdV(graph,FlagT=0,var=bar)
+                dPdV=dPdV+item.dPfdV(graph,FlagT=0,var=bus)
             return dPdV
-        elif str(self.i)+"-"+str(bar) in self.adjk.keys():
-            return self.adjk[str(self.i)+"-"+str(bar)].dPfdV(graph,0,bar)
-        elif str(bar)+"-"+str(self.i) in self.adjk.keys():
-            return self.adjk[str(self.i)+"-"+str(bar)].dPfdV(graph,1,bar)
+        elif str(self.i)+"-"+str(bus) in self.adjk.keys():
+            return self.adjk[str(self.i)+"-"+str(bus)].dPfdV(graph,0,bus)
+        elif str(bus)+"-"+str(self.i) in self.adjk.keys():
+            return self.adjk[str(self.i)+"-"+str(bus)].dPfdV(graph,1,bus)
         else:
             return 0
 
-    def dQdt(self,graph,bar):
+    def dQdt(self,graph,bus):
         dQdt=0
-        if self.i==bar:
+        if self.i==bus:
             for key,item in self.adjk.items(): 
-                dQdt=dQdt+item.dQdt(graph,FlagT=0,var=bar)
+                dQdt=dQdt+item.dQdt(graph,FlagT=0,var=bus)
             for key,item in self.adjm.items():
-                dQdt=dQdt+item.dQdt(graph,FlagT=0,var=bar)
+                dQdt=dQdt+item.dQdt(graph,FlagT=0,var=bus)
             return dQdt
-        elif str(self.i)+"-"+str(bar) in self.adjk.keys():
-            return self.adjk[str(self.i)+"-"+str(bar)].dQdt(graph,0,bar)
-        elif str(bar)+"-"+str(self.i) in self.adjk.keys():
-            return  self.adjk[str(self.i)+"-"+str(bar)].dQdt(graph,1,bar)
+        elif str(self.i)+"-"+str(bus) in self.adjk.keys():
+            return self.adjk[str(self.i)+"-"+str(bus)].dQdt(graph,0,bus)
+        elif str(bus)+"-"+str(self.i) in self.adjk.keys():
+            return  self.adjk[str(self.i)+"-"+str(bus)].dQdt(graph,1,bus)
         else:
             return 0
-    def dQdV(self,graph,bar): ## ENTRA AQUI A DERIVADA DO SVC
-        if self.i==bar:
+    def dQdV(self,graph,bus): ## ENTRA AQUI A DERIVADA DO SVC
+        if self.i==bus:
             if self.FlagBS==0:
                 dQdV=0
             else:    
@@ -558,22 +558,22 @@ class node_graph():
             if self.FlagSVC==1:
                 dQdV=dQdV-2*self.SVC.Bk*self.V      
             for key,item in self.adjk.items(): 
-                dQdV=dQdV+item.dQdV(graph,FlagT=0,var=bar)
+                dQdV=dQdV+item.dQdV(graph,FlagT=0,var=bus)
             for key,item in self.adjm.items():
-                dQdV=dQdV+item.dQdV(graph,FlagT=0,var=bar)
+                dQdV=dQdV+item.dQdV(graph,FlagT=0,var=bus)
             return dQdV
-        elif str(self.i)+"-"+str(bar) in self.adjk.keys():
-            return  self.adjk[str(self.i)+"-"+str(bar)].dQdV(graph,0,bar)
-        elif str(bar)+"-"+str(self.i) in self.adjk.keys():
-            return  self.adjk[str(self.i)+"-"+str(bar)].dQdV(graph,1,bar)
+        elif str(self.i)+"-"+str(bus) in self.adjk.keys():
+            return  self.adjk[str(self.i)+"-"+str(bus)].dQdV(graph,0,bus)
+        elif str(bus)+"-"+str(self.i) in self.adjk.keys():
+            return  self.adjk[str(self.i)+"-"+str(bus)].dQdV(graph,1,bus)
         else:
             return  0  
     def I_inj_re(self,graph):
         I=0
         if self.FlagSVC==1:
-            I=I+self.V*(-self.SVC.Bk*np.sin(self.teta)+self.SVC.Gk*np.cos(self.teta))
+            I=I+self.V*(-self.SVC.Bk*np.sin(self.theta)+self.SVC.Gk*np.cos(self.theta))
         if self.FlagBS==1:
-            I=I+self.V*(-self.Bs*np.sin(self.teta))
+            I=I+self.V*(-self.Bs*np.sin(self.theta))
         for key,item in self.adjk.items():
             I=I+item.Iref(graph,0)
         for key,item in self.adjm.items():
@@ -588,9 +588,9 @@ class node_graph():
     def I_inj_im(self,graph):
         I=0
         if self.FlagSVC==1:
-            I=I+self.V*(self.SVC.Bk*np.cos(self.teta)+self.SVC.Gk*np.sin(self.teta))
+            I=I+self.V*(self.SVC.Bk*np.cos(self.theta)+self.SVC.Gk*np.sin(self.theta))
         if self.FlagBS==1:
-            I=I+self.V*(self.Bs*np.cos(self.teta))
+            I=I+self.V*(self.Bs*np.cos(self.theta))
         for key,item in self.adjk.items():
             I=I+item.Iimf(graph,0)
         for key,item in self.adjm.items():
@@ -604,66 +604,66 @@ class node_graph():
         return I
 
 class UPFC():
-    def __init__(self,id,de,para,Vse_ini,t_se_ini,Vsh_ini,t_sh_ini,Psp,Qsp,Vp,Rse,Xse,Rsh,Xsh,Vse_max,Vse_min,Vsh_max,Vsh_min,mode):
-        self.id=id #id do UPFC
-        self.p=de # bus from, folliwing the graph order 
-        self.s=para # bus to, folliwing the graph order 
+    def __init__(self,id,fr,to,Vse_ini,t_se_ini,Vsh_ini,t_sh_ini,Psp,Qsp,Vp,Rse,Xse,Rsh,Xsh,Vse_max,Vse_min,Vsh_max,Vsh_min,mode):
+        self.id=id #id of UPFC
+        self.p=fr  # bus from, following the graph order 
+        self.s=to # bus to, following the graph order 
         self.Vse_ini=Vse_ini # Vse_ini initialization for the series source
         self.Vse=Vse_ini # Vse series source voltage magnitude
         self.t_se_ini=t_se_ini*np.pi/180 # t_se_ini series source voltage phase angle initizalization value
         self.t_se=t_se_ini*np.pi/180 # t_se series source voltage phase angle
-        self.Vsh_ini=Vsh_ini # Vsh_ini inirialization for the shunt source
+        self.Vsh_ini=Vsh_ini # Vsh_ini initialization for the shunt source
         self.Vsh=Vsh_ini # Vsh shunt voltage source magnitude
         self.t_sh_ini=t_sh_ini*np.pi/180 # t_sh_ini shunt source voltage phase angle initizalization value
-        self.t_sh=t_sh_ini*np.pi/180 # t_sh sgunt source voltage phase angle
+        self.t_sh=t_sh_ini*np.pi/180 # t_sh shunt source voltage phase angle
         self.Psp_set=Psp # specified value for the active power flow over the UPFC 
-        self.Qsp_set=Qsp # specified value for the reactve power flow over the UPFC
+        self.Qsp_set=Qsp # specified value for the reactive power flow over the UPFC
         self.Vp=Vp #specified value for the voltage magnitude in the terminal p
         self.Vs=1 # voltage magnitude at the "s" terminal
-        self.Rse=Rse #resistence for the series source
+        self.Rse=Rse #resistance for the series source
         self.Xse=Xse #reactance for the series source
-        self.Rsh=Rsh #resistence for the shunt source
+        self.Rsh=Rsh #resistance for the shunt source
         self.Xsh=Xsh #reactance for the shunt source
-        self.Yse=1/complex(Rse,Xse)  #complex adimitance for the series source
-        self.Ysh=1/complex(Rsh,Xsh) #complex adimitance for the shunt source
+        self.Yse=1/complex(Rse,Xse)  #complex admittance for the series source
+        self.Ysh=1/complex(Rsh,Xsh) #complex admittance for the shunt source
         self.gse=np.real(self.Yse)
         self.bse=np.imag(self.Yse)
         self.gsh=np.real(self.Ysh)
         self.bsh=np.imag(self.Ysh)
-        self.Vse_max=Vse_max # voltage magintude superior limit fdor the series source
-        self.Vse_min=Vse_min # voltage magintude inferior limit fdor the series source
-        self.Vsh_max=Vsh_max # voltage magintude superior limit fdor the shunt source
-        self.Vsh_min=Vsh_min # voltage magintude inferior limit fdor the shunt source
-        self.mode=mode # mode 0 controles voltage at bus "p"/ 1 does note control voltage at bus "p"
+        self.Vse_max=Vse_max # voltage magnitude superior limit the series source
+        self.Vse_min=Vse_min # voltage magnitude inferior limit the series source
+        self.Vsh_max=Vsh_max # voltage magnitude superior limit the shunt source
+        self.Vsh_min=Vsh_min # voltage magnitude inferior limit the shunt source
+        self.mode=mode # mode 0 controls voltage at bus "p"/ 1 does not control voltage at bus "p"
     
     def Pps(self,graph):
         p=self.p
         s=self.s
         PartI=(graph[p].V**2)*(self.gse+self.gsh)
-        PartII=-graph[p].V*graph[s].V*(self.gse*np.cos(graph[p].teta-graph[s].teta)+self.bse*np.sin(graph[p].teta-graph[s].teta))
-        PartIII=-graph[p].V*self.Vse*(self.gse*np.cos(graph[p].teta-self.t_se)+self.bse*np.sin(graph[p].teta-self.t_se))
-        PartIV=-graph[p].V*self.Vsh*(self.gsh*np.cos(graph[p].teta-self.t_sh)+self.bsh*np.sin(graph[p].teta-self.t_sh))
+        PartII=-graph[p].V*graph[s].V*(self.gse*np.cos(graph[p].theta-graph[s].theta)+self.bse*np.sin(graph[p].theta-graph[s].theta))
+        PartIII=-graph[p].V*self.Vse*(self.gse*np.cos(graph[p].theta-self.t_se)+self.bse*np.sin(graph[p].theta-self.t_se))
+        PartIV=-graph[p].V*self.Vsh*(self.gsh*np.cos(graph[p].theta-self.t_sh)+self.bsh*np.sin(graph[p].theta-self.t_sh))
         return PartI+PartII+PartIII+PartIV
     def Qps(self,graph):
         p=self.p
         s=self.s
         PartI=(graph[p].V**2)*(self.bse+self.bsh)
-        PartII=-graph[p].V*graph[s].V*(self.bse*np.cos(graph[p].teta-graph[s].teta)-self.gse*np.sin(graph[p].teta-graph[s].teta))
-        PartIII=-graph[p].V*self.Vse*(self.bse*np.cos(graph[p].teta-self.t_se)-self.gse*np.sin(graph[p].teta-self.t_se))
-        PartIV=-graph[p].V*self.Vsh*(self.bsh*np.cos(graph[p].teta-self.t_sh)-self.gsh*np.sin(graph[p].teta-self.t_sh))
+        PartII=-graph[p].V*graph[s].V*(self.bse*np.cos(graph[p].theta-graph[s].theta)-self.gse*np.sin(graph[p].theta-graph[s].theta))
+        PartIII=-graph[p].V*self.Vse*(self.bse*np.cos(graph[p].theta-self.t_se)-self.gse*np.sin(graph[p].theta-self.t_se))
+        PartIV=-graph[p].V*self.Vsh*(self.bsh*np.cos(graph[p].theta-self.t_sh)-self.gsh*np.sin(graph[p].theta-self.t_sh))
         return -PartI-PartII-PartIII-PartIV
     def Psp(self,graph):
         p=self.p
         s=self.s
         PartIII=(graph[s].V**2)*(self.gse)
-        PartI=-graph[s].V*graph[p].V*(self.gse*np.cos(graph[s].teta-graph[p].teta)+self.bse*np.sin(graph[s].teta-graph[p].teta))
-        PartII=graph[s].V*self.Vse*(self.gse*np.cos(graph[s].teta-self.t_se)+self.bse*np.sin(graph[s].teta-self.t_se))
+        PartI=-graph[s].V*graph[p].V*(self.gse*np.cos(graph[s].theta-graph[p].theta)+self.bse*np.sin(graph[s].theta-graph[p].theta))
+        PartII=graph[s].V*self.Vse*(self.gse*np.cos(graph[s].theta-self.t_se)+self.bse*np.sin(graph[s].theta-self.t_se))
         return PartI+PartII+PartIII
     def Qsp(self,graph):
         p=self.p
         s=self.s
-        PartI=-graph[s].V*graph[p].V*(self.bse*np.cos(graph[s].teta-graph[p].teta)-self.gse*np.sin(graph[s].teta-graph[p].teta))
-        PartII=graph[s].V*self.Vse*(self.bse*np.cos(graph[s].teta-self.t_se)-self.gse*np.sin(graph[s].teta-self.t_se))
+        PartI=-graph[s].V*graph[p].V*(self.bse*np.cos(graph[s].theta-graph[p].theta)-self.gse*np.sin(graph[s].theta-graph[p].theta))
+        PartII=graph[s].V*self.Vse*(self.bse*np.cos(graph[s].theta-self.t_se)-self.gse*np.sin(graph[s].theta-self.t_se))
         PartIII=(graph[s].V**2)*(self.bse)
         return -PartI-PartII-PartIII
     def Pse(self,graph):
@@ -674,8 +674,8 @@ class UPFC():
         s=self.s
 
         PartI=(self.Vse**2)*self.gse
-        PartII=-self.Vse*graph[p].V*(self.gse*np.cos(self.t_se-graph[p].teta)+self.bse*np.sin(self.t_se-graph[p].teta))
-        PartIII=self.Vse*graph[s].V*(self.gse*np.cos(self.t_se-graph[s].teta)+self.bse*np.sin(self.t_se-graph[s].teta))
+        PartII=-self.Vse*graph[p].V*(self.gse*np.cos(self.t_se-graph[p].theta)+self.bse*np.sin(self.t_se-graph[p].theta))
+        PartIII=self.Vse*graph[s].V*(self.gse*np.cos(self.t_se-graph[s].theta)+self.bse*np.sin(self.t_se-graph[s].theta))
         return PartI+PartII+PartIII
     
     def Qse(self,graph):
@@ -685,8 +685,8 @@ class UPFC():
         p=self.p
         s=self.s
         PartI=(self.Vse**2)*self.bse
-        PartII=-self.Vse*graph[p].V*(self.bse*np.cos(self.t_se-graph[p].teta)-self.gse*np.sin(self.t_se-graph[p].teta))
-        PartIII=self.Vse*graph[s].V*(self.bse*np.cos(self.t_se-graph[s].teta)-self.gse*np.sin(self.t_se-graph[s].teta))
+        PartII=-self.Vse*graph[p].V*(self.bse*np.cos(self.t_se-graph[p].theta)-self.gse*np.sin(self.t_se-graph[p].theta))
+        PartIII=self.Vse*graph[s].V*(self.bse*np.cos(self.t_se-graph[s].theta)-self.gse*np.sin(self.t_se-graph[s].theta))
         return -PartI-PartII-PartIII
 
     def Psh(self,graph):
@@ -695,7 +695,7 @@ class UPFC():
         """
         p=self.p
         PartI=-(self.Vsh**2)*self.gsh
-        PartII=self.Vsh*graph[p].V*(self.gsh*np.cos(self.t_sh-graph[p].teta)+self.bsh*np.sin(self.t_sh-graph[p].teta))
+        PartII=self.Vsh*graph[p].V*(self.gsh*np.cos(self.t_sh-graph[p].theta)+self.bsh*np.sin(self.t_sh-graph[p].theta))
         return PartI+PartII
     
     def Qsh(self,graph):
@@ -704,7 +704,7 @@ class UPFC():
         """
         p=self.p
         PartI=-(self.Vsh**2)*self.bsh
-        PartII=self.Vsh*graph[p].V*(self.bsh*np.cos(self.t_sh-graph[p].teta)-self.gsh*np.sin(self.t_sh-graph[p].teta))
+        PartII=self.Vsh*graph[p].V*(self.bsh*np.cos(self.t_sh-graph[p].theta)-self.gsh*np.sin(self.t_sh-graph[p].theta))
         return -PartI-PartII
     
     def dPpsdtp(self,graph):
@@ -715,8 +715,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -739,8 +739,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -763,8 +763,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -784,8 +784,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -806,8 +806,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -827,8 +827,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -848,8 +848,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -869,8 +869,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -890,8 +890,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -913,8 +913,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -938,8 +938,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -959,8 +959,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -980,8 +980,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1001,8 +1001,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1022,8 +1022,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1043,8 +1043,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1066,8 +1066,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1088,8 +1088,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1109,8 +1109,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1131,8 +1131,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1154,8 +1154,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1175,8 +1175,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1210,8 +1210,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1231,8 +1231,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1253,8 +1253,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1275,8 +1275,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1297,8 +1297,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1318,8 +1318,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1354,8 +1354,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1377,8 +1377,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1398,8 +1398,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1420,8 +1420,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1442,8 +1442,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1464,8 +1464,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1485,8 +1485,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1507,8 +1507,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1525,8 +1525,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1544,8 +1544,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1565,8 +1565,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1583,8 +1583,8 @@ class UPFC():
         s=self.s
         Vp=graph[p].V
         Vs=graph[s].V
-        tp=graph[p].teta
-        ts=graph[s].teta
+        tp=graph[p].theta
+        ts=graph[s].theta
         Vse=self.Vse
         Vsh=self.Vsh
         tse=self.t_se
@@ -1602,8 +1602,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1619,8 +1619,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1636,8 +1636,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1653,8 +1653,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1670,8 +1670,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1687,8 +1687,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1704,8 +1704,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1721,8 +1721,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1738,8 +1738,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1755,8 +1755,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1772,8 +1772,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1790,8 +1790,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1807,8 +1807,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1824,8 +1824,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1840,8 +1840,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1857,8 +1857,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1874,8 +1874,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1891,8 +1891,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1907,8 +1907,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1924,8 +1924,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1941,8 +1941,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1958,8 +1958,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1975,8 +1975,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -1992,8 +1992,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -2009,8 +2009,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -2027,8 +2027,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -2043,8 +2043,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -2059,8 +2059,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -2076,8 +2076,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -2093,8 +2093,8 @@ class UPFC():
         s=self.s
         V_p=graph[p].V
         V_s=graph[s].V
-        t_p=graph[p].teta
-        t_s=graph[s].teta
+        t_p=graph[p].theta
+        t_s=graph[s].theta
         V_se=self.Vse
         V_sh=self.Vsh
         t_se=self.t_se
@@ -2109,8 +2109,8 @@ class UPFC():
             s=self.s
             V_p=graph[p].V
             V_s=graph[s].V
-            t_p=graph[p].teta
-            t_s=graph[s].teta
+            t_p=graph[p].theta
+            t_s=graph[s].theta
             V_se=self.Vse
             V_sh=self.Vsh
             t_se=self.t_se
@@ -2125,8 +2125,8 @@ class UPFC():
             s=self.s
             V_p=graph[p].V
             V_s=graph[s].V
-            t_p=graph[p].teta
-            t_s=graph[s].teta
+            t_p=graph[p].theta
+            t_s=graph[s].theta
             V_se=self.Vse
             V_sh=self.Vsh
             t_se=self.t_se
@@ -2158,14 +2158,13 @@ class SVC():
         self.Bk=-self.Xeq/(self.Xeq**2+self.Rt**2)
         self.Gk=self.Rt/(self.Xeq**2+self.Rt**2)
     def dGkdBsvc(self):
-        numerador=-2*self.Rt*self.BSVC*(self.Xt*self.BSVC-1)
-        denominador=((self.Rt**2)*(self.BSVC**2)+(self.Xt*self.BSVC-1)**2)**2
-        return numerador/denominador
+        A=-2*self.Rt*self.BSVC*(self.Xt*self.BSVC-1)
+        B=((self.Rt**2)*(self.BSVC**2)+(self.Xt*self.BSVC-1)**2)**2
+        return A/B
     def dBkdBsvc(self):
-        #parei aqui
-        numerador=(self.Rt**2)*(self.BSVC**2)-(self.Xt**2)*(self.BSVC**2)+2*(self.Xt)*(self.BSVC)-1  
-        denominador=((self.Rt**2)*(self.BSVC**2)+(self.Xt*self.BSVC-1)**2)**2
-        return -numerador/denominador
+        A=(self.Rt**2)*(self.BSVC**2)-(self.Xt**2)*(self.BSVC**2)+2*(self.Xt)*(self.BSVC)-1  
+        B=((self.Rt**2)*(self.BSVC**2)+(self.Xt*self.BSVC-1)**2)**2
+        return -A/B
 
 
 
@@ -2174,11 +2173,11 @@ class SVC():
 
 
 class netinfo():
-    def __init__(self,nbar,nram,nvar,nteta,nv) -> None:
-        self.nbar=nbar
+    def __init__(self,nbus,nram,nvar,ntheta,nv) -> None:
+        self.nbus=nbus
         self.nram=nram
         self.nvar=nvar
-        self.nteta=nteta
+        self.ntheta=ntheta
         self.nv=nv
 
 class meas():
@@ -2191,22 +2190,22 @@ class meas():
         self.sigma=np.abs(val)*prec/3
     def dz(self,graph):
         if self.type==0:
-            return self.val-graph[self.k].P(graph) ## inserir fluxos do UPFC
+            return self.val-graph[self.k].P(graph) 
         elif self.type==1:
-            return self.val-graph[self.k].Q(graph) ## inserir fluxos do UPFC
+            return self.val-graph[self.k].Q(graph) 
         elif self.type==2:
             keyk=str(self.k)+"-"+str(self.m)
             keym=str(self.m)+"-"+str(self.k)
             if keyk in graph[self.k].adjk.keys():
-                return self.val-graph[self.k].adjk[keyk].Pf(graph,0) # Se for UPFC branch
+                return self.val-graph[self.k].adjk[keyk].Pf(graph,0) 
             elif keym in graph[self.k].adjm.keys():
-                return self.val-graph[self.k].adjm[keym].Pf(graph,1) # Se for UPFC branch.
+                return self.val-graph[self.k].adjm[keym].Pf(graph,1) 
             elif keyk in graph[self.k].bUFPC_adjk.keys(): 
                 return self.val-graph[self.k].bUFPC_adjk[keyk].Pps(graph)
             elif keym in graph[self.k].bUFPC_adjm.keys():
                 return self.val-graph[self.k].bUFPC_adjm[keym].Psp(graph)
             else:
-                print("medida de fluxo de potencia ativa com ramo não existente")
+                print("nonexistent branch in active power measurement")  
                 exit(1)
         elif self.type==3:
             keyk=str(self.k)+"-"+str(self.m)
@@ -2220,29 +2219,29 @@ class meas():
             elif keym in graph[self.k].bUFPC_adjm.keys():
                 return self.val-graph[self.k].bUFPC_adjm[keym].Qsp(graph)
             else:
-                print("medida de fluxo de potencia reativa com ramo não existente")
+                print("reactive power measurement with non-existent branch")
                 exit(1)
         elif self.type==4:
             return self.val-graph[self.k].V
         elif self.type==5:
-            return self.val-graph[self.k].teta
+            return self.val-graph[self.k].theta
         elif self.type==6:
-            return self.val-graph[self.k].I_inj_re(graph) ## inserir fluxos do UPFC
+            return self.val-graph[self.k].I_inj_re(graph) 
         elif self.type==7:
-            return self.val-graph[self.k].I_inj_im(graph) ## inserir fluxos do UPFC
+            return self.val-graph[self.k].I_inj_im(graph) 
         elif self.type==8:
             keyk=str(self.k)+"-"+str(self.m)
             keym=str(self.m)+"-"+str(self.k)
             if keyk in graph[self.k].adjk.keys():
-                return self.val-graph[self.k].adjk[keyk].Iref(graph,0) # Se for UPFC branch
+                return self.val-graph[self.k].adjk[keyk].Iref(graph,0) 
             elif keym in graph[self.k].adjm.keys():
-                return self.val-graph[self.k].adjm[keym].Iref(graph,1) # Se for UPFC branch.
+                return self.val-graph[self.k].adjm[keym].Iref(graph,1) 
             elif keyk in graph[self.k].bUFPC_adjk.keys(): 
                 return self.val-graph[self.k].bUFPC_adjk[keyk].Ips_re(graph)
             elif keym in graph[self.k].bUFPC_adjm.keys():
                 return self.val-graph[self.k].bUFPC_adjm[keym].Isp_re(graph)
             else:
-                print("medida de fluxo de potencia ativa com ramo não existente")
+                print("active power flow measurement with non-existent branch")
                 exit(1)
         elif self.type==9:
             keyk=str(self.k)+"-"+str(self.m)
@@ -2256,39 +2255,39 @@ class meas():
             elif keym in graph[self.k].bUFPC_adjm.keys():
                 return self.val-graph[self.k].bUFPC_adjm[keym].Isp_im(graph)
             else:
-                print("medida de fluxo de potencia reativa com ramo não existente")
+                print("reactive power flow measurement with non-existent branch")
                 exit(1)
         elif self.type==10:
-            #medida é uma variavel de controle do TCSC
+            # measurement is a TCSC control variable
             k=self.k
             keyk=str(self.k)+"-"+str(self.m)
             return self.val-graph[k].bFACTS_adjk[keyk].xtcsc
         elif self.type==11:
-            #medida é uma variavel de controle do SVC
+            #measurement is a SVC control variable
             k=self.k
             return self.val-graph[k].SVC.BSVC
         elif self.type==12:
-            #medida é uma variavel de controle do UPFC (modulo de tensao da fonte shunt)
+            # measure is a control variable of the UPFC (magnitude of the shunt source voltage)
             k=self.k
             keyk=str(self.k)+"-"+str(self.m)
             return self.val-graph[k].bUFPC_adjk[keyk].Vsh
         elif self.type==13:
-            #medida é uma variavel de controle do UPFC (modulo de teta da fonte shunt)
+            # measurement is a control variable of the UPFC (angle of the shunt source voltage)
             k=self.k
             keyk=str(self.k)+"-"+str(self.m)
-            return self.val - (graph[k].teta-graph[k].bUFPC_adjk[keyk].t_sh)
+            return self.val - (graph[k].theta-graph[k].bUFPC_adjk[keyk].t_sh)
         elif self.type==14:
-            #medida é uma variavel de controle do UPFC (modulo de tensao da fonte shunt)
+            #measurement is a control variable of the UPFC (magnitude of the series source voltage)
             k=self.k
             keyk=str(self.k)+"-"+str(self.m)
             return self.val - graph[k].bUFPC_adjk[keyk].Vse
         elif self.type==15:
-            #medida é uma variavel de controle do UPFC (modulo de teta da fonte shunt)
+            # measurement is a control variable of the UPFC (angle of the series source voltage)
             k=self.k
             keyk=str(self.k)+"-"+str(self.m)
-            return self.val - (graph[k].teta-graph[k].bUFPC_adjk[keyk].t_se)
+            return self.val - (graph[k].theta-graph[k].bUFPC_adjk[keyk].t_se)
         else:
-            print("Tipo de medida não existente")
+            print("nonexistent measurement type")
             exit(1)
     def cx(self,graph):
         if self.type==0:
@@ -2303,7 +2302,7 @@ class meas():
             elif keym in graph[self.k].adjm.keys():
                 return graph[self.k].adjm[keym].Pf(graph,1)
             else:
-                print("medida de fluxo de potencia ativa com ramo não existente")
+                print("active power flow measurement with non-existent branch")
                 exit(1)
         elif self.type==3:
             keyk=str(self.k)+"-"+str(self.m)
@@ -2313,7 +2312,7 @@ class meas():
             elif keym in graph[self.k].adjm.keys():
                 return graph[self.k].adjm[keym].Qf(graph,1)
             else:
-                print("medida de fluxo de potencia reativa com ramo não existente")
+                print("reactive power flow measurement with non-existent branch")
                 exit(1)
         elif self.type==4:
             return graph[self.k].V
@@ -2330,7 +2329,7 @@ class state():
 class prioriMAP():
     def __init__(self,graph,var_tcsc={},var_svc={},var_UPFC={},flag_priori=0,H=[],W=[],lamb=1.0) -> None:
         self.flag_priori=flag_priori
-        self.no=[]
+        self.node=[]
         self.tcsc={}
         self.svc={}
         self.upfc_tse={}
@@ -2340,7 +2339,7 @@ class prioriMAP():
         
         i=0
         for no in graph:
-            self.no.append(no_priori(graph[i].V,graph[i].teta))
+            self.node.append(node_priori(graph[i].V,graph[i].theta))
             i=i+1
 
         for key, item in var_tcsc.items():
@@ -2370,7 +2369,7 @@ class prioriMAP():
 
         
 
-class no_priori():
-    def __init__(self,V,teta):
+class node_priori():
+    def __init__(self,V,theta):
         self.V=V
-        self.teta=teta
+        self.theta=theta
