@@ -21,7 +21,7 @@ sys="IEEE118"
 dfDBAR,dfDBRAN,dfDMED = read_files(sys)
 
 
-[bars,nbars,pv,pq,ind_i]=creat_bar(dfDBAR)
+[bars,nbars,pv,pq,ind_i]=creat_bus(dfDBAR)
 [ram,nbran]=create_bran(dfDBRAN,ind_i)
 
 network=netinfo(nbars,nbran,2*nbars-1,nteta=nbars-1,nv=nbars)

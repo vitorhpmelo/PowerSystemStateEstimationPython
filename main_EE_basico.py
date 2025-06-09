@@ -23,7 +23,7 @@ dfDBUS,dfDBRAN,dfDMEAS,dfDFACTS=read_files(sys)
 
 
 
-[bus,nbus,pv,pq,ind_i]=creat_bus(dfDBUS)
+[bus,nbus,pv,pq,ind_i]=create_bus(dfDBUS)
 [bran,nbran]=create_bran(dfDBRAN,ind_i)
 #%%
 

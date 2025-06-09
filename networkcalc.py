@@ -1816,6 +1816,11 @@ def new_X(graph,var_t,var_v,dx):
     for key,item in var_v.items():
         graph[key].V=graph[key].V+dx[item+n_theta]
 
+def new_X_dc(graph_dc,var_v,dx):
+    for key,item in var_v.items():
+        graph_dc[key].Vdc=graph_dc[key].Vdc+dx[item]
+
+
 
 def new_X_SVC(graph,offset,var_svc,dx):
     for key,item in var_svc.items():

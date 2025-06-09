@@ -15,20 +15,15 @@ import scipy.sparse.linalg as sliang
 
 
 #%% Lê arquivos e constroi a estrutura da rede
-<<<<<<< HEAD:main_fp_saveDMED.py
 
 sys="IEEE14"
-=======
-#"testand"
-sys="IEEE14_rakp2009"
->>>>>>> refs/remotes/origin/EE_PMUs:main_FP.py
 
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
 
 
 
-[bars,nbars,pv,pq,ind_i]=creat_bar(dfDBAR)
+[bars,nbars,pv,pq,ind_i]=creat_bus(dfDBAR)
 [ram,nbran]=create_bran(dfDBRAN,ind_i)
 #%%
 [ramTCSC,nbranTCSC]=create_TCSC(dfDFACTS,ind_i)

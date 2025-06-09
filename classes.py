@@ -25,6 +25,18 @@ class bus():
         self.nshunts=0
         self.ngds=0
 
+
+class bus_dc():
+    def __init__(self,id,type,counter):
+        self.id=id
+        self.type=type
+        self.i=counter
+        self.Vdc=1
+        self.Pbase=100
+        self.Vbase=345
+        self.Pdc=0
+
+
 class branch():
     def __init__(self,id,fr,to,type,i):
         self.id=id
@@ -2286,6 +2298,10 @@ class meas():
             k=self.k
             keyk=str(self.k)+"-"+str(self.m)
             return self.val - (graph[k].theta-graph[k].bUFPC_adjk[keyk].t_se)
+        elif self.type==100:# DC measurements
+            return self.val-graph[self.k].Pdc(graph) #here is the graph_dc
+
+
         else:
             print("nonexistent measurement type")
             exit(1)
@@ -2373,3 +2389,53 @@ class node_priori():
     def __init__(self,V,theta):
         self.V=V
         self.theta=theta
+
+
+
+
+class branch_dc():
+    def __init__(self,id,fr,to,i):
+        self.id=id
+        self.fr=fr
+        self.to=to
+        self.i=i
+        self.r=-1
+        self.p=1
+    def Pfdc(self,graph,flag):
+        if flag==0:
+            k=self.fr
+            m=self.to
+        else:
+            k=self.to
+            m=self.fr
+        return self.p*graph[k].Vdc*(graph[k].Vdc-graph[m].Vdc)/self.r
+    def dPfdVdc(self,graph,flag,var):
+        if flag==0:
+            k=self.fr
+            m=self.to
+        else:
+            k=self.to
+            m=self.fr
+        if k==var: # dPkm/dVdcm
+            return self.p*(2*graph[k].Vdc-graph[m].Vdc)/self.r
+        else: # dPkm/dVdcm
+            return -self.p*graph[k].Vdc/self.r
+
+
+
+class node_graph_dc():
+    def __init__(self,id,bus_dc):
+        self.Vdc=1
+        self.adjk=dict()
+        self.adjm=dict()
+        self.ladjk=[]
+        self.ladjm=[]
+        self.id=id
+        self.bus_dc=bus_dc
+    def Pdc(self,graph):
+        Pdc=0
+        for key in self.adjk.keys():
+            Pdc+=self.adjk[key].Pfdc(graph,0)
+        for key in self.adjm.keys():
+            Pdc+=self.adjm[key].Pfdc(graph,1)
+        return Pdc

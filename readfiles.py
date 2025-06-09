@@ -111,6 +111,31 @@ def read_files(sys):
 
 
 
+
+def read_files_DC(sys):
+    """
+    This function performs the reading of the files with the information about the Power System.
+    @param: sys - string with the name of the system
+    @return DBUS_DC - Data Frame with the information about the system's DC buses
+    @return dfDBRAN - Data Frame with the information about the system's branches
+    @return dfDMEAS - Data Frame with the information about the system measurements
+    @return dfDFACTS - Data Frame with the FACTS devices
+    """
+    try: # if the DBUS exists the program reads it, if not it stops. This file is mandatory 
+        dfDBUS_DC=pd.read_csv(sys+"/DBUS_DC.csv",header=0,dtype={0:np.int64,1:np.int64})
+    except:
+        print("Error while reading DBUS DBUS_DC file")
+        quit()
+
+    try: # if the DBRAN exists the program reads it, if not it stops. This file is mandatory
+        dfDBRAN_DC=pd.read_csv(sys+"/DBRAN_DC.csv",header=0,dtype={0:np.int64,1:np.int64,2:np.int64})
+    except:
+        print("Error while reading DBRAN_DC file")
+        exit(1)
+
+    return dfDBUS_DC,dfDBRAN_DC
+
+
 def prt_state(graph):
     """
     Function to print in the scream the value of the state variables, in the network's graph
@@ -118,6 +143,15 @@ def prt_state(graph):
     """
     for no in graph:
         s="Bus: {:d} | V : {:f} | t : {:f}".format(no.bus.id,no.V,no.theta*180/np.pi)
+        print(s)
+
+def prt_state_dc(graph_dc):
+    """
+    Function to print in the scream the value of the state variables, in the network's graph
+    @param: graph Graph structure with the information about the network
+    """
+    for no in graph_dc:
+        s="Bus: {:d} | V : {:f}".format(no.bus_dc.id,no.Vdc)
         print(s)
 
 

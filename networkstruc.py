@@ -3,7 +3,7 @@ from classes import *
 import pandas as pd
 import numpy as np
 
-def creat_bus(dfDBUS):  
+def create_bus(dfDBUS):  
     """
     Function to read the information about the network in the data frame and put it into the bar struture
     @param: dfDBUS - data frame with the informations about the network buses
@@ -193,7 +193,7 @@ def create_UPFC(dfFACTS,ind_i):
         i+=1
     return ram,i
 
-def create_graph(bars,ram):
+def create_graph(bus,bran):
     """
     Creates the network graph usinf the information of the bars list and the ram dic.
     @param bars - list of instances of the class bar with the information about the network buses
@@ -201,13 +201,13 @@ def create_graph(bars,ram):
     @return graph - list of instances of the class node, that form the network graph
     """
     graph=[]
-    for item in bars:
+    for item in bus:
         node=node_graph(item.i,item)
         if abs(item.Bs)>1e-8:
             node.FlagBS=1#informs if exists a capacitor bank or a reactor
             node.Bs=item.Bs
         graph.append(node)
-    for key,item in ram.items(): #save the adjacent buses in the node and the rams connected to it
+    for key,item in bran.items(): #save the adjacent buses in the node and the rams connected to it
         k=int(key.split("-")[0])
         m=int(key.split("-")[1])
         graph[k].adjk.update({key:item})
@@ -259,3 +259,84 @@ def addUPFCingraph(graph,ramUPFC):
         graph[m].FlagUPFC=1# indicates that there is TCSC connected in the bus to
         graph[k].bUFPC_adjk.update({key:item}) #inserts the ram key in the bus adj of the bus from dic only of FACTS
         graph[m].bUFPC_adjm.update({key:item}) #inserts the ram key in the bus adj of the bus to dic only of FACTS
+
+
+
+
+
+
+def create_bus_dc(dfDBUS_dc,muticonductors=False):  
+    """
+    Function to read the information about the network in the data frame and put it into the bar struture
+    @param: dfDBUS - data frame with the informations about the network buses
+    @return: vector of instances bar class, with the information about the netowrk buses
+    @return: i - number of buses
+    @return: pv - index of the pv buses
+    @return: pq - index of the pq buses
+    @return: ind_id - dict to convert the name of the bus to its index
+    """
+    buses_dc=[]
+    i=0
+    slack=[]
+    ind_id_dc={}
+    for idx, row in dfDBUS_dc.iterrows():#reads each line of the data frame
+        item=bus_dc(int(row["id"]),int(row["type"]),i) 
+        item.Vdc=row.Vdc
+        item.Pdc=row["Pdc"]/100#converts the power from MW to p.u.
+        if int(row["type"])==0:
+            slack.append(i)#create the list of PV buses
+        buses_dc.append(item)
+        ind_id_dc[int(row["id"])]=i # create the dictionary relating the name of the bus to it index
+        i=i+1
+    return buses_dc,i,slack,ind_id_dc
+
+
+
+
+def create_bran_dc(dfDBRAN_DC,ind_i_dc):
+    """
+    Function to read the information in the data frame dfDBRAN and put it in the ram dictionary, that is composed by instances of the
+    branch class. This ditc contains all the information about the network branches.
+    @param: dfDBRAN_DC - Data Frame with the information about the DC branches
+    @param: ind_i - dict to translate the name of the bus to it index
+    @return bran_dc - list of instances of branch class with the information about the network branches
+    @return i - number of branches 
+    """
+    bran={}
+    i=0
+  
+
+    for id, row in dfDBRAN_DC.iterrows():
+        key=i
+        item=branch_dc(int(row["id"]),ind_i_dc[int(row["from"])],ind_i_dc[int(row["to"])],i)
+        item.r=row["r"]
+        item.p=row["line_confi"]
+        bran[key]=item    
+        i+=1
+    return bran,i
+
+
+
+
+
+def create_graph_dc(bus_dc,bran_dc):
+    """
+    Creates the network graph usinf the information of the bars list and the ram dic.
+    @param bus_dc - list of instances of the class bus_dc with the information about the network buses
+    @param ram - list of instances of branch_dc class with the information about the network branches
+    @return graph_dc - list of instances of the class node, that form the network graph
+    """
+    graph_dc=[]
+    for item in bus_dc:
+        node=node_graph_dc(item.i,item)
+        graph_dc.append(node)
+    for key,item in bran_dc.items(): #save the adjacent buses in the node and the rams connected to it
+        k=item.fr
+        m=item.to
+        graph_dc[k].adjk.update({key:item})
+        graph_dc[k].ladjk.append(m)
+        graph_dc[m].adjm.update({key:item})
+        graph_dc[m].ladjm.append(k)
+
+    
+    return graph_dc

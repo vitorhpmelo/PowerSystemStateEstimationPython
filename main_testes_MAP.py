@@ -32,7 +32,7 @@ sys="IEEE14_rakp2009"
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
 
 
-[bars,nbars,pv,pq,ind_i]=creat_bar(dfDBAR)
+[bars,nbars,pv,pq,ind_i]=creat_bus(dfDBAR)
 [ram,nbran]=create_bran(dfDBRAN,ind_i)
 #%%
 [ramTCSC,nbranTCSC]=create_TCSC(dfDFACTS,ind_i)
