@@ -133,7 +133,13 @@ def read_files_DC(sys):
         print("Error while reading DBRAN_DC file")
         exit(1)
 
-    return dfDBUS_DC,dfDBRAN_DC
+    try:
+        dfDCONV_acdc=pd.read_csv(sys+"/DCONV_ACDC.csv",header=0,dtype={0:np.int64,1:np.int64})
+    except: 
+        print("There is no DCONV_acdc")
+        dfDCONV_acdc=pd.DataFrame()
+
+    return dfDBUS_DC,dfDBRAN_DC,dfDCONV_acdc
 
 
 def prt_state(graph):

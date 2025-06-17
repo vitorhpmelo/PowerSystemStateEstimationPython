@@ -16,7 +16,7 @@ def create_z_x_pf_dc(graph_dc):
     j=0
     for item in graph_dc:
         if item.bus_dc.type==1:
-            mes=meas(item.id,-1,100,-item.bus_dc.Pdc,1)
+            mes=meas(item.id,-1,100,item.bus_dc.Pdc_conv+item.bus_dc.Pdc_gen-item.bus_dc.Pdc_load,1)
             zP.append(mes)
             var_v[item.id]=i
             i=i+1

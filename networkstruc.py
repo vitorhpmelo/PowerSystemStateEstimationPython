@@ -263,6 +263,20 @@ def addUPFCingraph(graph,ramUPFC):
 
 
 
+def addACDCconv_ingraph(graph,graphdc,conv_acdc):
+
+    if not conv_acdc:
+        return
+
+    for i in range(len(conv_acdc)): #save the adjacent buses in the node and the rams connected to it
+        busac=conv_acdc[i].i_busac
+        busdc=conv_acdc[i].i_busdc
+        graph[busac].FlagConvACDC=1
+        graphdc[busdc].FlagConvACDC=1
+        graph[busac].dconv_acdc.update({conv_acdc[i].i:conv_acdc[i]}) #inserts the struct conv in the graph ac
+        graphdc[busdc].dconv_acdc.update({conv_acdc[i].i:conv_acdc[i]})#inserts the struct conv in the graph  dc 
+
+
 
 
 def create_bus_dc(dfDBUS_dc,muticonductors=False):  
@@ -282,7 +296,8 @@ def create_bus_dc(dfDBUS_dc,muticonductors=False):
     for idx, row in dfDBUS_dc.iterrows():#reads each line of the data frame
         item=bus_dc(int(row["id"]),int(row["type"]),i) 
         item.Vdc=row.Vdc
-        item.Pdc=row["Pdc"]/100#converts the power from MW to p.u.
+        item.Pdc_load=row["Pdc_load"]/100#converts the power from MW to p.u.
+        item.Pdc_gen=row["Pdc_gen"]/100
         if int(row["type"])==0:
             slack.append(i)#create the list of PV buses
         buses_dc.append(item)
@@ -316,6 +331,47 @@ def create_bran_dc(dfDBRAN_DC,ind_i_dc):
     return bran,i
 
 
+def create_conv_acdc(dfDCONV_acdc,ind_i_dc,ind_i,muticonductors=False):  
+    """
+    Function to read the information about the network in the data frame and put it into the conv_acdc struture
+    @param: dfDCONV_acdc - data frame with the informations about the network converters
+    @param: ind_i_dc - dict to translate the name of the bus to it index
+    @return: vector of instances conv_acdc class, with the information about the netowrk converters
+    @return: i - number of converters
+    @return: indi_i_conv - dictionary to translate the buses order
+    """
+    convs_acdc=[]
+    i=0
+    indi_i_conv={}
+    for idx, row in dfDCONV_acdc.iterrows():#reads each line of the data frame
+        item=conv_acdc(int(row["id"]),int(row["type"]),i) 
+        item.id_busac=row["busac_i"]
+        item.id_busdc=row["busdc_i"]
+        item.i_busac=ind_i[row["busac_i"]]
+        item.i_busdc=ind_i_dc[row["busdc_i"]]
+        item.P_grid=row["P_grid"]/100
+        item.Q_grid=row["Q_grid"]/100
+        item.V_set=row["V_set"]
+        item.flag_trans=row["transformer"]
+        item.rtf=row["rtf"]
+        item.xtf=row["xtf"]
+        item.tap=row["tap"]
+        item.flag_filter=row["filter"]
+        item.bf=row["bf"]
+        item.flag_reactor=row["reactor"]
+        item.rc=row["rc"]
+        item.xc=row["xc"]
+        item.a=row["LossA"]/100
+        item.b=row["LossB"]/(row["basekVac"])
+        item.crec=row["LossCrec"]/(row["basekVac"]**2 / 100)
+        item.cinv=row["LossCinv"]/(row["basekVac"]**2 / 100)
+        item.c=item.crec #implement check if it is inv or rect
+        convs_acdc.append(item)
+        indi_i_conv[int(row["id"])]=i
+        
+        
+        i=i+1
+    return convs_acdc,i,indi_i_conv
 
 
 

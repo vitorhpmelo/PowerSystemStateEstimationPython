@@ -34,7 +34,137 @@ class bus_dc():
         self.Vdc=1
         self.Pbase=100
         self.Vbase=345
-        self.Pdc=0
+        self.Pdc_conv=0
+        self.Pdc_load=0
+        self.Pdc_gen=0
+        self.area=1
+
+class conv_acdc():
+    def __init__(self,id,type,counter):
+        self.id=id #converter id
+        self.type=type #converter type, 1 for LCC, 2 for VSC and 3 for MMC 
+        self.i=counter #converter number 
+        self.id_busac=-1 #external name bus ac grid connected to the converter
+        self.id_busdc=-1 #external name bus dc grid connected to the converter
+        self.i_busac=-1 # internal (graph) bus ac grid connected to the converter
+        self.i_busdc=-1 # internal (graph) bus dc grid connected to the converter
+        self.type_ac=1 # type of the ac bus (defines the controll of the VSC ) 
+        self.type_dc=1 # type of the dc bus which is connected to
+        self.P_grid=0 # set point of the active powers injected in the grid
+        self.Q_grid=0 # set point of the reactiva powers injected in the grid 
+        self.Vac_grid=1 #set point of the DC grid voltage
+        self.flag_trans=1 # informs if there is a transformer
+        self.xtf=0.01 # transformer reactance 
+        self.rtf=0.01 # transformer resistence
+        self.tap=1 # transformer tap ratio
+        self.flag_filter=1 # informs existence of the filter 
+        self.bf=0.01 # filter susceptance
+        self.flag_reactor=1 # informs existence of reactor 
+        self.xc=0.01 # reactor reactance  
+        self.rc=0.01 # reactor resistance
+        self.Vdc=1 # voltage in the DC bus
+        self.Pbase=100 #active power base
+        self.Vbase=345         # Base voltage for DC side (kV)
+        self.a=0               # Losses constant intercept
+        self.b=0               # Losses constant linear
+        self.crec=0            # Losses constant quadratic reactor
+        self.cinv=0            # Losses constant quadratic inverter
+        self.c=0               # Losses constant c
+        self.Pdc=0             # DC power
+        self.Iconv=0           # Converter current
+        self.Ploss=0           # Converter losses
+        self.Pconv_ac=0        # Converter AC side active power
+        self.Qconv_ac=0        # Converter AC side reactive power
+        self.d_inter_nodes={} #list of the internal nodes created by the converter
+        self.d_inter_bran={} #list of the internal branches created by the converter        
+    def create_internal_network(self,graph):
+        if (self.flag_trans==0) & (self.flag_reactor==0):
+            OSError("Error: transformer or filter must be present in the converter") #TODO implement converter without transformer or filter
+    
+        i_conv_bus=0 #converter bus is always the first one in the 0
+
+        bus_conv=bus(id=str(self.id)+"_"+str("c"),type=4,counter=0) #TODO formal definition of the bus type 4 (converter bus)
+        
+        #get the node of the ac grid connected to the converter    
+        
+        node_conv=node_graph(i_conv_bus,bus_conv)
+        self.d_inter_nodes.update({"c":node_conv})
+        # graph.append(node_conv) #TODO see if it is necessary to append the node in the graph
+
+        if (self.flag_trans==1) & (self.flag_reactor==1):
+            i_filt_bus=1 #filter bus is always the second one in the 1
+            bus_filt=bus(id=str(self.id)+"_"+str("f"),type=5,counter=i_filt_bus)  #TODO formal definition of the bus type 4 (filter bus)
+           
+            node_filt=node_graph(i_filt_bus,bus_filt)
+            if self.flag_filter==1:
+                bus_filt.Bs=self.bf #set the filter susceptance
+                node_filt.FlagBS=1 #set the flag of the filter bus
+                node_filt.Bs=self.bf #set the filter susceptance in the filter bus
+                        
+            # graph.append(node_filt) #TODO see if it is necessary to append the node in the graph
+            self.d_inter_nodes.update({"f":node_filt})
+        else:
+            if self.flag_filter==1:
+                bus_conv.Bs=self.bf #set the filter susceptance in the converter bus
+                node_conv.FlagBS=1 #set the flag of the converter bus
+                node_conv.Bs=self.bf #set the filter susceptance in the converter bus
+
+
+        self.d_inter_nodes.update({"g":graph[self.i_busac]}) #inserts the grid bus in the internal ac network of the converter 
+
+
+        if (self.flag_trans==1) & (self.flag_reactor==1):
+            
+            tr=branch('tr',self.i_busac,i_filt_bus,2,0)
+
+            tr.x=self.xtf
+            tr.r=self.xtf
+            tr.bsh=0 #divides the shunt suceptance by two
+            tr.tap=self.tap
+            tr.cykm()#calculates the ykm
+            tr.twoPortCircuit()#creates the two port circuit
+            self.d_inter_bran.update({"tr":tr})
+
+            rc=branch('rc',i_filt_bus,i_conv_bus,1,1)
+            rc.x=self.xc
+            rc.r=self.rc
+            rc.bsh=0 #divides the shunt suceptance by two
+            rc.cykm()#calculates the ykm
+            rc.twoPortCircuit()#creates the two port circuit
+            self.d_inter_bran.update({"rc":rc})
+
+
+        elif (self.flag_trans==1) :
+
+            tr=branch('tr',self.i_busac,i_conv_bus,2,0)
+
+            tr.x=self.xtf
+            tr.r=self.xtf
+            tr.bsh=0 #divides the shunt suceptance by two
+            tr.tap=self.tap
+            tr.cykm()#calculates the ykm
+            tr.twoPortCircuit()#creates the two port circuit
+            self.d_inter_bran.update({"tr":tr})
+
+        elif (self.flag_reactor==1):
+            rc=branch('rc',self.i_busac,i_conv_bus,1,1)
+            rc.x=self.xc
+            rc.r=self.rc
+            rc.bsh=0 #divides the shunt suceptance by two
+            rc.cykm()#calculates the ykm
+            rc.twoPortCircuit()#creates the two port circuit
+            self.d_inter_bran.update({"rc":rc})
+    
+    def include_Sgrid_set_points(self,graph):
+
+        graph[self.i_busac].Pd=graph[self.i_busac].Pd-self.P_grid
+        graph[self.i_busac].Qd=graph[self.i_busac].Pd-self.Q_grid #set the active power injected in the grid
+
+        
+
+
+
+            
 
 
 class branch():
@@ -479,10 +609,13 @@ class node_graph():
         self.FlagTCSC=0
         self.FlagSVC=0
         self.FlagUPFC=0
+        self.FlagConvACDC=0
         self.bFACTS_adjk=dict()
         self.bFACTS_adjm=dict()
         self.bUFPC_adjk=dict()
         self.bUFPC_adjm=dict()
+        self.dconv_acdc=dict() #dictionary of the converters ac-dc connected to the bus
+
     def P(self,graph):
         P=0
         if self.FlagSVC==1:
@@ -2432,6 +2565,8 @@ class node_graph_dc():
         self.ladjm=[]
         self.id=id
         self.bus_dc=bus_dc
+        self.FlagConvACDC=0
+        self.dconv_acdc={}
     def Pdc(self,graph):
         Pdc=0
         for key in self.adjk.keys():
