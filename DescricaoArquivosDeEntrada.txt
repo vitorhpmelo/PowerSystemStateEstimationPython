@@ -82,11 +82,19 @@ DMED -- File with the measurement about the measurements
 
 type,de,para,zmed,prec
 
-
 type - measurement type  (0-Active Power Injection (p.u.), 1-Reactive Power Injection (p.u.), 2-Active Power flow (p.u.), 3-Reactive Power Flow (p.u.), 4-Voltage Magnitude (p.u.), 5 - Voltage pashe angle (rad)
-                          6 - Current flow Re (p.u.), 7 - Current flow Im (p.u.)  , 8 - Current flow Re (p.u.), 9 - Current flow Im (p.u.)   
-                         10 - X TCSC (p.u.),11 - B SVC (p.u.),12 - Voltage Magnitude sh UPFC, 13 - Voltage angle p-sh UPFC,14 - Voltage Magnitude se UPFC, 15 - Voltage angle p-se UPFC )
-de
-para
+                            6 - Current flow Re (p.u.), 7 - Current flow Im (p.u.)  , 8 - Current flow Re (p.u.), 9 - Current flow Im (p.u.)   
+                            10 - X TCSC (p.u.),11 - B SVC (p.u.),12 - Voltage Magnitude sh UPFC, 13 - Voltage angle p-sh UPFC,14 - Voltage Magnitude se UPFC, 15 - Voltage angle p-se UPFC 
+                            100 - DC Injection 
+                            200 - ACDC Converter internal bus injection 
+                            201 - ACDC Converter internal bus injection
+                            202 - ACDC Converter internal transformer active power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid) 
+                            203 - ACDC Converter internal transformer reactive power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+                            220 - ACDC Converter internal reactor active power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+                            230 - ACDC Converter internal reactor reactive power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+                            )
+
+de (For ACDC conv: conv_id)
+para (For ACDC conv: component (0 from grid to conv, 1 from conv to grid )
 zmed
 prec

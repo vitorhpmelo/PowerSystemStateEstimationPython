@@ -557,7 +557,7 @@ def create_c_x_UPFC(graph):
     return var_UPFC,c_upfc
 
 
-def calc_H_fp(z,var_t,var_v,graph,H):
+def calc_H_fp(z,var_t,var_v,graph,H): #TODO change this name
     i=0
     n_theta=len(var_t)
     for item in z:
@@ -1784,6 +1784,12 @@ def calc_dz(vecZ,graph,dz):
     i=0
     for z in vecZ:
         dz[i]=z.dz(graph)
+        i=i+1
+
+def calc_dz_conv(vecZ,conv,dz):
+    i=0
+    for z in vecZ:
+        dz[i]=z.dz_conv(conv)
         i=i+1
 
 def calc_h(vecZ,graph,h):

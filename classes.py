@@ -75,34 +75,41 @@ class conv_acdc():
         self.Ploss=0           # Converter losses
         self.Pconv_ac=0        # Converter AC side active power
         self.Qconv_ac=0        # Converter AC side reactive power
+        self.Pgrid=0           # Converter Injection to the grid
+        self.Qgrid=0           # Converter Injection to the grid 
         self.d_inter_nodes={} #list of the internal nodes created by the converter
         self.d_inter_bran={} #list of the internal branches created by the converter        
     def create_internal_network(self,graph):
         if (self.flag_trans==0) & (self.flag_reactor==0):
             OSError("Error: transformer or filter must be present in the converter") #TODO implement converter without transformer or filter
     
-        i_conv_bus=0 #converter bus is always the first one in the 0
-
-        bus_conv=bus(id=str(self.id)+"_"+str("c"),type=4,counter=0) #TODO formal definition of the bus type 4 (converter bus)
+        i_bus_conv=2 #converter bus 
+        i_bus_filter=1 #converter filter bus 
+        i_bus_grid=0 # converter grid bus
+        
+        bus_conv=bus(id=str(self.id)+"_"+str(i_bus_conv),type=4,counter=0) #TODO formal definition of the bus type 4 (converter bus)
         
         #get the node of the ac grid connected to the converter    
         
-        node_conv=node_graph(i_conv_bus,bus_conv)
-        self.d_inter_nodes.update({"c":node_conv})
+        node_conv=node_graph(i_bus_conv,bus_conv)
+        self.d_inter_nodes.update({i_bus_conv:node_conv})
         # graph.append(node_conv) #TODO see if it is necessary to append the node in the graph
+        
 
         if (self.flag_trans==1) & (self.flag_reactor==1):
-            i_filt_bus=1 #filter bus is always the second one in the 1
-            bus_filt=bus(id=str(self.id)+"_"+str("f"),type=5,counter=i_filt_bus)  #TODO formal definition of the bus type 4 (filter bus)
+    
+            bus_filt=bus(id=str(self.id)+"_"+str(i_bus_filter),type=5,counter=i_bus_filter)  #TODO formal definition of the bus type 4 (filter bus)
            
-            node_filt=node_graph(i_filt_bus,bus_filt)
+            node_filt=node_graph(i_bus_filter,bus_filt)
+
             if self.flag_filter==1:
                 bus_filt.Bs=self.bf #set the filter susceptance
                 node_filt.FlagBS=1 #set the flag of the filter bus
                 node_filt.Bs=self.bf #set the filter susceptance in the filter bus
                         
             # graph.append(node_filt) #TODO see if it is necessary to append the node in the graph
-            self.d_inter_nodes.update({"f":node_filt})
+            self.d_inter_nodes.update({i_bus_filter:node_filt})
+
         else:
             if self.flag_filter==1:
                 bus_conv.Bs=self.bf #set the filter susceptance in the converter bus
@@ -110,12 +117,12 @@ class conv_acdc():
                 node_conv.Bs=self.bf #set the filter susceptance in the converter bus
 
 
-        self.d_inter_nodes.update({"g":graph[self.i_busac]}) #inserts the grid bus in the internal ac network of the converter 
+        self.d_inter_nodes.update({i_bus_grid:graph[self.i_busac]}) #inserts the grid bus in the internal ac network of the converter 
 
 
         if (self.flag_trans==1) & (self.flag_reactor==1):
             
-            tr=branch('tr',self.i_busac,i_filt_bus,2,0)
+            tr=branch(0,i_bus_grid,i_bus_filter,2,0)
 
             tr.x=self.xtf
             tr.r=self.xtf
@@ -123,20 +130,21 @@ class conv_acdc():
             tr.tap=self.tap
             tr.cykm()#calculates the ykm
             tr.twoPortCircuit()#creates the two port circuit
-            self.d_inter_bran.update({"tr":tr})
+            self.d_inter_bran.update({0:tr})
 
-            rc=branch('rc',i_filt_bus,i_conv_bus,1,1)
+            rc=branch(1,i_bus_filter,i_bus_conv,1,1)
             rc.x=self.xc
             rc.r=self.rc
             rc.bsh=0 #divides the shunt suceptance by two
             rc.cykm()#calculates the ykm
             rc.twoPortCircuit()#creates the two port circuit
-            self.d_inter_bran.update({"rc":rc})
-
+            self.d_inter_bran.update({1:rc})
+            node_filt.adjm.update({"0":tr})
+            node_filt.adjk.update({"1":rc})
 
         elif (self.flag_trans==1) :
 
-            tr=branch('tr',self.i_busac,i_conv_bus,2,0)
+            tr=branch(0,i_bus_grid,i_bus_conv,2,0)
 
             tr.x=self.xtf
             tr.r=self.xtf
@@ -144,21 +152,38 @@ class conv_acdc():
             tr.tap=self.tap
             tr.cykm()#calculates the ykm
             tr.twoPortCircuit()#creates the two port circuit
-            self.d_inter_bran.update({"tr":tr})
+            self.d_inter_bran.update({0:tr})
 
         elif (self.flag_reactor==1):
-            rc=branch('rc',self.i_busac,i_conv_bus,1,1)
+            rc=branch(1,i_bus_grid,i_bus_conv,1,1)
             rc.x=self.xc
             rc.r=self.rc
             rc.bsh=0 #divides the shunt suceptance by two
             rc.cykm()#calculates the ykm
             rc.twoPortCircuit()#creates the two port circuit
-            self.d_inter_bran.update({"rc":rc})
+            self.d_inter_bran.update({1:rc})
     
     def include_Sgrid_set_points(self,graph):
 
         graph[self.i_busac].Pd=graph[self.i_busac].Pd-self.P_grid
         graph[self.i_busac].Qd=graph[self.i_busac].Pd-self.Q_grid #set the active power injected in the grid
+
+    def Ptf(self,FlagT):
+        return self.d_inter_bran[0].Pf(self.d_inter_nodes,FlagT)
+    def Qtf(self,FlagT):
+        return self.d_inter_bran[0].Qf(self.d_inter_nodes,FlagT)
+    def Prc(self,FlagT):
+        return self.d_inter_bran[1].Pf(self.d_inter_nodes,FlagT)
+    def Qrc(self,FlagT):
+        return self.d_inter_bran[1].Qf(self.d_inter_nodes,FlagT)
+    def Pvirt(self): #filter bus virtual injection
+        return self.d_inter_nodes[1].P(self.d_inter_nodes)
+    def Qvirt(self): #filter bus virtual injection
+        return self.d_inter_nodes[1].Q(self.d_inter_nodes)
+    
+
+
+
 
         
 
@@ -615,7 +640,7 @@ class node_graph():
         self.bUFPC_adjk=dict()
         self.bUFPC_adjm=dict()
         self.dconv_acdc=dict() #dictionary of the converters ac-dc connected to the bus
-
+        
     def P(self,graph):
         P=0
         if self.FlagSVC==1:
@@ -2433,11 +2458,12 @@ class meas():
             return self.val - (graph[k].theta-graph[k].bUFPC_adjk[keyk].t_se)
         elif self.type==100:# DC measurements
             return self.val-graph[self.k].Pdc(graph) #here is the graph_dc
-
-
+        
         else:
             print("nonexistent measurement type")
             exit(1)
+
+            # return self.val - conv.branch[]          
     def cx(self,graph):
         if self.type==0:
             return graph[self.k].P(graph)
@@ -2465,8 +2491,24 @@ class meas():
                 exit(1)
         elif self.type==4:
             return graph[self.k].V
-
-
+    
+    def dz_conv(self,conv): 
+        if self.type==200: #virtual injection in the conv filt bus
+            return self.val - conv[self.k].Pvirt()
+        elif self.type==201: #virtual injection in the conv filt bus
+            return self.val - conv[self.k].Qvirt()
+        elif self.type==202: # power flow trafo active             
+            return self.val - conv[self.k].Ptf(self.m)
+        elif self.type==203: # power flow trafo reactive
+            return self.val - conv[self.k].Qtf(self.m)
+        elif self.type==220:
+            return self.val - conv[self.k].Prc(self.m)
+        elif self.type==230:
+            return self.val - conv[self.k].Qrc(self.m)
+        
+    
+    
+    
 
 
 class state():
