@@ -38,16 +38,18 @@ def Vinici_lf_dc(graph_dc,useDBUS_DC=1):
     elif useDBUS_DC==0:
         for node in graph_dc:
             node.Vdc=1
+    elif useDBUS_DC==2:
+        pass
 
 
                 
 
 
-def power_flow_dc(graph_dc,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres=1):
+def power_flow_dc(graph_dc,prt=1,tol=1e-12,inici=1,itmax=20,printgrad=1,printres=1,printconv=1):
     """
     Function to run power flow calculation for a DC network. 
     @param graph dc with the informations of the network
-    @param prt param indicating if it is printing everyting or not
+    @param prt param to indicate if it prints anything, if it 0 nothing is printed
     @param tol tolerance of the load flow calculation
     @param inici intialization method of the variables if -1 it uses the DC power flow to intialize the angles and the X of the TCSC, 
     if it is 1 other value it uses DBAR for the PV voltage magnitudes and if it is 0, it initalizes with flat start
@@ -58,7 +60,7 @@ def power_flow_dc(graph_dc,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres
     [z,var_v]=create_z_x_pf_dc(graph_dc)#create z and var_v and var_t for the traditional load flow
 
 
-    Vinici_lf_dc(graph_dc,useDBUS_DC=1)
+    Vinici_lf_dc(graph_dc,useDBUS_DC=inici)
 
     dz=np.zeros(len(z))
     H=np.zeros((len(z),len(var_v)))
@@ -88,25 +90,26 @@ def power_flow_dc(graph_dc,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres
         maxdx=np.max(np.abs(dx))
         maxdz=np.max(np.abs(dz))
     
-        if printgrad==1:
+        if (printgrad==1) & (prt==1):
             print("max dx {:e} | max dz {:e}  ".format(maxdx,maxdz))
-            lstdx.append(maxdx)
-            lstdz.append(maxdz)
-            if maxdx< tol and maxdz < tol:
+        lstdx.append(maxdx)
+        lstdz.append(maxdz)
+        if maxdx< tol and maxdz < tol:
+            conv=1
+            if (printres==1) & (prt==1) :
                 print("convergiu em {} itereacoes".format(it))
-                if printres==1:
-                    pass
-                    prt_state_dc(graph_dc)
-                conv=1
-                break
-            it=it+1
+                prt_state_dc(graph_dc)
+            break
+            
+        it=it+1
     
-        if prt==1:
+        if (printconv==1) & (prt==1):
             iterdict={"dx":lstdx,"dz":lstdz}
             df = pd.DataFrame(iterdict)
     
             # Save the DataFrame to a CSV file
             df.to_csv('conv.csv', index=False)
+    return conv
 
 
 

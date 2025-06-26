@@ -142,14 +142,19 @@ def read_files_DC(sys):
     return dfDBUS_DC,dfDBRAN_DC,dfDCONV_acdc
 
 
-def prt_state(graph):
+def prt_state(graph,flag_radians=0):
     """
     Function to print in the scream the value of the state variables, in the network's graph
     @param: graph Graph structure with the information about the network
     """
-    for no in graph:
-        s="Bus: {:d} | V : {:f} | t : {:f}".format(no.bus.id,no.V,no.theta*180/np.pi)
-        print(s)
+    if flag_radians==0:
+        for no in graph:
+            s="Bus: {:d} | V : {:f} | t : {:f}".format(no.bus.id,no.V,no.theta*180/np.pi)
+            print(s)
+    else:
+        for no in graph:
+            s="Bus: {:d} | V : {:f} | t : {:f}".format(no.bus.id,no.V,no.theta)
+            print(s)
 
 def prt_state_dc(graph_dc):
     """

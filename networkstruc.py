@@ -362,9 +362,9 @@ def create_conv_acdc(dfDCONV_acdc,ind_i_dc,ind_i,muticonductors=False):
         item.rc=row["rc"]
         item.xc=row["xc"]
         item.a=row["LossA"]/100
-        item.b=row["LossB"]/(row["basekVac"])
-        item.crec=row["LossCrec"]/(row["basekVac"]**2 / 100)
-        item.cinv=row["LossCinv"]/(row["basekVac"]**2 / 100)
+        item.b=row["LossB"]/(row["basekVac"]*np.sqrt(3))
+        item.crec=row["LossCrec"]/((row["basekVac"]*np.sqrt(3))**2 / 100)
+        item.cinv=row["LossCinv"]/((row["basekVac"]*np.sqrt(3))**2 / 100)
         item.c=item.crec #implement check if it is inv or rect
         convs_acdc.append(item)
         indi_i_conv[int(row["id"])]=i

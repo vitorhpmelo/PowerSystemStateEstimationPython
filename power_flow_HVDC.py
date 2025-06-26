@@ -43,7 +43,6 @@ def ini_Pgridslack(graph,graph_dc,conv_acdc):
     for area in d_area.keys():
         d_area_slack[area].P_grid=-d_area[area]
 
-
 def calc_conv_inter_pf(graph,graph_dc,conv_acdc,d_Pd,d_Qd):
 
     """
@@ -100,17 +99,24 @@ def calc_conv_inter_pf(graph,graph_dc,conv_acdc,d_Pd,d_Qd):
             else:
                 OSError("converter without reactor or trafo")
         conv.Iconv=abs(Iconv)
+        # expIconv=-Iconv
+        
+        # if (np.sin(np.angle(expIconv))<0) & (np.cos(np.angle(expIconv))<0):
+        #     iexp=-np.abs(expIconv)
+        # else:
+        #     iexp=np.abs(expIconv)
 
         conv.Pconv_ac=np.real(Vconv*np.conj(Iconv)) #flowing out of the converter
         conv.Qconv_ac=np.imag(Vconv*np.conj(Iconv)) #flowing out of the converter
         
         conv.Ploss=conv.a+conv.Iconv*conv.b +conv.c*conv.Iconv**2
+        # conv.Ploss=conv.a+iexp*conv.b +conv.c*iexp**2
+
         conv.Pdc=-conv.Pconv_ac-conv.Ploss
         
         for conv in conv_acdc:
             bus_dc=conv.i_busdc
             graph_dc[bus_dc].bus_dc.Pdc_conv=conv.Pdc
-
 
 def inc_conv_inj_acpf(graph,conv_acdc):
     """
@@ -127,11 +133,8 @@ def inc_conv_inj_acpf(graph,conv_acdc):
             - d_Pd: Original Pd values for each affected bus (keyed by bus index).
             - d_Qd: Original Qd values for each affected bus (keyed by bus index).
     """
-
-
     d_Pd={}
     d_Qd={}
-
     #include Pgrid and Qgrid in the graph
     for conv in conv_acdc:
         d_Pd[conv.i_busac]=graph[conv.i_busac].bus.Pd
@@ -157,18 +160,18 @@ def create_z_x_conv_powerflow(conv):
         i=i+1
 
     if 1 in conv.d_inter_nodes.keys(): # if the filter bus exists 
-        measPconv=meas(i_conv,1,220,conv.Pconv_ac,0) # reactive power flow measurement in the reactor
-        measQtrf=meas(i_conv,0,203,-conv.Qgrid,0) # reactive power flow measurement in the trafo
-        measPvirt=meas(i_conv,0,200,0,0)
-        measQvirt=meas(i_conv,0,201,0,0)
+        measPconv=meas(conv.i,1,220,conv.Pconv_ac,0) # reactive power flow measurement in the reactor
+        measQtrf=meas(conv.i,0,203,-conv.Qgrid,0) # reactive power flow measurement in the trafo
+        measPvirt=meas(conv.i,0,200,0,0)
+        measQvirt=meas(conv.i,0,201,0,0)
         z=[measPconv,measQtrf,measPvirt,measQvirt]
     elif 1 in conv.d_inter_bran.keys():
-        measPconv=meas(i_conv,1,202,conv.Pconv_ac,0)
-        measQtrf=meas(i_conv,0,203,-conv.Qgrid,0)
+        measPconv=meas(conv.i,1,202,conv.Pconv_ac,0)
+        measQtrf=meas(conv.i,0,203,-conv.Qgrid,0)
         z=[measPconv,measQtrf]
     else:
-        measPconv=meas(i_conv,1,220,conv.Pconv_ac,0)
-        measQtrf=meas(i_conv,0,230,-conv.Qgrid,0)
+        measPconv=meas(conv.i,1,220,conv.Pconv_ac,0)
+        measQtrf=meas(conv.i,0,230,-conv.Qgrid,0)
         z=[measPconv,measQtrf]
 
     return z,var_v,var_t
@@ -302,12 +305,149 @@ def calcH_conv_pf(z,var_t,var_v,conv,H):
         i=i+1
 
 def new_X_conv_pf(conv,var_t,var_v,dx):
+    """
+    Updates the voltage angles (theta) and magnitudes (V) of converter nodes.
+    Parameters:
+        conv: An object containing the converter's internal 
+        var_t (dict): A dictionary mapping node keys to indices for voltage angles (theta).
+        var_v (dict): A dictionary mapping node keys to indices for voltage magnitudes (V).
+        dx (list or array-like): A vector of incremental updates for state variables, where the first n_theta elements correspond to theta updates and the remaining elements correspond to V updates.
+    Side Effects:
+        Modifies the 'theta' and 'V' attributes of nodes in conv.d_inter_nodes in-place, applying the corresponding increments from dx.
+    Notes:
+        - Assumes that the order and length of dx matches the combined size of var_t and var_v.
+        - The function does not return any value; it updates the graph in-place.
+    """
+    
     graph=conv.d_inter_nodes
     n_theta=len(var_t)
     for key,item in var_t.items():
         graph[key].theta=graph[key].theta+dx[item]
     for key,item in var_v.items():
         graph[key].V=graph[key].V+dx[item+n_theta]
+
+def conv_intern_Pf(conv,tol=1e-8):
+    """
+    Performs the internal power flow calculation for a converter using the Newton-Raphson method.
+    This function iteratively solves the converter's power flow equations (from Berteens,2012 paper ) by updating the state variables
+    until the solution converges within a specified tolerance or a maximum number of iterations is reached.
+    Args:
+        conv: Converter data structure containing parameters and state variables.
+        tol (float, optional): Convergence tolerance for the Newton-Raphson method. Defaults to 1e-8.
+    Returns:
+        int: 1 if the solution converged within the tolerance, 0 otherwise.
+    """
+
+
+    [z,var_v,var_t]=create_z_x_conv_powerflow(conv)
+
+    dz=np.zeros(len(z))
+    H=np.zeros((len(z),len(var_t)+len(var_v)))
+    it=0
+
+    div=0
+    while (it<10):
+        calc_dz_conv(z,conv_acdc,dz)
+
+        calcH_conv_pf(z,var_t,var_v,conv,H)
+
+        dx=np.linalg.solve(H,dz)
+
+        new_X_conv_pf(conv,var_t,var_v,dx)
+        it=it+1
+
+        if np.linalg.norm(dx)<tol:
+            div=1
+            break
+
+    return div
+    
+def slack_bus_it(conv_acdc,graph_dc,graph,dPd,tol=1e-8):
+
+    """
+    Iterates over slack buses in an AC/DC power system to update power balances and enforce DC slack bus conditions on AC networks.
+    This function identifies slack buses among the DC converters, updates their associated AC bus power injections,
+    and checks for convergence by comparing the calculated and expected grid power. It is typically used within
+    iterative power flow algorithms for hybrid AC/DC networks.
+    Args:
+        conv_acdc (list): List of converter objects representing AC/DC converters in the system.
+        graph_dc (list): List of DC bus objects or nodes in the DC network graph.
+        graph (list): List of AC bus objects or nodes in the AC network graph.
+        dPd (dict): Dict or array of original active power demands at each AC bus.
+        tol (float, optional): Tolerance for convergence checking. Default is 1e-8.
+    Returns:
+        list: List of absolute differences between calculated and expected slack bus power injections.
+                Returns [-1] if a divergence is detected during the iteration.
+    """
+
+    d_area_slack={}
+    for i in range(len(conv_acdc)):
+        if graph_dc[conv_acdc[i].i_busdc].bus_dc.type==0: #is a slack bus
+            d_area_slack[graph_dc[conv_acdc[i].i_busdc].bus_dc.area]=(conv_acdc[i].i_busac,i)
+            conv_acdc[i].Pconv_ac = - graph_dc[conv_acdc[i].i_busdc].Pdc(graph_dc) - conv_acdc[i].Ploss
+    
+    dz_Pslack=[]
+    for key in d_area_slack.keys(): 
+        
+        i_busac=d_area_slack[key][0]
+        i_conv=d_area_slack[key][1]
+
+        conv=conv_acdc[i_conv]
+
+        div = conv_intern_Pf(conv)
+
+        if div==0:
+            print("converter slack bus iteration divergence")
+            return [-1] 
+
+        if 0 in conv.d_inter_bran.keys():
+            Pgrid=-conv.Ptf(0)
+        else:
+            Pgrid=-conv.Prc(0)
+        
+        dz_Pslack.append(abs(conv.Pgrid-Pgrid))
+
+        conv.Pgrid=Pgrid
+        graph[conv.i_busac].bus.Pd=dPd[conv.i_busac]-conv.Pgrid
+
+    return dz_Pslack
+
+def power_flow_iterative(graph,graph_dc,conv_acdc,tol=1e-8,prt=1,printconv=1,printres=1):#TODO implement printing routines
+
+    for conv in conv_acdc:
+        conv.create_internal_network(graph)
+
+    ini_Pgridslack(graph,graph_dc,conv_acdc)
+    [d_Pd,d_Qd]=inc_conv_inj_acpf(graph,conv_acdc)
+
+    it=0
+    ini=1
+    tol=1e-8
+    while(it<10):
+        if it>0:
+            ini=2
+        div=power_flow(graph,inici=ini,prt=0,itmax=20,tol=tol)
+
+        if div==0:
+            print("AC power flow divergence")
+
+        calc_conv_inter_pf(graph,graph_dc,conv_acdc,d_Pd,d_Qd)
+
+        div=power_flow_dc(graph_dc,prt=0,tol=tol,inici=ini,itmax=20,printgrad=1,printres=1)
+        if div==0:
+            print("DC power flow divergence")
+        
+        dzP=slack_bus_it(conv_acdc,graph_dc,graph,d_Pd,tol=tol) 
+        if np.linalg.norm(dzP)<tol:
+            print("Conv in {} iterations".format(it))
+            print("AC result")
+            prt_state(graph,flag_radians=1)
+            print("DC result")
+            prt_state_dc(graph_dc)
+            break
+        it=it+1
+        if(prt==1): 
+            print("Slack bus iteration dz {:.2e}, it: {:d}".format(np.linalg.norm(dzP),it))
 
 sys="case5_2grids"
 
@@ -336,73 +476,53 @@ graph_dc=create_graph_dc(bus_dc,bran_dc)
 addACDCconv_ingraph(graph,graph_dc,conv_acdc)
 #%%
 
+
+power_flow_iterative(graph,graph_dc,conv_acdc)
+
+
+# %%
+conv_acdc[1].Ptf(0)
+#%%
 for conv in conv_acdc:
-    conv.create_internal_network(graph)
-#%%
+    print(f"Converter {getattr(conv, 'i', 'N/A')}:")
+    print(f"  Pgrid: {getattr(conv, 'Pgrid', 'N/A')}")
+    print(f"  Qgrid: {getattr(conv, 'Qgrid', 'N/A')}")
+    print(f"  Pconv_ac: {getattr(conv, 'Pconv_ac', 'N/A')}")
+    print(f"  Qconv_ac: {getattr(conv, 'Qconv_ac', 'N/A')}")
+    print(f"  Ploss: {getattr(conv, 'Ploss', 'N/A')}")
+    print(f"  Pdc: {getattr(conv, 'Pdc', 'N/A')}")
+    print(f"  Iconv: {getattr(conv, 'Iconv', 'N/A')}")
+    print("  Internal Nodes:")
+    for k, node in getattr(conv, 'd_inter_nodes', {}).items():
+        print(f"    Node {k}: V={getattr(node, 'V', 'N/A')}, theta={getattr(node, 'theta', 'N/A')}")
+    print("-" * 40)
+# %%
 
-ini_Pgridslack(graph,graph_dc,conv_acdc)
-
-#%%
-
-[d_Pd,d_Qd]=inc_conv_inj_acpf(graph,conv_acdc)
-
-    
-
-#%%
-
-
-conv=power_flow(graph,inici=1,prt=1,itmax=20)
-
-
-
-#%%
-              
-calc_conv_inter_pf(graph,graph_dc,conv_acdc,d_Pd,d_Qd)
-
-
-#%%
-power_flow_dc(graph_dc,prt=1,tol=1e-12,inici=1,itmax=20,printgrad=1,printres=1)
-
-# %% Slack bus iteration
+print("AC Bus Voltages:")
+for node in graph:
+    V = getattr(node, 'V', None)
+    theta = getattr(node, 'theta', None)
+    print(f"  {node.bus.id}, {V},{theta}")
+print("\nDC Bus Voltages:")
+for node in graph_dc:
+    Vdc = getattr(node, 'Vdc', None)
+    print(f" {node.bus_dc.id}, {Vdc}")
 
 
-d_area_slack={}
-for i in range(len(conv_acdc)):
-    if graph_dc[conv_acdc[i].i_busdc].bus_dc.type==0: #is a slack bus
-        d_area_slack[graph_dc[conv_acdc[i].i_busdc].bus_dc.area]=(conv_acdc[i].i_busac,i)
-        conv_acdc[i].Pconv_ac = - graph_dc[conv_acdc[i].i_busdc].Pdc(graph_dc) - conv_acdc[i].Ploss
-# %%  determines 
+# %%
+print("Converter Internal Node Voltages:")
+for idx, conv in enumerate(conv_acdc):
+    print(f"Converter {getattr(conv, 'i', idx)}:")
+    for k, node in getattr(conv, 'd_inter_nodes', {}).items():
+        print(f"  Node {k}, {getattr(node, 'V', 'N/A')}, {getattr(node, 'theta', 'N/A')}")
+  
 
-i_busac=d_area_slack[1][0]
-i_conv=d_area_slack[1][1]
+# %%
+conv_acdc[1].Ptf(0)
 
-conv=conv_acdc[i_conv]
+# %%
 
-#%%
-[z,var_v,var_t]=create_z_x_conv_powerflow(conv)
+conv_acdc[1].Prc(1)
 
-
-# %% create z and x for conv 
-dz=np.zeros(len(z))
-H=np.zeros((len(z),len(var_t)+len(var_v)))
-
-#%% create z and var power flow
-
-it=0
-lstdx=[]
-lstdz=[]
-
-while (it<2):
-
-    calc_dz_conv(z,conv_acdc,dz)
-
-    calcH_conv_pf(z,var_t,var_v,conv,H)
-
-
-    dx=np.linalg.solve(H,dz)
-
-
-    new_X_conv_pf(conv,var_t,var_v,dx)
-    it=it+1
-
+graph_dc[1].Pdc(graph_dc)
 # %%

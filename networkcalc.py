@@ -171,6 +171,8 @@ def Vinici_lf(graph,useDBUS=1,var_x=dict(),var_t=dict(),z=[]):
     slack initate with the voltage from the DB 
     @param: graph list of instances of the node class with all the information about the network
     '''
+    if useDBUS==2:
+        return
     thetaini=0
     for node in graph:
         if node.bus.type == 0:
@@ -203,7 +205,8 @@ def Vinici_lf(graph,useDBUS=1,var_x=dict(),var_t=dict(),z=[]):
             k=int(key[1])
             graph[k].V=graph[k].V+0.1
             graph[k].theta=graph[k].theta+0.01
-
+    
+    
     else:
         [x,H]=power_flow_FACTS_cc(z,graph,var_x,var_t)
         for node in graph:
@@ -2125,7 +2128,7 @@ def power_flow_FACTS(graph,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres
 
 
 
-def power_flow(graph,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres=1):
+def power_flow(graph,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres=1,printconv=0):
     """
     Function to run power flow 
     @param graph with the informations of the network
@@ -2173,20 +2176,21 @@ def power_flow(graph,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres=1):
         maxdx=np.max(np.abs(dx))
         maxdz=np.max(np.abs(dz))
 
-        if printgrad==1:
+        if (printgrad==1) & (prt==1):
             print("max dx {:e} | max dz {:e}  ".format(maxdx,maxdz))
         lstdx.append(maxdx)
         lstdz.append(maxdz)
         if maxdx< tol and maxdz < tol:
-            print("convergiu em {} itereacoes".format(it))
+            if (prt==1):
+                print("convergiu em {} itereacoes".format(it))
             upfc_angle(graph)
-            if printres==1:
+            if (printres==1) & (prt==1):
                 prt_state(graph)
             conv=1
             break
         it=it+1
 
-    if prt==1:
+    if printconv==1:
         iterdict={"dx":lstdx,"dz":lstdz}
         df = pd.DataFrame(iterdict)
 
