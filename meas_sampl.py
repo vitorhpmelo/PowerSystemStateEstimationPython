@@ -214,7 +214,7 @@ def create_DMEAS(sys,prec,graph,bran,dUPFC={},dfDMEASpf=pd.DataFrame()):
             dfDMEASpf=pd.read_csv(sys+"/DMEAS_pf.csv",header=None)
             dfDMEASpf.columns=["type","from","to","zmeas","prec"]
         except:
-            conv = load_flow(graph,tol=1e-10)
+            conv = power_flow(graph,tol=1e-10)
             save_DMEAS_pf(graph,bran,sys,dUPFC)
             dfDMEASpf=pd.read_csv(sys+"/DMEAS_pf.csv",header=None)
             dfDMEASpf.columns=["type","from","to","zmeas","prec"]

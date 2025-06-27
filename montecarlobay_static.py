@@ -5,7 +5,7 @@
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -13,7 +13,7 @@ from networkcalc import *
 from BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
-from SS_Bayesian import *
+from SE_Bayesian import *
 
 
 #%% Lê arquivos e constroi a estrutura da rede
@@ -85,14 +85,14 @@ for idx, row in dfcasos.iterrows():
         graph[upfc.p].bar.V=dfUPFC_original_values[key]["Vp"]*(1+(row["UPFC_V"]/100))
 
     try:    
-        conv=load_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
+        conv=power_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
     except:
         conv=0
 
     #get states and 
     if conv==1:
         ram.update(ramTCSC)
-        dDMEDfps[idx]=save_DMED_fp(graph,ram,sys,ramUPFC)
+        dDMEDfps[idx]=save_DMEAS_pf(graph,ram,sys,ramUPFC)
         dState_ref[idx]=get_state(graph)
         dStateTCSC_ref[idx]=get_state_FACTS(ramTCSC,busSVC,ramUPFC)
 
@@ -211,7 +211,7 @@ for idx, row in dfcasos.iterrows():
             upfc.Vse_ini=dfini_SE["UPFC_Vse"][idx]
             upfc.tse_ini=dfini_SE["UPFC_tse"][idx]
      
-        conv_WLS,nits_WLS,dfITsWLS=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,printgrad=0,printres=0,printits=1,flatstart=2,tol=1e-5,tol2=1e-4)
+        conv_WLS,nits_WLS,dfITsWLS=SE_WLS_FACTS_noBC(graph,dfDMED,ind_i,printgrad=0,printres=0,printits=1,flatstart=2,tol=1e-5,tol2=1e-4)
 
 
         
@@ -219,7 +219,7 @@ for idx, row in dfcasos.iterrows():
             dState_WLS[idx].append(get_state(graph,n))
             dStateFACTS_WLS[idx].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n))
         
-        conv_MAP_SCADA,nits_MAP_SCADA,dfITsMAP_SCADA=SS_WLS_FACTS_noBC(graph,dfDMEDSCADA,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
+        conv_MAP_SCADA,nits_MAP_SCADA,dfITsMAP_SCADA=SE_WLS_FACTS_noBC(graph,dfDMEDSCADA,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
         
         if conv_MAP_SCADA==True:
             dState_MAP_SCADA[idx].append(get_state(graph,n))
@@ -227,7 +227,7 @@ for idx, row in dfcasos.iterrows():
 
         if conv_MAP_SCADA==True:
             priori=calc_priori(graph,dfDMEDSCADA,dfDMEDPMU,ind_i)
-            conv_MAP_PMU,nits_MAP_PMU,dfITsMAP_PMU=SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMU,ind_i,tol2=7,tol=1e-4,flatstart=1,prec_virtual=1e-4,printits=1)
+            conv_MAP_PMU,nits_MAP_PMU,dfITsMAP_PMU=SE_MAP_FACTS_withBC(graph,priori,dfDMEDPMU,ind_i,tol2=7,tol=1e-4,flatstart=1,prec_virtual=1e-4,printits=1)
         else:
             conv_MAP_PMU=0
             nits_MAP_PMU=30

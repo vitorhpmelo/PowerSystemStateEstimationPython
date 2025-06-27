@@ -11,7 +11,7 @@ Script de excução simples do Estimador Bayesiano para fusão de informação e
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -19,7 +19,7 @@ from networkcalc import *
 from BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
-from SS_Bayesian import *
+from SE_Bayesian import *
 import matplotlib.pyplot as plt 
 
 
@@ -89,14 +89,14 @@ for idx, row in dfcasos.iterrows():
         graph[upfc.p].bar.V=dfUPFC_original_values[key]["Vp"]*(1+(row["UPFC_V"]/100))
 
     try:    
-        conv=load_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
+        conv=power_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
     except:
         conv=0
 
     #get states and 
     if conv==1:
         ram.update(ramTCSC)
-        dDMEDfps[idx]=save_DMED_fp(graph,ram,sys,ramUPFC)
+        dDMEDfps[idx]=save_DMEAS_pf(graph,ram,sys,ramUPFC)
         dState_ref[idx]=get_state(graph)
         dStateTCSC_ref[idx]=get_state_FACTS(ramTCSC,busSVC,ramUPFC)
 
@@ -149,7 +149,7 @@ for key,upfc in ramUPFC.items():
 
 
 #%%
-conv_WLS_SCADA,nits_WLS_SCADA,dfITsWLS_SCADA=SS_WLS_FACTS_noBC(graph,dfDMEDSCADA,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
+conv_WLS_SCADA,nits_WLS_SCADA,dfITsWLS_SCADA=SE_WLS_FACTS_noBC(graph,dfDMEDSCADA,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
 
 
 #%%
@@ -157,10 +157,10 @@ priori=calc_priori(graph,dfDMEDSCADA,dfDMEDPMU,ind_i)
 
 #%%
 
-conv_MAP,nits_MAP,dfITsMAP=SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMU,ind_i,tol2=7,tol=1e-4,flatstart=1,prec_virtual=1e-4,printits=1)
+conv_MAP,nits_MAP,dfITsMAP=SE_MAP_FACTS_withBC(graph,priori,dfDMEDPMU,ind_i,tol2=7,tol=1e-4,flatstart=1,prec_virtual=1e-4,printits=1)
 # %%
 
-conv_noWLS,nits_noWLS,dfITsWLS=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
+conv_noWLS,nits_noWLS,dfITsWLS=SE_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
 
 # %%
 

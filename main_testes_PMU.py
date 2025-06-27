@@ -4,7 +4,7 @@
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -67,7 +67,7 @@ medidas_virtuais_P=list(set(dfDMED[(dfDMED["type"]==0)&(dfDMED["zmed"]==0)]["de"
 
 
 #%%
-conv_noBC,nits_noBC,dfITsGN=SS_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2)
+conv_noBC,nits_noBC,dfITsGN=SE_WLS_FACTS_noBC(graph,dfDMED,ind_i,flatstart=2)
 
 
 

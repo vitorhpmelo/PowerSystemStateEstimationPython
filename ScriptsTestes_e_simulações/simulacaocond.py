@@ -4,7 +4,7 @@
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -36,20 +36,20 @@ graph=create_graph(bars,ram)
 #%% fluxo de potência
 
 
-conv = load_flow(graph,tol=1e-7) #possivel erro, inicialização da referência
+conv = power_flow(graph,tol=1e-7) #possivel erro, inicialização da referência
 state_ref=get_state(graph)
 
 prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.05,"SMV":0.03,"PSEUDO":0.3,"VIRTUAL":1e-5}
-dfDMEDsr=create_DMED(sys,prec,graph,ram)
+dfDMEDsr=create_DMEAS(sys,prec,graph,ram)
 # dfDMEDr=insert_res(dfDMEDsr)#insere ruido se precisar
 
 print("Metodo QR")
 
-SS_WLS(graph,dfDMEDsr,ind_i,solver="QR",printmat=1,printcond=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="QR",printmat=1,printcond=1)
 print("Metodo Normal")
-SS_WLS(graph,dfDMEDsr,ind_i,solver="Normal",printmat=1,printcond=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="Normal",printmat=1,printcond=1)
 print("Metodo Lagrangeano")
-SS_WLS_lagrangian(graph,dfDMED,ind_i,printmat=1,printcond=1)
+SE_WLS_lagrangian(graph,dfDMED,ind_i,printmat=1,printcond=1)
 
 
 # %%

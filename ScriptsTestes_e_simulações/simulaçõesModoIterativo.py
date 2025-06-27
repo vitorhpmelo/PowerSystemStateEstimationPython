@@ -4,7 +4,7 @@
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -32,22 +32,22 @@ graph=create_graph(bars,ram)
 
 
 #%% fluxo de potência
-conv = load_flow(graph,tol=1e-7)
+conv = power_flow(graph,tol=1e-7)
 #%% salva o DMEDFP com todas as grandezas
 save_DMED_fp(graph,ram,sys)
 
 #%% Estimador com QR
 #Rodar o EE
-SS_WLS(graph,dfDMED,ind_i,solver="QR")
+SE_WLS(graph,dfDMED,ind_i,solver="QR")
 
 
 #%% Estimador gradientes conjugados
 
-SS_WLS(graph,dfDMED,ind_i,solver="cg")
+SE_WLS(graph,dfDMED,ind_i,solver="cg")
 
 # %% Estimador Lagrangeano
 
-SS_WLS_lagrangian(graph,dfDMED,ind_i)
+SE_WLS_lagrangian(graph,dfDMED,ind_i)
 # %% Residuos normalizados ( Processamento de Erros Grosseiros)
 Cov=calcCovRes(graph,dfDMED,ind_i)
 dfRe=renorm(graph,dfDMED,ind_i,Cov)
@@ -62,43 +62,43 @@ dfDMEDr.to_csv(sys+"/DMED.csv",header=None,index=None,float_format="%.9f")
 #%%
 #%%
 print("teste 1------------------")
-SS_WLS(graph,dfDMEDsr,ind_i,solver="Normal",prec_virtual=1e-5,printcond=1,prinnormgrad=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="Normal",prec_virtual=1e-5,printcond=1,prinnormgrad=1)
 print("teste 2-----------------")
-SS_WLS(graph,dfDMEDsr,ind_i,solver="Normal",prec_virtual=1e-6,printcond=1,prinnormgrad=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="Normal",prec_virtual=1e-6,printcond=1,prinnormgrad=1)
 print("teste 3-----------------")
-SS_WLS(graph,dfDMEDsr,ind_i,solver="Normal",prec_virtual=1e-7,printcond=1,prinnormgrad=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="Normal",prec_virtual=1e-7,printcond=1,prinnormgrad=1)
 print("teste 4-----------------")
-SS_WLS(graph,dfDMEDsr,ind_i,solver="Normal",prec_virtual=1e-8,printcond=1,prinnormgrad=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="Normal",prec_virtual=1e-8,printcond=1,prinnormgrad=1)
 #%%
 print("teste 5-----------------")
-SS_WLS(graph,dfDMEDsr,ind_i,solver="Normal",prec_virtual=1e-9,printcond=1,prinnormgrad=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="Normal",prec_virtual=1e-9,printcond=1,prinnormgrad=1)
 #%%
 print("teste 1------------------")
-SS_WLS(graph,dfDMEDsr,ind_i,solver="QR",prec_virtual=1e-5,printcond=1,prinnormgrad=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="QR",prec_virtual=1e-5,printcond=1,prinnormgrad=1)
 print("teste 2-----------------")
-SS_WLS(graph,dfDMEDsr,ind_i,solver="QR",prec_virtual=1e-6,printcond=1,prinnormgrad=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="QR",prec_virtual=1e-6,printcond=1,prinnormgrad=1)
 print("teste 3-----------------")
-SS_WLS(graph,dfDMEDsr,ind_i,solver="QR",prec_virtual=1e-7,printcond=1,prinnormgrad=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="QR",prec_virtual=1e-7,printcond=1,prinnormgrad=1)
 print("teste 4-----------------")
-SS_WLS(graph,dfDMEDsr,ind_i,solver="QR",prec_virtual=1e-8,printcond=1,prinnormgrad=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="QR",prec_virtual=1e-8,printcond=1,prinnormgrad=1)
 print("teste 5-----------------")
-SS_WLS(graph,dfDMEDsr,ind_i,solver="QR",prec_virtual=1e-9,printcond=1,prinnormgrad=1)
+SE_WLS(graph,dfDMEDsr,ind_i,solver="QR",prec_virtual=1e-9,printcond=1,prinnormgrad=1)
 
 
 #%%
 print("teste 6---Lagrangiano-------")
-SS_WLS_lagrangian(graph,dfDMEDsr,ind_i,tol=1e-7,tol2=1e-5,printcond=1,printnormgrad=1,printmat=1)
+SE_WLS_lagrangian(graph,dfDMEDsr,ind_i,tol=1e-7,tol2=1e-5,printcond=1,printnormgrad=1,printmat=1)
 
 
 # %%
 
 #simulação de monte carlo
 
-conv = load_flow(graph,tol=1e-7) #possivel erro, inicialização da referência
+conv = power_flow(graph,tol=1e-7) #possivel erro, inicialização da referência
 state_ref=get_state(graph)
 
 prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.05,"SMV":0.03,"PSEUDO":0.3,"VIRTUAL":1e-5}
-dfDMEDsr=create_DMED(sys,prec,graph,ram)
+dfDMEDsr=create_DMEAS(sys,prec,graph,ram)
 N=100
 sateNormal5=[]
 sateNormal7=[]
@@ -131,7 +131,7 @@ for i in range(N):
     dfDMEDr=insert_res(dfDMEDsr,i)
     print("{:d}/{:d}".format(i+1,N))
     # print(dfDMEDr)
-    [T,tits,conv,nits]=SS_WLS_clean(graph,dfDMEDr,ind_i,solver="Normal",prec_virtual=pre1)
+    [T,tits,conv,nits]=SE_WLS_clean(graph,dfDMEDr,ind_i,solver="Normal",prec_virtual=pre1)
     nconvsNormal5.append(conv)
     if conv == 1:
         sateNormal5.append(get_state(graph))
@@ -139,14 +139,14 @@ for i in range(N):
         TemposiTNormal5.append(np.mean(tits))
         NumeroItsNormal5.append(nits)
     del nits,tits,T
-    [T,tits,conv,nits]=SS_WLS_clean(graph,dfDMEDr,ind_i,solver="QR",prec_virtual=pre1)
+    [T,tits,conv,nits]=SE_WLS_clean(graph,dfDMEDr,ind_i,solver="QR",prec_virtual=pre1)
     nconvsQR5.append(conv)
     if conv == 1:
         stateQR5.append(get_state(graph))
         TemposTotaisQR5.append(T)
         TemposiTQR5.append(np.mean(tits))
         NumeroItsQR5.append(nits)
-    [T,tits,conv,nits]=SS_WLS_clean(graph,dfDMEDr,ind_i,solver="Normal",prec_virtual=prec2)
+    [T,tits,conv,nits]=SE_WLS_clean(graph,dfDMEDr,ind_i,solver="Normal",prec_virtual=prec2)
     nconvsNormal7.append(conv)
     if conv == 1:
         sateNormal7.append(get_state(graph))
@@ -154,14 +154,14 @@ for i in range(N):
         TemposiTNormal7.append(np.mean(tits))
         NumeroItsNormal7.append(nits)
     del nits,tits,T
-    [T,tits,conv,nits]=SS_WLS_clean(graph,dfDMEDr,ind_i,solver="QR",prec_virtual=prec2)
+    [T,tits,conv,nits]=SE_WLS_clean(graph,dfDMEDr,ind_i,solver="QR",prec_virtual=prec2)
     nconvsQR7.append(conv)
     if conv == 1:
         stateQR7.append(get_state(graph))
         TemposTotaisQR7.append(T)
         TemposiTQR7.append(np.mean(tits))
         NumeroItsQR7.append(nits)    
-    [T,tits,conv,nits]=SS_WLS_lagrangian_clean(graph,dfDMEDr,ind_i)
+    [T,tits,conv,nits]=SE_WLS_lagrangian_clean(graph,dfDMEDr,ind_i)
     nconvsLagran.append(conv)
     if conv == 1:
         statelagran.append(get_state(graph))

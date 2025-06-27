@@ -4,7 +4,7 @@
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -45,14 +45,14 @@ addUPFCingraph(graph,ramUPFC)
 #%% confere derivadas Acha
 
 #%%
-conv=load_flow_FACTS(graph,inici=-1,prt=1,itmax=40)
+conv=power_flow_FACTS(graph,inici=-1,prt=1,itmax=40)
 #%%
 
 
 
 ram.update(ramTCSC)
 
-save_DMED_fp(graph,ram,sys,ramUPFC)
+save_DMEAS_pf(graph,ram,sys,ramUPFC)
 
 
 
@@ -68,7 +68,7 @@ print("FACTS1")
 dfDMEDr=insert_res(dfDMEDsr)
 with open("conds.csv","w") as f:
     f.write("Estimador 1 \n")
-SS_WLS_FACTS(graph,dfDMEDr,ind_i,flatstart=4,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)
+SE_WLS_FACTS(graph,dfDMEDr,ind_i,flatstart=4,pirntits=1,printcond=1,tol=1e-5,tol2=1e-4)
 #%%
 
 

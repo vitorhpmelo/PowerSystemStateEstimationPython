@@ -7,7 +7,7 @@ import scipy.sparse as sparse
 from networkcalc import *
 import numpy.linalg as liang
 import time as tm
-from SS import *
+from SE import *
 
 
 def create_x_z_priori(graph,dfDMED_sl_ant,ind_i,flag_PMU_teta_prx=0):
@@ -223,7 +223,7 @@ def ini_var_MAP(graph,priori,mode=0):
 
 
 
-def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SE_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -368,7 +368,7 @@ def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",p
 
 
 
-def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SE_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -514,7 +514,7 @@ def SS_MAP_FACTS_noBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",p
 
 
 
-def SS_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=0):
+def SE_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=0):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)

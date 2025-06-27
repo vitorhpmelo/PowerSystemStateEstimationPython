@@ -6,7 +6,7 @@
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -15,7 +15,7 @@ from BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
 import copy as cp
-from SS_Bayesian import *
+from SE_Bayesian import *
 from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
 import time as tm
@@ -339,7 +339,7 @@ for amostra in range(n_simulacoes):
         graph[k].bar.Qd=barra["Qd"]/100
 
     try:    
-        conv=load_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
+        conv=power_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
     except:
         conv=0
     
@@ -347,7 +347,7 @@ for amostra in range(n_simulacoes):
     if conv==1:
         amostras_convergidas=amostras_convergidas+1
         ram.update(ramTCSC)
-        dDMEDfps[amostra]=save_DMED_fp(graph,ram,sys,ramUPFC)
+        dDMEDfps[amostra]=save_DMEAS_pf(graph,ram,sys,ramUPFC)
         dState_ref[amostra]=get_state(graph)
         dStateFACTS_ref[amostra]=get_state_FACTS(ramTCSC,busSVC,ramUPFC)
 
@@ -536,7 +536,7 @@ for n in tqdm(range(N)):
 
         
         t1_WLS=tm.perf_counter()  
-        conv_WLS,nits_WLS,dfITsWLS=SS_WLS_FACTS_noBC(graph,dfDMED_WLSn,ind_i,printgrad=0,printres=0,printits=2,flatstart=flat_start,tol=1e-6,tol2=1e-1,useDFACTS=useDFACTS)
+        conv_WLS,nits_WLS,dfITsWLS=SE_WLS_FACTS_noBC(graph,dfDMED_WLSn,ind_i,printgrad=0,printres=0,printits=2,flatstart=flat_start,tol=1e-6,tol2=1e-1,useDFACTS=useDFACTS)
         t2_WLS=tm.perf_counter()  
         tWLS=t2_WLS-t1_WLS
 
@@ -550,7 +550,7 @@ for n in tqdm(range(N)):
             dStateFACTS_WLS[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n,df_ref=dStateFACTS_ref[ts]))
         
         t1_MAP_SCADA=tm.perf_counter()  
-        conv_MAP_SCADA,nits_MAP_SCADA,dfITsMAP_SCADA=SS_WLS_FACTS_noBC(graph,dfDMEDSCADAn,ind_i,printgrad=0,flatstart=2,printres=0,printits=2,tol2=1e-1,tol=1e-6)
+        conv_MAP_SCADA,nits_MAP_SCADA,dfITsMAP_SCADA=SE_WLS_FACTS_noBC(graph,dfDMEDSCADAn,ind_i,printgrad=0,flatstart=2,printres=0,printits=2,tol2=1e-1,tol=1e-6)
         t2_MAP_SCADA=tm.perf_counter()
         tMAP_SCADA=t2_MAP_SCADA-t1_MAP_SCADA
 
@@ -566,7 +566,7 @@ for n in tqdm(range(N)):
         if conv_MAP_SCADA==True:
             priori=calc_priori(graph,dfDMEDSCADAn,dfDMEDPMUn,ind_i,lamb=lamb)
             t1_MAP_PMUS=tm.perf_counter()  
-            conv_MAP_PMU,nits_MAP_PMU,dfITsMAP_PMU=SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMUn,ind_i,tol2=7,tol=1e-6,flatstart=1,printres=0,printits=2,printgrad=0)
+            conv_MAP_PMU,nits_MAP_PMU,dfITsMAP_PMU=SE_MAP_FACTS_withBC(graph,priori,dfDMEDPMUn,ind_i,tol2=7,tol=1e-6,flatstart=1,printres=0,printits=2,printgrad=0)
             t2_MAP_PMUs=tm.perf_counter()
             tMAP_PMUs=t2_MAP_PMUs-t1_MAP_PMUS
         else:

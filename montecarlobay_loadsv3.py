@@ -6,7 +6,7 @@
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -14,7 +14,7 @@ from networkcalc import *
 from BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
-from SS_Bayesian import *
+from SE_Bayesian import *
 from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
 
@@ -305,7 +305,7 @@ for amostra in range(n_simulacoes):
         graph[k].bar.Qd=barra["Qd"]/100
 
     try:    
-        conv=load_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
+        conv=power_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
     except:
         conv=0
     
@@ -313,7 +313,7 @@ for amostra in range(n_simulacoes):
     if conv==1:
         amostras_convergidas=amostras_convergidas+1
         ram.update(ramTCSC)
-        dDMEDfps[amostra]=save_DMED_fp(graph,ram,sys,ramUPFC)
+        dDMEDfps[amostra]=save_DMEAS_pf(graph,ram,sys,ramUPFC)
         dState_ref[amostra]=get_state(graph)
         dStateFACTS_ref[amostra]=get_state_FACTS(ramTCSC,busSVC,ramUPFC)
 
@@ -460,7 +460,7 @@ for n in tqdm(range(N)):
             upfc.Vse_ini=V_se_ini
             upfc.tse_ini=t_se_ini
     
-        conv_WLS,nits_WLS,dfITsWLS=SS_WLS_FACTS_noBC(graph,dfDMED_WLSn,ind_i,printgrad=0,printres=0,printits=2,flatstart=2,tol=1e-6,tol2=1e-1)
+        conv_WLS,nits_WLS,dfITsWLS=SE_WLS_FACTS_noBC(graph,dfDMED_WLSn,ind_i,printgrad=0,printres=0,printits=2,flatstart=2,tol=1e-6,tol2=1e-1)
 
 
         if conv_WLS==0:
@@ -472,7 +472,7 @@ for n in tqdm(range(N)):
             dStateFACTS_WLS[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n,df_ref=dStateFACTS_ref[ts]))
         
 
-        conv_MAP_SCADA,nits_MAP_SCADA,dfITsMAP_SCADA=SS_WLS_FACTS_noBC(graph,dfDMEDSCADAn,ind_i,printgrad=0,flatstart=2,printres=0,printits=2,tol2=1e-1,tol=1e-6)
+        conv_MAP_SCADA,nits_MAP_SCADA,dfITsMAP_SCADA=SE_WLS_FACTS_noBC(graph,dfDMEDSCADAn,ind_i,printgrad=0,flatstart=2,printres=0,printits=2,tol2=1e-1,tol=1e-6)
         
         if conv_MAP_SCADA==0:
             print("caso divergente")
@@ -484,7 +484,7 @@ for n in tqdm(range(N)):
         
         if conv_MAP_SCADA==True:
             priori=calc_priori(graph,dfDMEDSCADAn,dfDMEDPMUn,ind_i,lamb=lamb)
-            conv_MAP_PMU,nits_MAP_PMU,dfITsMAP_PMU=SS_MAP_FACTS_withBC(graph,priori,dfDMEDPMUn,ind_i,tol2=7,tol=1e-6,flatstart=1,printres=0,printits=2,printgrad=0)
+            conv_MAP_PMU,nits_MAP_PMU,dfITsMAP_PMU=SE_MAP_FACTS_withBC(graph,priori,dfDMEDPMUn,ind_i,tol2=7,tol=1e-6,flatstart=1,printres=0,printits=2,printgrad=0)
         else:
             print("divergencia no MAP PMU")
             conv_MAP_PMU=0

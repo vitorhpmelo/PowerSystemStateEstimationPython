@@ -1,5 +1,5 @@
 from classes import *
-from SS import *
+from SE import *
 import numpy as np
 import pandas as pd
 from readfiles import *
@@ -10,7 +10,7 @@ import csv
 
 
 
-def SS_WLS_linear(graph,dfDMEAS,ind_i):
+def SE_WLS_linear(graph,dfDMEAS,ind_i):
 
     [z,var_t,var_v]=create_z_x(graph,dfDMEAS,ind_i)
     var_x=create_x_TCSC(graph)
@@ -142,7 +142,7 @@ def Vinici(graph,flatStart=0,dfDMEAS=[],ind_i=[]):
             else:
                 no.V=1.0   
     elif flatStart==5:
-        [x,H,var_t,var_v,var_x]=SS_WLS_linear(graph,dfDMEAS,ind_i)
+        [x,H,var_t,var_v,var_x]=SE_WLS_linear(graph,dfDMEAS,ind_i)
         for no in graph:
             k=no.id
             if no.bus.type!=0:

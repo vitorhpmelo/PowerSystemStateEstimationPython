@@ -159,7 +159,7 @@ def NormalEQ_MAP_QR(H,W,priori,dz,dx_sl,printcond=0,printmat=0):
 
 
 
-def SS_WLS(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1,useDFACTS=1):
+def SE_WLS(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1,useDFACTS=1):
     
     '''
     WLS state estimator for AC networks
@@ -175,10 +175,6 @@ def SS_WLS(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,
     the flat start, 1 it uses the DBAR
     '''
     conv=0
-    c1=1e-4 #constant for backintracking
-
-
-
 
     Vinici(graph,flatStart=flatstart,dfDMEAS=dfDMEAS,ind_i=ind_i)
 
@@ -189,15 +185,12 @@ def SS_WLS(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,
     n_teta=len(var_t)
     n_v=len(var_v)
 
-    nvar=n_teta+n_v
     dz=np.zeros(len(z))
-    h=np.zeros(len(z))
-    W=create_W(z,flag_ones=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
-    
 
+    W=create_W(z,flag_ones=2,prec_virtual=prec_virtual) 
+    
     it=0
-    it2=0
-    itmax=2
+
     lstdx=[]
     lstdz=[]
     
@@ -205,20 +198,16 @@ def SS_WLS(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,
     while(it <30):
         a=1
         calc_dz(z,graph,dz)
-        calc_h(z,graph,h)
         calc_H_EE(z,var_t,var_v,graph,Htrad) 
-
-        
 
         grad=np.matmul(np.matmul(Htrad.T,W),dz)
         try: 
-            dx=NormalEQ_QR(Htrad,W,b,printcond=printcond,printmat=printmat)
+            dx=NormalEQ_QR(Htrad,W,dz,printcond=printcond,printmat=printmat)
         except:
             conv=0
             it=30
             break
 
-        Jxk=np.matmul(np.matmul(b,W),b)
         if it==0:
             norminicial=liang.norm(grad)
 
@@ -266,7 +255,7 @@ def SS_WLS(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,
 
 
 
-def SS_WLS_lagrangian(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-9,printcond=0,printmat=0,printnormgrad=0):
+def SE_WLS_lagrangian(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-9,printcond=0,printmat=0,printnormgrad=0):
     """
     Função que perfoma a estimação com igualdades lagrangianas
     """
@@ -365,7 +354,7 @@ def get_state(graph,sample="ref",df_ref=pd.DataFrame()):
         #teta
         d["tipo"].append("teta")
         d["de"].append(copy.deepcopy(no.id))
-        d["val"].append(copy.deepcopy(no.teta))
+        d["val"].append(copy.deepcopy(no.theta))
         d["sample"].append(copy.deepcopy(sample))
         #v
         d["tipo"].append("v")
@@ -480,7 +469,7 @@ def get_state_FACTS(TCSC={},svc={},UPFC={},sample="ref",df_ref=pd.DataFrame()):
 
 
 
-def SS_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1,useDFACTS=1):
+def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1,useDFACTS=1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -613,7 +602,7 @@ def SS_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
         dfits=[]
     return conv,it,dfits
 
-def SS_WLS_FACTS_withBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printres=1,printgrad=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SE_WLS_FACTS_withBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printres=1,printgrad=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -759,7 +748,7 @@ def SS_WLS_FACTS_withBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_
 
 
 
-def SS_WLS_FACTS_LM(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SE_WLS_FACTS_LM(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices LevenberMerquard
@@ -881,7 +870,7 @@ def SS_WLS_FACTS_LM(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virt
 
 
 
-def SS_WLS_FACTS_LM_BC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SE_WLS_FACTS_LM_BC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices LevenberMerquard
@@ -1045,7 +1034,7 @@ def cal_model_2(grad,dx,damp):
 
 
 
-def SS_WLS_FACTS_noBC_Btcsc(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SE_WLS_FACTS_noBC_Btcsc(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -1177,7 +1166,7 @@ def SS_WLS_FACTS_noBC_Btcsc(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",p
 
 
 
-def SS_WLS_FACTS_noBC_ktcsc(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SE_WLS_FACTS_noBC_ktcsc(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -1306,7 +1295,7 @@ def SS_WLS_FACTS_noBC_ktcsc(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",p
 
 
 
-def SS_WLS_FACTS_withBC_kTCSC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printres=1,printgrad=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SE_WLS_FACTS_withBC_kTCSC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printres=1,printgrad=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -1453,7 +1442,7 @@ def SS_WLS_FACTS_withBC_kTCSC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
     return conv,it,dfits
 
 
-def SS_WLS_FACTS_LM_BC_kTCSC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SE_WLS_FACTS_LM_BC_kTCSC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
     
     '''
     WLS state estimator with FACTS devices LevenberMerquard with ktcsc as the state variable

@@ -5,7 +5,7 @@
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -84,14 +84,14 @@ for idx, row in dfcasos.iterrows():
         graph[upfc.p].bar.V=dfUPFC_original_values[key]["Vp"]*(1+(row["UPFC_V"]/100))
 
     try:    
-        conv=load_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
+        conv=power_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
     except:
         conv=0
 
     #get states and 
     if conv==1:
         ram.update(ramTCSC)
-        dDMEDfps[idx]=save_DMED_fp(graph,ram,sys,ramUPFC)
+        dDMEDfps[idx]=save_DMEAS_pf(graph,ram,sys,ramUPFC)
         dState_ref[idx]=get_state(graph)
         dStateTCSC_ref[idx]=get_state_FACTS(ramTCSC,busSVC,ramUPFC)
 
@@ -210,7 +210,7 @@ for idx, row in dfcasos.iterrows():
         
         
 
-        conv_noBC,nits_noBC,dfITsGN=SS_WLS_FACTS_noBC_Btcsc(graph,dfDMED,ind_i,flatstart=2,tol=1e-5,tol2=1e-4,printgrad=1,printres=0,pirntits=1)
+        conv_noBC,nits_noBC,dfITsGN=SE_WLS_FACTS_noBC_Btcsc(graph,dfDMED,ind_i,flatstart=2,tol=1e-5,tol2=1e-4,printgrad=1,printres=0,pirntits=1)
         
         if conv_noBC==True:
             dState_noBC[idx].append(get_state(graph,n))

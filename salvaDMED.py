@@ -4,7 +4,7 @@
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -44,18 +44,18 @@ addUPFCingraph(graph,ramUPFC)
 
 #%%
 
-conv=load_flow_FACTS(graph,inici=1,prt=1,itmax=30)
+conv=power_flow_FACTS(graph,inici=1,prt=1,itmax=30)
 #%%3
 
 ram.update(ramTCSC)
 
-save_DMED_fp(graph,ram,sys,ramUPFC)
+save_DMEAS_pf(graph,ram,sys,ramUPFC)
 
 #%%
 state_ref=get_state(graph)
 
 prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.05,"SMV":0.03,"PSEUDO":0.3,"VIRTUAL":1e-5}
-dfDMEDsr=create_DMED(sys,prec,graph,ram)
+dfDMEDsr=create_DMEAS(sys,prec,graph,ram)
 
 #%%
 dfDMEDsr.to_csv(sys+"/DMED.csv",header=None,index=None,float_format="%.7f")

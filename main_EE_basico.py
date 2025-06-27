@@ -4,7 +4,7 @@
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -49,7 +49,7 @@ dfDMEAS_nnois=create_DMEAS(sys,prec,graph,bran,dfDMEASpf=dfDMEAS_pf)
 
 dfDMEAS=insert_res(dfDMEAS_nnois)
 #%%
-conv_noWLS,nits_noWLS,dfITsWLS=SS_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
+conv_noWLS,nits_noWLS,dfITsWLS=SE_WLS(graph,dfDMEAS,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
 #%%
 
 

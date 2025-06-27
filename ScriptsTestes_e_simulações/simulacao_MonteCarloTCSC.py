@@ -4,7 +4,7 @@
 from classes import *
 from readfiles import *
 from networkstruc import *
-from SS import *
+from SE import *
 from meas_sampl import *
 import pandas as pd
 import numpy as np
@@ -36,16 +36,16 @@ graph=create_graph(bars,ram)
 addFACTSingraph(graph,ramTCSC)
 
 
-# conv=load_flow_FACTS(graph,inici=-1,prt=1,itmax=40)
-conv=load_flow_FACTS_2(graph,prt=1)
+# conv=power_flow_FACTS(graph,inici=-1,prt=1,itmax=40)
+conv=power_flow_FACTS_2(graph,prt=1)
 
 ram.update(ramTCSC)
-save_DMED_fp(graph,ram,sys)
+save_DMEAS_pf(graph,ram,sys)
 
 #%% Montagem do plano de medições
 
 prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.05,"SMV":0.03,"PSEUDO":0.3,"VIRTUAL":1e-5}
-dfDMEDsr=create_DMED(sys,prec,graph,ram)
+dfDMEDsr=create_DMEAS(sys,prec,graph,ram)
 dfDMEDr=insert_res(dfDMEDsr)
 dfDMEDr.to_csv(sys+"/DMED.csv",header=None,index=None,float_format="%.9f")
 #%%
@@ -83,7 +83,7 @@ while((len(NumeroItsA)<101)or(len(NumeroItsB)<101)):
     dfDMEDr=insert_res(dfDMEDsr,i)
     print("{:d}/{:d}".format(i+1,N))
     if (len(NumeroItsA)<101):
-        [conv,nIT,tits,tf]=SS_WLS_FACTS_clean(graph,dfDMEDr,ind_i,flatstart=flatstart,tol=1e-5,tol2=1e-4)
+        [conv,nIT,tits,tf]=SE_WLS_FACTS_clean(graph,dfDMEDr,ind_i,flatstart=flatstart,tol=1e-5,tol2=1e-4)
         nconvsA.append(conv)
         print(conv)
         amostrasA=amostrasA+1
@@ -95,7 +95,7 @@ while((len(NumeroItsA)<101)or(len(NumeroItsB)<101)):
             NumeroItsA.append(nIT)
         del nIT,tits,tf
     if (len(NumeroItsB)<101):
-        [conv,nIT,tits,tf]=SS_WLS_FACTS_2_clean(graph,dfDMEDr,ind_i,flatstart=flatstart,tol=1e-5,tol2=1e-4)
+        [conv,nIT,tits,tf]=SE_WLS_FACTS_2_clean(graph,dfDMEDr,ind_i,flatstart=flatstart,tol=1e-5,tol2=1e-4)
         nconvsB.append(conv)
         print(conv)
         amostrasB=amostrasB+1
