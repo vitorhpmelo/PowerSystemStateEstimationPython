@@ -36,9 +36,6 @@ graph=create_graph(bus,bran)
 conv=power_flow(graph,inici=1,prt=1,itmax=20)
 #%%
 
-
-
-
 dfDMEAS_pf=save_DMEAS_pf(graph,bran,sys)
 
 #%%
@@ -51,7 +48,6 @@ dfDMEAS=insert_res(dfDMEAS_nnois)
 #%%
 conv_noWLS,nits_noWLS,dfITsWLS=SE_WLS(graph,dfDMEAS,ind_i,flatstart=2,printits=1,tol2=1e-1,tol=1e-4,prec_virtual=1e-4)
 #%%
-
 
 
 dState=get_state(graph,1)

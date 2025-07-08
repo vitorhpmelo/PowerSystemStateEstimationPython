@@ -16,7 +16,24 @@ import scipy.sparse.linalg as sliang
 
 
 
-def ini_Pgridslack(graph,graph_dc,conv_acdc):
+def ini_Pgridslack(graph_dc,conv_acdc):
+    """
+    Initializes the P_grid attribute for slack converters in each DC area.
+    This function calculates the net DC power balance (load minus generation) for each DC area,
+    then assigns the required grid power (P_grid) to the slack converter in each area to balance the power.
+    Args:
+        graph_dc: A list or dictionary of DC bus nodes, each with attributes such as area, Pdc_load, Pdc_gen, and type.
+        conv_acdc: A list of AC/DC converter objects, each with attributes such as i_busdc (index to graph_dc), P_grid, and possibly other converter parameters.
+    Side Effects:
+        Modifies the P_grid attribute of slack converters in-place to ensure power balance in each DC area.
+    Notes:
+        - The function assumes that each DC area has exactly one slack converter (type == 0).
+        - The function expects that each converter in conv_acdc references its associated DC bus via i_busdc.
+        - The function does not return any value; it updates objects in-place.
+    """
+        # Initializes P_grid for slack converters in each DC area to balance DC power.
+
+
     
     
     d_area={}
@@ -412,12 +429,12 @@ def slack_bus_it(conv_acdc,graph_dc,graph,dPd,tol=1e-8):
 
     return dz_Pslack
 
-def power_flow_iterative(graph,graph_dc,conv_acdc,tol=1e-8,prt=1,printconv=1,printres=1):#TODO implement printing routines
+def power_flow_iterative(graph,graph_dc,conv_acdc,tol=1e-8,prt=1,printconv=1,printres=1):
 
     for conv in conv_acdc:
         conv.create_internal_network(graph)
 
-    ini_Pgridslack(graph,graph_dc,conv_acdc)
+    ini_Pgridslack(graph_dc,conv_acdc)
     [d_Pd,d_Qd]=inc_conv_inj_acpf(graph,conv_acdc)
 
     it=0
