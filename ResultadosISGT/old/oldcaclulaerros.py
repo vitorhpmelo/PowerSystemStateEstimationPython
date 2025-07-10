@@ -39,22 +39,22 @@ for idx, item in df_FACTS.iterrows():
 #%%
 methods=list(set(df_Trad["method"].values))
 
-error_teta={}
+error_theta={}
 error_V={}
 error_FACTS={}
 
 
 for met in methods:
     maskV=(df_Trad["method"]==met) & (df_Trad["tipo"]=="v")
-    maskt=(df_Trad["method"]==met) & (df_Trad["tipo"]=="teta")
+    maskt=(df_Trad["method"]==met) & (df_Trad["tipo"]=="theta")
     maskFACTS=(df_FACTS["method"]==met) 
     error_V[met]=np.mean(df_Trad[maskV].erro.values)
-    error_teta[met]=np.mean(df_Trad[maskt].erro.values)
+    error_theta[met]=np.mean(df_Trad[maskt].erro.values)
     error_FACTS[met]=np.mean(df_FACTS[maskFACTS].erro.values)
 
 #%%
 
-error_r={"V":error_V,"teta":error_teta,"FACTS":error_FACTS}
+error_r={"V":error_V,"theta":error_theta,"FACTS":error_FACTS}
 # %%
 dfErro=pd.DataFrame(error_r)
 #%%

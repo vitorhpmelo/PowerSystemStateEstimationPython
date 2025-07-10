@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+#%%
 from classes import *
 from readfiles import *
 from networkstruc import *
@@ -49,8 +49,7 @@ def ini_Pgridslack(graph_dc,conv_acdc):
 
     for conv in conv_acdc:
         area=graph_dc[conv.i_busdc].bus_dc.area
-        if graph_dc[conv.i_busdc].bus_dc.area not in d_area.keys():
-            d_area[area]=0
+
         if graph_dc[conv.i_busdc].bus_dc.type==1:
             d_area[area]=d_area[area]+conv.P_grid
         if graph_dc[conv.i_busdc].bus_dc.type==0:
@@ -79,8 +78,8 @@ def calc_conv_inter_pf(graph,graph_dc,conv_acdc,d_Pd,d_Qd):
    
     j=complex(0,1)
     for conv in conv_acdc:
-        Pgrid=graph[conv.i_busac].P(graph)+d_Pd[conv.i_busac]-graph[conv.i_busac].bus.Pg
-        Qgrid=graph[conv.i_busac].Q(graph)+d_Qd[conv.i_busac]-graph[conv.i_busac].bus.Qg
+        Pgrid=graph[conv.i_busac].P(graph)+d_Pd[conv.i_busac]-graph[conv.i_busac].bus.Pg #if it is a slack bus ? 
+        Qgrid=graph[conv.i_busac].Q(graph)+d_Qd[conv.i_busac]-graph[conv.i_busac].bus.Qg #it works for PV ?
         
         conv.Pgrid=Pgrid
         conv.Qgrid=Qgrid
@@ -156,11 +155,12 @@ def inc_conv_inj_acpf(graph,conv_acdc):
     for conv in conv_acdc:
         d_Pd[conv.i_busac]=graph[conv.i_busac].bus.Pd
         d_Qd[conv.i_busac]=graph[conv.i_busac].bus.Qd
-        if graph[conv.i_busac].bus.type==1 or graph[conv.i_busac].bus.type==2:
-            graph[conv.i_busac].bus.Pd=graph[conv.i_busac].bus.Pd-conv.P_grid
-        if graph[conv.i_busac].bus.type==2:
-            graph[conv.i_busac].bus.Qd=graph[conv.i_busac].bus.Qd-conv.Q_grid
-
+        # if graph[conv.i_busac].bus.type==1 or graph[conv.i_busac].bus.type==2:
+            # graph[conv.i_busac].bus.Pd=graph[conv.i_busac].bus.Pd-conv.P_grid
+        # if graph[conv.i_busac].bus.type==2:
+            # graph[conv.i_busac].bus.Qd=graph[conv.i_busac].bus.Qd-conv.Q_grid
+        graph[conv.i_busac].bus.Pd=graph[conv.i_busac].bus.Pd-conv.P_grid
+        graph[conv.i_busac].bus.Qd=graph[conv.i_busac].bus.Qd-conv.Q_grid
     return [d_Pd,d_Qd]
 
 def create_z_x_conv_powerflow(conv):
@@ -431,11 +431,9 @@ def slack_bus_it(conv_acdc,graph_dc,graph,dPd,tol=1e-8):
 
 def power_flow_iterative(graph,graph_dc,conv_acdc,tol=1e-8,prt=1,printconv=1,printres=1):
 
-    for conv in conv_acdc:
-        conv.create_internal_network(graph)
 
-    ini_Pgridslack(graph_dc,conv_acdc)
-    [d_Pd,d_Qd]=inc_conv_inj_acpf(graph,conv_acdc)
+    ini_Pgridslack(graph_dc,conv_acdc) #initialize the AC buses connected to convters that are connected to DC slack buses
+    [d_Pd,d_Qd]=inc_conv_inj_acpf(graph,conv_acdc) # includes Pgrid and Qgrid in the graph demand of AC buses and stores original loads in d_Pd and d_Qd
 
     it=0
     ini=1
@@ -443,18 +441,19 @@ def power_flow_iterative(graph,graph_dc,conv_acdc,tol=1e-8,prt=1,printconv=1,pri
     while(it<10):
         if it>0:
             ini=2
-        div=power_flow(graph,inici=ini,prt=0,itmax=20,tol=tol)
+
+        div=power_flow(graph,inici=ini,prt=0,itmax=20,tol=tol) #calculates AC power flow with the Pgrid and Qgrid reflected as loads
 
         if div==0:
             print("AC power flow divergence")
 
-        calc_conv_inter_pf(graph,graph_dc,conv_acdc,d_Pd,d_Qd)
+        calc_conv_inter_pf(graph,graph_dc,conv_acdc,d_Pd,d_Qd) #using AC power flow results calculates the dc injections for the dc power flows
 
-        div=power_flow_dc(graph_dc,prt=0,tol=tol,inici=ini,itmax=20,printgrad=1,printres=1)
+        div=power_flow_dc(graph_dc,prt=0,tol=tol,inici=ini,itmax=20,printgrad=1,printres=1) # calculates the DC power flows
         if div==0:
             print("DC power flow divergence")
         
-        dzP=slack_bus_it(conv_acdc,graph_dc,graph,d_Pd,tol=tol) 
+        dzP=slack_bus_it(conv_acdc,graph_dc,graph,d_Pd,tol=tol) # calculates the 
         if np.linalg.norm(dzP)<tol:
             print("Conv in {} iterations".format(it))
             print("AC result")
@@ -468,12 +467,11 @@ def power_flow_iterative(graph,graph_dc,conv_acdc,tol=1e-8,prt=1,printconv=1,pri
 
 sys="case5_2grids"
 
-
 dfDBUS,dfDBRAN,dfDMEAS,dfDFACTS=read_files(sys)
 
 dfDBUS_dc, dfDBRAN_dc, dfDCONV_acdc= read_files_DC(sys)
 
-# %%
+
 
 [bus,nbus,pv,pq,ind_i]=create_bus(dfDBUS)
 [bran,nbran]=create_bran(dfDBRAN,ind_i)
@@ -492,7 +490,8 @@ graph_dc=create_graph_dc(bus_dc,bran_dc)
 
 addACDCconv_ingraph(graph,graph_dc,conv_acdc)
 #%%
-
+for conv in conv_acdc:
+    conv.create_internal_network(graph)
 
 power_flow_iterative(graph,graph_dc,conv_acdc)
 
@@ -534,12 +533,4 @@ for idx, conv in enumerate(conv_acdc):
         print(f"  Node {k}, {getattr(node, 'V', 'N/A')}, {getattr(node, 'theta', 'N/A')}")
   
 
-# %%
-conv_acdc[1].Ptf(0)
-
-# %%
-
-conv_acdc[1].Prc(1)
-
-graph_dc[1].Pdc(graph_dc)
 # %%

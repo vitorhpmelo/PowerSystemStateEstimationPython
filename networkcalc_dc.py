@@ -72,7 +72,7 @@ def power_flow_dc(graph_dc,prt=1,tol=1e-12,inici=1,itmax=20,printgrad=1,printres
     lstdx=[]
     lstdz=[]
 
-    prt=0
+
     while it<itmax:
     
         calc_dz(z,graph_dc,dz)

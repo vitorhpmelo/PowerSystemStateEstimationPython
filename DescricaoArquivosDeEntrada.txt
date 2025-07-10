@@ -1,11 +1,11 @@
 DBAR -- File with the information of the system's buses
 
-id,type,V,teta,Pg,Qg,Pd,Qd,Bs
+id,type,V,theta,Pg,Qg,Pd,Qd,Bs
 
 id - identification  of the bus
 type - type of the bus (0 = ref, 1 = PV, 2 - PQ) 
 V - Voltage in p.u.
-teta - angle in grad
+theta - angle in grad
 Pg - Active Power Generation p.u.
 Qg - Reactive Power Generation p.u.
 Pd - Load Active Power p.u.

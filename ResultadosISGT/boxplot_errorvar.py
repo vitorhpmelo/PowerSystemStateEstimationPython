@@ -41,7 +41,7 @@ dfstate_FACTS["tipo"]="FACTS"
 
 dfdata=pd.concat([dfstate,dfstate_FACTS])
 
-dfdata["tipo"]=dfdata["tipo"].map({"FACTS":"FACTS","v":r"$v$","teta":r"$\theta$"})
+dfdata["tipo"]=dfdata["tipo"].map({"FACTS":"FACTS","v":r"$v$","theta":r"$\theta$"})
 
 dfdata["method"]=dfdata["method"].map({"WLS":"WLS Hyb.","MAP_PMU":"MAP Stg. 2"})
 

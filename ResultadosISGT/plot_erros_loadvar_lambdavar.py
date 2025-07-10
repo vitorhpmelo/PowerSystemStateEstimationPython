@@ -13,7 +13,7 @@ casos_ler=["v2facts"+str(i) for i in [2,5]]
 #%%
 
 dfV={}
-dfteta={}
+dftheta={}
 dfFACTS={}
 
 casos_plot=["caso"+str(i) for i in [2,5]]
@@ -21,7 +21,7 @@ casos_plot=["caso"+str(i) for i in [2,5]]
 
 for i in range(len(casos_plot)):
     dfV[casos_plot[i]]=pd.read_csv("errosV_compilados"+casos_ler[i]+".csv")
-    dfteta[casos_plot[i]]=pd.read_csv("errosteta_compilados"+casos_ler[i]+".csv")
+    dftheta[casos_plot[i]]=pd.read_csv("errostheta_compilados"+casos_ler[i]+".csv")
     dfFACTS[casos_plot[i]]=pd.read_csv("errosFACTS_compilados"+casos_ler[i]+".csv")
 #%%
 
@@ -45,7 +45,7 @@ ax[1].set_xlabel("tempo (s)")
 ax[1].set_ylabel("MAE")
 
 ax[1].set_title(r"$\theta$")
-ax[1].semilogy(dfteta["caso2"].index/10,dfteta["caso2"].WLS,label="WLS",ls=":",marker="s",zorder=2)
+ax[1].semilogy(dftheta["caso2"].index/10,dftheta["caso2"].WLS,label="WLS",ls=":",marker="s",zorder=2)
 
 
 ax[2].set_xlabel("tempo (s)")
@@ -67,7 +67,7 @@ for caso in casos_plot:
 for caso in casos_plot:
     i=1
     ax[0].semilogy(dfV[caso].index/10,dfV[caso].MAP_PMU.values,label=r"$\lambda$ ="+dlambda[caso],ls="--",marker=dmark[caso],zorder=1)
-    ax[1].semilogy(dfteta[caso].index/10,dfteta[caso].MAP_PMU,label=r"$\lambda$="+dlambda[caso],ls="--",marker=dmark[caso],zorder=1)
+    ax[1].semilogy(dftheta[caso].index/10,dftheta[caso].MAP_PMU,label=r"$\lambda$="+dlambda[caso],ls="--",marker=dmark[caso],zorder=1)
     ax[2].semilogy(dfFACTS[caso].index/10,dfFACTS[caso].MAP_PMU,label=r"$\lambda=$"+dlambda[caso],ls="--",marker=dmark[caso],zorder=1)
     i=i+1
 

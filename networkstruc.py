@@ -22,7 +22,7 @@ def create_bus(dfDBUS):
     for idx, row in dfDBUS.iterrows():#reads each line of the data frame
         item=bus(int(row["id"]),int(row["type"]),i) 
         item.V=row.V
-        item.teta=row.teta*np.pi/180 # converts the angle to radians
+        item.theta=row.theta*np.pi/180 # converts the angle to radians
         item.Pg=row["Pg"]/100#converts the power from MW to p.u.
         item.Qg=row["Qg"]/100#converts the power from MW to p.u.
         item.Pd=row["Pd"]/100#converts the power from MW to p.u.
@@ -298,6 +298,7 @@ def create_bus_dc(dfDBUS_dc,muticonductors=False):
         item.Vdc=row.Vdc
         item.Pdc_load=row["Pdc_load"]/100#converts the power from MW to p.u.
         item.Pdc_gen=row["Pdc_gen"]/100
+        item.area=int(row["area"])
         if int(row["type"])==0:
             slack.append(i)#create the list of PV buses
         buses_dc.append(item)

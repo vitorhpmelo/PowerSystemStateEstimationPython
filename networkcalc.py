@@ -2183,7 +2183,6 @@ def power_flow(graph,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres=1,pri
         if maxdx< tol and maxdz < tol:
             if (prt==1):
                 print("convergiu em {} itereacoes".format(it))
-            upfc_angle(graph)
             if (printres==1) & (prt==1):
                 prt_state(graph)
             conv=1

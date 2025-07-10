@@ -9,14 +9,14 @@ dfstate_FACTS=pd.read_csv('state_FACTS_IEEE14_rakp2009x1SemMedidasesta.csv',inde
 
 #%%
 MAE_WLS_V=np.mean(dfstate[(dfstate["method"]=="WLS")&(dfstate["tipo"]=="v")].error)
-MAE_WLS_teta=np.mean(dfstate[(dfstate["method"]=="WLS")&(dfstate["tipo"]=="teta")].error)
+MAE_WLS_theta=np.mean(dfstate[(dfstate["method"]=="WLS")&(dfstate["tipo"]=="theta")].error)
 
 
 MAE_MAP_1_V=np.mean(dfstate[(dfstate["method"]=="MAP_SCADA")&(dfstate["tipo"]=="v")].error)
-MAE_MAP_1_teta=np.mean(dfstate[(dfstate["method"]=="MAP_SCADA")&(dfstate["tipo"]=="teta")].error)
+MAE_MAP_1_theta=np.mean(dfstate[(dfstate["method"]=="MAP_SCADA")&(dfstate["tipo"]=="theta")].error)
 
 MAE_MAP_2_V=np.mean(dfstate[(dfstate["method"]=="MAP_PMU")&(dfstate["tipo"]=="v")].error)
-MAE_MAP_2_teta=np.mean(dfstate[(dfstate["method"]=="MAP_PMU")&(dfstate["tipo"]=="teta")].error)
+MAE_MAP_2_theta=np.mean(dfstate[(dfstate["method"]=="MAP_PMU")&(dfstate["tipo"]=="theta")].error)
 
 #%%
 

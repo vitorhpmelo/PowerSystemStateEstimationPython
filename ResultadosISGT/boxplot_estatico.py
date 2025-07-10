@@ -28,7 +28,7 @@ dfdata.sort_values(by=["method"],inplace=True)
 k=0.5
 fig,ax =plt.subplots(ncols=1,nrows=1,figsize=(10*k,k*6))
 
-dfdata["Var"]=dfdata["Var"].map({"v":"V","teta":r"$\theta$","FACTS":"FACTS"})
+dfdata["Var"]=dfdata["Var"].map({"v":"V","":r"$\theta$","FACTS":"FACTS"})
 
 sns.boxplot(dfdata,y="error",x="method",hue="Var",showfliers=False,palette=pal,ax=ax)
 

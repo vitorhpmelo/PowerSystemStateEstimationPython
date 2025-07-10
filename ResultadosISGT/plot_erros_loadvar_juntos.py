@@ -6,7 +6,7 @@ caso="loadvar"
 
 dfV=pd.read_csv("errosV_compilados"+caso+".csv")
 
-dfteta=pd.read_csv("errosteta_compilados"+caso+".csv")
+dftheta=pd.read_csv("errostheta_compilados"+caso+".csv")
 dfFACTS=pd.read_csv("errosFACTS_compilados"+caso+".csv")
 #%%
 
@@ -26,9 +26,9 @@ ax[1].set_xlabel("tempo (s)")
 ax[1].set_ylabel("MAE")
 
 ax[1].set_title(r"$\theta$")
-ax[1].semilogy(dfteta.index/10,dfteta.WLS,label="WLS",ls=":")
-ax[1].semilogy(dfteta.index/10,dfteta.MAP_PMU,label="MAP PMU",ls=":")
-# ax[1].semilogy(dfteta.index/100,dfteta.MAP_SCADA,label="MAP SCADA")
+ax[1].semilogy(dftheta.index/10,dftheta.WLS,label="WLS",ls=":")
+ax[1].semilogy(dftheta.index/10,dftheta.MAP_PMU,label="MAP PMU",ls=":")
+# ax[1].semilogy(dftheta.index/100,dftheta.MAP_SCADA,label="MAP SCADA")
 
 ax[2].set_xlabel("tempo (s)")
 ax[2].set_ylabel("MAE")
