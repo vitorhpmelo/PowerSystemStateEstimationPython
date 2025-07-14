@@ -40,9 +40,9 @@ class bus_dc():
         self.area=1
 
 class conv_acdc():
-    def __init__(self,id,type,counter):
+    def __init__(self,id,islcc,counter):
         self.id=id #converter id
-        self.type=type #converter type, 1 for LCC, 2 for VSC and 3 for MMC 
+        self.islcc=islcc #converter type, 1 for LCC, 2 for VSC and 3 for MMC 
         self.i=counter #converter number 
         self.id_busac=-1 #external name bus ac grid connected to the converter
         self.id_busdc=-1 #external name bus dc grid connected to the converter
@@ -77,6 +77,8 @@ class conv_acdc():
         self.Qconv_ac=0        # Converter AC side reactive power
         self.Pgrid=0           # Converter Injection to the grid
         self.Qgrid=0           # Converter Injection to the grid 
+        self.Pgset=0         # Set points of the active and reactive power in the converter
+        self.Qgset=0         # Set points of the active and reactive power in the converter
         self.d_inter_nodes={} #list of the internal nodes created by the converter
         self.d_inter_bran={} #list of the internal branches created by the converter        
     def create_internal_network(self,graph):
