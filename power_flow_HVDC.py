@@ -54,7 +54,7 @@ def ini_Pgridslack(graph_dc,conv_acdc):
         else:
             d_area_slack[area]=conv
 
-
+    
     for area in d_area.keys():
         d_area_slack[area].Pset=-d_area[area] #initial set point of the dc slack bus
 
@@ -460,12 +460,14 @@ def power_flow_iterative(graph,graph_dc,conv_acdc,tol=1e-8,prt=1,printconv=1,pri
         
         if div==0:
             print("AC power flow divergence")
+            return
 
         calc_conv_inter_pf(graph,graph_dc,conv_acdc,d_Pd,d_Qd) #using AC power flow results calculates the dc injections for the dc power flows
 
         div=power_flow_dc(graph_dc,prt=0,tol=tol,inici=ini,itmax=20,printgrad=1,printres=1) # calculates the DC power flows
         if div==0:
             print("DC power flow divergence")
+            return
         
         dzP=slack_bus_it(conv_acdc,graph_dc,graph,d_Pd,tol=tol) # calculates the 
         if np.linalg.norm(dzP)<tol:
@@ -479,7 +481,7 @@ def power_flow_iterative(graph,graph_dc,conv_acdc,tol=1e-8,prt=1,printconv=1,pri
         if(prt==1): 
             print("Slack bus iteration dz {:.2e}, it: {:d}".format(np.linalg.norm(dzP),it))
 
-sys="case5_2grids"
+sys="case24_3zones_acdc"
 
 dfDBUS,dfDBRAN,dfDMEAS,dfDFACTS=read_files(sys)
 
@@ -509,8 +511,8 @@ for conv in conv_acdc:
 power_flow_iterative(graph,graph_dc,conv_acdc)
 
 # %%
-print("Converter 1 Active Power Flow (Ptf): {:.5e}".format(conv_acdc[1].Ptf(0)))
-print("Converter 1 Reactive Power Flow (Qtf): {:.5e}".format(conv_acdc[1].Qtf(0)))
+print("Converter 1 Active Power Flow (Ptf): {:.5e}".format(conv_acdc[0].Ptf(0)))
+print("Converter 1 Reactive Power Flow (Qtf): {:.5e}".format(conv_acdc[0].Qtf(0)))
 
 #%%
 for conv in conv_acdc:
@@ -541,10 +543,10 @@ for node in graph_dc:
 
 # %%
 print("Converter Internal Node Voltages:")
-for idx, conv in enumerate(conv_acdc):
-    print(f"Converter {getattr(conv, 'i', idx)}:")
+for conv in conv_acdc:
+    conv_id = getattr(conv, 'i', 'N/A')
     for k, node in getattr(conv, 'd_inter_nodes', {}).items():
-        print(f"  Node {k}, {getattr(node, 'V', 'N/A')}, {getattr(node, 'theta', 'N/A')}")
-  
+        if k != 0:
+            print(f"  {conv_id}, {k}, {getattr(node, 'V', 'N/A')},{getattr(node, 'theta', 'N/A')}")
 
 # %%

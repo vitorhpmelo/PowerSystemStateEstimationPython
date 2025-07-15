@@ -127,7 +127,7 @@ class conv_acdc():
             tr=branch(0,i_bus_grid,i_bus_filter,2,0)
 
             tr.x=self.xtf
-            tr.r=self.xtf
+            tr.r=self.rtf
             tr.bsh=0 #divides the shunt suceptance by two
             tr.tap=self.tap
             tr.cykm()#calculates the ykm
@@ -149,7 +149,7 @@ class conv_acdc():
             tr=branch(0,i_bus_grid,i_bus_conv,2,0)
 
             tr.x=self.xtf
-            tr.r=self.xtf
+            tr.r=self.rtf
             tr.bsh=0 #divides the shunt suceptance by two
             tr.tap=self.tap
             tr.cykm()#calculates the ykm
