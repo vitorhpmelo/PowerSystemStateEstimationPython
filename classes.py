@@ -2586,6 +2586,14 @@ class branch_dc():
             k=self.to
             m=self.fr
         return self.p*graph[k].Vdc*(graph[k].Vdc-graph[m].Vdc)/self.r
+    def Ifdc(self,graph,flag):
+        if flag==0:
+            k=self.fr
+            m=self.to
+        else:
+            k=self.to
+            m=self.fr
+        return (graph[k].Vdc-graph[m].Vdc)/self.r
     def dPfdVdc(self,graph,flag,var):
         if flag==0:
             k=self.fr
@@ -2618,3 +2626,11 @@ class node_graph_dc():
         for key in self.adjm.keys():
             Pdc+=self.adjm[key].Pfdc(graph,1)
         return Pdc
+    def Idc(self,graph):
+        Idc=0
+        for key in self.adjk.keys():
+            Idc+=self.adjk[key].Ifdc(graph,0)
+        for key in self.adjm.keys():
+            Idc+=self.adjm[key].Ifdc(graph,1)
+        return Idc
+        

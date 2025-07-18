@@ -192,14 +192,15 @@ def prt_state_FACTS(graph,var_x,var_svc,var_upfc):
         print(s)
 
 
-def save_DMEAS_pf(graph,bran,sys,dUPFC={}):
+def save_DMEAS_ac_pf(graph,bran,sys,dUPFC={},flag_save_csv=True):
     """
-    Function to save the file with all measurements possible, from a load flow simulation. 
-    It use the graph of the network to calculate every possible measurement and save it in a file called 
-    DMEAS_fp.csv into the system's folder.
+    Function to save the file with all measurements possible, from a power flow simulation 
+    for AC networks with FACTS devices. It uses the graph of the network to calculate every 
+    possible measurement and saves it in a file called DMEAS_fp.csv into the system's folder.
     @param: graph Graph structure with the information about the network
-    @param: ram dictionary with the information about the network branches
-    @sys: string with the system folder's name
+    @param: bran Dictionary with the information about the network branches
+    @param: sys String with the system folder's name
+    Note: This function is specifically designed for AC networks with FACTS devices.
     """
     meas=[] 
     Pinj=[]
@@ -335,10 +336,127 @@ def save_DMEAS_pf(graph,bran,sys,dUPFC={}):
 
     
     dfDMEAS=pd.DataFrame(meas,columns=["type","from","to","zmeas","prec"])
-    dfDMEAS.to_csv(sys+"/DMEAS_fp.csv",index=False,float_format="%.7f",header=True)
+    if flag_save_csv:
+        dfDMEAS.to_csv(sys+"/DMEAS_fp.csv",index=False,float_format="%.7f",header=True)
     return dfDMEAS
 
 
+def save_DMEAS_dc_pf(graph_dc,bran_dc,sys,flag_save_csv=True):
+    """
+    Function to save the file with all DC measurements possible, from a DC power flow simulation.
+    It uses the graph of the DC network to calculate every possible measurement and saves it in a file called
+    DMEAS_fp.csv into the system's folder.
+    @param: graph Graph structure with the information about the DC network
+    @param: bran Dictionary with the information about the DC network branches
+    @param: sys String with the system folder's name
+    Note: This function is specifically designed for DC networks.
+    """
+    meas=[] 
+    Pinj_dc=[]
+    Iinj_dc=[]
+    Vmod_dc=[]
+
+    Pkm_dc=[]
+    Pmk_dc=[]
+    
+    Ikm_dc=[]
+    Imk_dc=[]
+
+    
+    
+
+    #calculates the Power Inejection (Reactive and Active)
+    for no_dc in graph_dc:
+        linha=[100,no_dc.bus_dc.id,-1,no_dc.Pdc(graph_dc),1]
+        Pinj_dc.append(linha)
+        linha=[101,no_dc.bus_dc.id,-1,no_dc.Idc(graph_dc),1]
+        Iinj_dc.append(linha)
+        linha=[104,no_dc.bus_dc.id,-1,no_dc.Vdc,1]
+        Vmod_dc.append(linha)
+
+
+    # #calculates the flows in the branches
+    for key,r in bran_dc.items():
+        #calculate from k to m
+        linha=[102,graph_dc[r.fr].bus_dc.id,graph_dc[r.to].bus_dc.id,r.Pfdc(graph_dc,0),1.0]
+        Pkm_dc.append(linha)
+        linha2=[102,graph_dc[r.to].bus_dc.id,graph_dc[r.fr].bus_dc.id,r.Pfdc(graph_dc,1),1.0]
+        Pmk_dc.append(linha2)
+        #calculate from m to k
+        linha=[103,graph_dc[r.fr].bus_dc.id,graph_dc[r.to].bus_dc.id,r.Ifdc(graph_dc,0),1.0]
+        Ikm_dc.append(linha)
+        linha2=[103,graph_dc[r.to].bus_dc.id,graph_dc[r.fr].bus_dc.id,r.Ifdc(graph_dc,1),1.0]
+        Imk_dc.append(linha2)
+
+
+    meas=Pinj_dc+Iinj_dc+Pkm_dc+Pmk_dc+Ikm_dc+Imk_dc+Vmod_dc
+
+
+    
+    dfDMEAS=pd.DataFrame(meas,columns=["type","from","to","zmeas","prec"])
+    if flag_save_csv:
+        dfDMEAS.to_csv(sys+"/DMEASdc_fp.csv",index=False,float_format="%.7f",header=True)
+    return dfDMEAS
+
+
+
+
+def save_DMEAS_conv_pf(graph_dc,bran_dc,sys,flag_save_csv=True):
+    """
+    Function to save the file with all DC measurements possible, from a DC power flow simulation.
+    It uses the graph of the DC network to calculate every possible measurement and saves it in a file called
+    DMEAS_fp.csv into the system's folder.
+    @param: graph Graph structure with the information about the DC network
+    @param: bran Dictionary with the information about the DC network branches
+    @param: sys String with the system folder's name
+    Note: This function is specifically designed for DC networks.
+    """
+    meas=[] 
+    Pinj_dc=[]
+    Iinj_dc=[]
+    Vmod_dc=[]
+
+    Pkm_dc=[]
+    Pmk_dc=[]
+    
+    Ikm_dc=[]
+    Imk_dc=[]
+
+    
+    
+
+    #calculates the Power Inejection (Reactive and Active)
+    for no_dc in graph_dc:
+        linha=[100,no_dc.bus_dc.id,-1,no_dc.Pdc(graph_dc),1]
+        Pinj_dc.append(linha)
+        linha=[101,no_dc.bus_dc.id,-1,no_dc.Idc(graph_dc),1]
+        Iinj_dc.append(linha)
+        linha=[104,no_dc.bus_dc.id,-1,no_dc.Vdc,1]
+        Vmod_dc.append(linha)
+
+
+    # #calculates the flows in the branches
+    for key,r in bran_dc.items():
+        #calculate from k to m
+        linha=[102,graph_dc[r.fr].bus_dc.id,graph_dc[r.to].bus_dc.id,r.Pfdc(graph_dc,0),1.0]
+        Pkm_dc.append(linha)
+        linha2=[102,graph_dc[r.to].bus_dc.id,graph_dc[r.fr].bus_dc.id,r.Pfdc(graph_dc,1),1.0]
+        Pmk_dc.append(linha2)
+        #calculate from m to k
+        linha=[103,graph_dc[r.fr].bus_dc.id,graph_dc[r.to].bus_dc.id,r.Pfdc(graph_dc,0),1.0]
+        Ikm_dc.append(linha)
+        linha2=[103,graph_dc[r.to].bus_dc.id,graph_dc[r.fr].bus_dc.id,r.Pfdc(graph_dc,1),1.0]
+        Imk_dc.append(linha2)
+
+
+    meas=Pinj_dc+Iinj_dc+Pkm_dc+Pmk_dc+Ikm_dc+Imk_dc+Vmod_dc
+
+
+    
+    dfDMEAS=pd.DataFrame(meas,columns=["type","from","to","zmeas","prec"])
+    if flag_save_csv:
+        dfDMEAS.to_csv(sys+"/DMEASdc_fp.csv",index=False,float_format="%.7f",header=True)
+    return dfDMEAS
 
 def save_DBUS(graph):
 
