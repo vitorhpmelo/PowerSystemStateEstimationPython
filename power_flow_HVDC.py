@@ -37,31 +37,24 @@ dfDBUS_dc, dfDBRAN_dc, dfDCONV_acdc= read_files_DC(sys)
 [bran_dc,nbran_dc]=create_bran_dc(dfDBRAN_dc,ind_i_dc)
 
 
-[conv_acdc,nconv,ind_id_conv]=create_conv_acdc(dfDCONV_acdc,ind_i_dc,ind_i)
+[convs_acdc,nconv,ind_id_conv]=create_conv_acdc(dfDCONV_acdc,ind_i_dc,ind_i)
 
 graph=create_graph(bus,bran)
 graph_dc=create_graph_dc(bus_dc,bran_dc)
 
-addACDCconv_ingraph(graph,graph_dc,conv_acdc)
+addACDCconv_ingraph(graph,graph_dc,convs_acdc)
 #%%
 
 
 
-power_flow_iterative(graph,graph_dc,conv_acdc)
+power_flow_iterative(graph,graph_dc,convs_acdc)
 
 #%% printing results
-print_converter_info(conv_acdc)
+print_converter_info(convs_acdc)
 print_ac_bus_voltages(graph)
 print_dc_bus_voltages(graph_dc)
-print_converter_internal_node_voltages(conv_acdc)
+print_converter_internal_node_voltages(convs_acdc)
 
 # %%
 
 
-dfDMEAS=save_DMEAS_ac_pf(graph,bran,sys)
-#%%
-
-dfDMEAS_dc=save_DMEAS_dc_pf(graph_dc,bran_dc,sys)
-
-# %%
-save_DMEAS_dc_pf(conv_acdc)

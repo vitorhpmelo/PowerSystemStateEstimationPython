@@ -401,7 +401,7 @@ def save_DMEAS_dc_pf(graph_dc,bran_dc,sys,flag_save_csv=True):
 
 
 
-def save_DMEAS_conv_pf(graph_dc,bran_dc,sys,flag_save_csv=True):
+def save_DMEAS_conv_pf(convs_acdc,graph,graph_dc,sys,flag_save_csv=True):
     """
     Function to save the file with all DC measurements possible, from a DC power flow simulation.
     It uses the graph of the DC network to calculate every possible measurement and saves it in a file called
@@ -410,52 +410,132 @@ def save_DMEAS_conv_pf(graph_dc,bran_dc,sys,flag_save_csv=True):
     @param: bran Dictionary with the information about the DC network branches
     @param: sys String with the system folder's name
     Note: This function is specifically designed for DC networks.
+
+    200 - ACDC Converter internal filter bus active injection (p.u.) - virtual measurment it is a null injection
+    201 - ACDC Converter internal filter bus reactive injection (p.u.) - virtual measurment it is a null injection
+    202 - ACDC Converter internal transformer active power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+    203 - ACDC Converter internal transformer reactive power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+    220 - ACDC Converter internal reactor active power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to  
+    230 - ACDC Converter internal reactor reactive power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+    204 - ACDC Converter internal filter bus voltage magnitude (p.u.) 
+    205 - ACDC Converter internal filter bus voltage angle (rad)
+    240 - ACDC Converter AC bus voltage magnitude (p.u.)
+    250 - ACDC Converter AC bus voltage angle (rad)
+    206 - ACDC Converter internal filter bus Current injection Re (p.u.) - virtual measurements (a null injection) 
+    207 - ACDC Converter internal filter bus Current injection Im (p.u.) - virtual measurements (a null injection) 
+    208 - ACDC Converter internal transformer Current flow Re (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+    209 - ACDC Converter internal transformer Current flow Im (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+    280 - ACDC Converter internal reactor Current flow Re (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+    290 - ACDC Converter internal reactor Current flow Im (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+    244 - ACDC Converter voltage ratio M = Vac/Vdc
     """
+
+
     meas=[] 
-    Pinj_dc=[]
-    Iinj_dc=[]
-    Vmod_dc=[]
 
-    Pkm_dc=[]
-    Pmk_dc=[]
-    
-    Ikm_dc=[]
-    Imk_dc=[]
+    Pinj=[]
+    Qinj=[]
+    Iinj_re=[]
+    Iinj_im=[]
 
-    
-    
+
+    Vm_f=[]
+    Vangl_f=[]
+
+    Vm_c=[]
+    Vangl_c=[]
+
+    Ptf=[] # active power flow in the transformer
+    Qtf=[] # reactive power flow in the transformer
+    Prc=[] # active power flow in the reactor
+    Qrc=[] # reactive power flow in the reactor
+
+    Itf_re=[] # active power flow in the transformer
+    Itf_im=[] # reactive power flow in the transformer
+
+    Irc_re=[] # active power flow in the reactor
+    Irc_im=[] # reactive power flow in the reactor
+
+    M=[]
 
     #calculates the Power Inejection (Reactive and Active)
-    for no_dc in graph_dc:
-        linha=[100,no_dc.bus_dc.id,-1,no_dc.Pdc(graph_dc),1]
-        Pinj_dc.append(linha)
-        linha=[101,no_dc.bus_dc.id,-1,no_dc.Idc(graph_dc),1]
-        Iinj_dc.append(linha)
-        linha=[104,no_dc.bus_dc.id,-1,no_dc.Vdc,1]
-        Vmod_dc.append(linha)
+    for conv in convs_acdc:
+        if len(conv.d_inter_nodes) > 2:
+            linha=[200,conv.id,-1,conv.d_inter_nodes[1].P(conv.d_inter_nodes),1]
+            Pinj.append(linha)
+            linha=[201,conv.id,-1,conv.d_inter_nodes[1].Q(conv.d_inter_nodes),1]
+            Qinj.append(linha)
+            linha=[206,conv.id,-1,conv.d_inter_nodes[1].I_inj_re(conv.d_inter_nodes),1]
+            Iinj_re.append(linha)
+            linha=[207,conv.id,-1,conv.d_inter_nodes[1].I_inj_im(conv.d_inter_nodes),1]
+            Iinj_im.append(linha)
+            linha=[204,conv.id,-1,conv.d_inter_nodes[1].V,1]
+            Vm_f.append(linha)
+            linha=[205,conv.id,-1,conv.d_inter_nodes[1].theta,1]
+            Vangl_f.append(linha)
+            linha=[240,conv.id,-1,conv.d_inter_nodes[2].V,1]
+            Vm_c.append(linha)
+            linha=[250,conv.id,-1,conv.d_inter_nodes[2].theta,1]
+            Vangl_c.append(linha)
+        elif len(conv.d_inter_nodes) == 2: # if there is no internal filter bus
+            linha=[240,conv.id,-1,conv.d_inter_nodes[2].V,1] #TODO check if this work 
+            Vm_c.append(linha)
+            linha=[250,conv.id,-1,conv.d_inter_nodes[2].theta,1] #TODO check if this work
+            Vangl_c.append(linha)
+        else:
+            pass # if there is no internal nodes, MMC converter not implemented yet 
+        if conv.flag_trans==True:
+            linha=[202,conv.id,0,conv.Ptf(0),1.0]
+            Ptf.append(linha)
+            linha=[203,conv.id,0,conv.Qtf(0),1.0]
+            Qtf.append(linha)
+            linha=[202,conv.id,1,conv.Ptf(1),1.0]
+            Ptf.append(linha)
+            linha=[203,conv.id,1,conv.Qtf(1),1.0]
+            Qtf.append(linha)
+
+            linha=[208,conv.id,0,conv.Itf_re(0),1.0]
+            Itf_re.append(linha)
+            linha=[209,conv.id,0,conv.Itf_im(0),1.0]
+            Itf_im.append(linha)
+            linha=[208,conv.id,1,conv.Itf_re(1),1.0]
+            Itf_re.append(linha)
+            linha=[209,conv.id,1,conv.Itf_im(1),1.0]
+            Itf_im.append(linha)
+        if conv.flag_reactor==True: # en train de faire 
+            linha=[220,conv.id,0,conv.Prc(0),1.0]
+            Prc.append(linha)
+            linha=[230,conv.id,0,conv.Qrc(0),1.0]
+            Qrc.append(linha)
+            linha=[220,conv.id,1,conv.Prc(1),1.0]
+            Prc.append(linha)
+            linha=[230,conv.id,1,conv.Qrc(1),1.0]
+            Qrc.append(linha)
+
+            linha=[280,conv.id,0,conv.Irc_re(0),1.0]
+            Irc_re.append(linha)
+            linha=[290,conv.id,0,conv.Irc_im(0),1.0]
+            Irc_im.append(linha)
+            linha=[280,conv.id,1,conv.Irc_re(1),1.0]
+            Irc_re.append(linha)
+            linha=[290,conv.id,1,conv.Irc_im(1),1.0]
+            Irc_im.append(linha)
+        if 2 in conv.d_inter_nodes.keys():
+            linha=[244,conv.id,-1,conv.d_inter_nodes[2].V/graph_dc[conv.i_busdc].Vdc,1.0]
+            M.append(linha) # M = Vac/Vdc, Vac is the voltage in the AC bus and Vdc is the voltage in the DC bus
 
 
-    # #calculates the flows in the branches
-    for key,r in bran_dc.items():
-        #calculate from k to m
-        linha=[102,graph_dc[r.fr].bus_dc.id,graph_dc[r.to].bus_dc.id,r.Pfdc(graph_dc,0),1.0]
-        Pkm_dc.append(linha)
-        linha2=[102,graph_dc[r.to].bus_dc.id,graph_dc[r.fr].bus_dc.id,r.Pfdc(graph_dc,1),1.0]
-        Pmk_dc.append(linha2)
-        #calculate from m to k
-        linha=[103,graph_dc[r.fr].bus_dc.id,graph_dc[r.to].bus_dc.id,r.Pfdc(graph_dc,0),1.0]
-        Ikm_dc.append(linha)
-        linha2=[103,graph_dc[r.to].bus_dc.id,graph_dc[r.fr].bus_dc.id,r.Pfdc(graph_dc,1),1.0]
-        Imk_dc.append(linha2)
 
 
-    meas=Pinj_dc+Iinj_dc+Pkm_dc+Pmk_dc+Ikm_dc+Imk_dc+Vmod_dc
+
+
+    meas=Pinj+Qinj+Iinj_re+Iinj_im+Vm_f+Vangl_f+Vm_c+Vangl_c+Ptf+Qtf+Itf_re+Itf_im+Prc+Qrc+Irc_re+Irc_im +M
 
 
     
     dfDMEAS=pd.DataFrame(meas,columns=["type","from","to","zmeas","prec"])
     if flag_save_csv:
-        dfDMEAS.to_csv(sys+"/DMEASdc_fp.csv",index=False,float_format="%.7f",header=True)
+        dfDMEAS.to_csv(sys+"/DMEASconv_fp.csv",index=False,float_format="%.7f",header=True)
     return dfDMEAS
 
 def save_DBUS(graph):
@@ -521,3 +601,15 @@ def print_converter_internal_node_voltages(conv_acdc):
         for k, node in getattr(conv, 'd_inter_nodes', {}).items():
             if k != 0:
                 print(f"  {conv_id}, {k}, {getattr(node, 'V', 'N/A')},{getattr(node, 'theta', 'N/A')}")
+
+
+
+
+def save_DMEAS_acdc(graph, bran, sys, graph_dc, bran_dc, convs_acdc, flag_save_csv=False):
+    dfDMEAS = save_DMEAS_ac_pf(graph, bran, sys, flag_save_csv=flag_save_csv)
+    dfDMEAS_dc = save_DMEAS_dc_pf(graph_dc, bran_dc, sys, flag_save_csv=flag_save_csv)
+    dfDMEAsconv = save_DMEAS_conv_pf(convs_acdc, graph, graph_dc, sys, flag_save_csv=flag_save_csv)
+    dfDMEASACDC = pd.concat([dfDMEAS, dfDMEAS_dc, dfDMEAsconv], ignore_index=True)
+    if flag_save_csv:
+        dfDMEASACDC.to_csv(sys + "/DMEASacdc_fp.csv", index=False, float_format="%.7f", header=True)
+    return dfDMEASACDC

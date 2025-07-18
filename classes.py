@@ -174,10 +174,18 @@ class conv_acdc():
         return self.d_inter_bran[0].Pf(self.d_inter_nodes,FlagT)
     def Qtf(self,FlagT):
         return self.d_inter_bran[0].Qf(self.d_inter_nodes,FlagT)
+    def Itf_re(self,FlagT):
+        return self.d_inter_bran[0].Iref(self.d_inter_nodes,FlagT)
+    def Itf_im(self,FlagT):
+        return self.d_inter_bran[0].Iimf(self.d_inter_nodes,FlagT)
     def Prc(self,FlagT):
         return self.d_inter_bran[1].Pf(self.d_inter_nodes,FlagT)
     def Qrc(self,FlagT):
         return self.d_inter_bran[1].Qf(self.d_inter_nodes,FlagT)
+    def Irc_re(self,FlagT):
+        return self.d_inter_bran[1].Iref(self.d_inter_nodes,FlagT)
+    def Irc_im(self,FlagT):
+        return self.d_inter_bran[1].Iimf(self.d_inter_nodes,FlagT)
     def Pvirt(self): #filter bus virtual injection
         return self.d_inter_nodes[1].P(self.d_inter_nodes)
     def Qvirt(self): #filter bus virtual injection
