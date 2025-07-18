@@ -1789,11 +1789,7 @@ def calc_dz(vecZ,graph,dz):
         dz[i]=z.dz(graph)
         i=i+1
 
-def calc_dz_conv(vecZ,conv,dz):
-    i=0
-    for z in vecZ:
-        dz[i]=z.dz_conv(conv)
-        i=i+1
+
 
 def calc_h(vecZ,graph,h):
     i=0

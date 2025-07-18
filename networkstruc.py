@@ -274,7 +274,10 @@ def addACDCconv_ingraph(graph,graphdc,conv_acdc):
         graph[busac].FlagConvACDC=1
         graphdc[busdc].FlagConvACDC=1
         graph[busac].dconv_acdc.update({conv_acdc[i].i:conv_acdc[i]}) #inserts the struct conv in the graph ac
-        graphdc[busdc].dconv_acdc.update({conv_acdc[i].i:conv_acdc[i]})#inserts the struct conv in the graph  dc 
+        graphdc[busdc].dconv_acdc.update({conv_acdc[i].i:conv_acdc[i]})#inserts the struct conv in the graph  dc
+    
+    for conv in conv_acdc:
+        conv.create_internal_network(graph)
 
 
 

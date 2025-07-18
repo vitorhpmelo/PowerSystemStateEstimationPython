@@ -2494,19 +2494,19 @@ class meas():
         elif self.type==4:
             return graph[self.k].V
     
-    def dz_conv(self,conv): 
+    def dz_conv(self,conv_acdc): 
         if self.type==200: #virtual injection in the conv filt bus
-            return self.val - conv[self.k].Pvirt()
+            return self.val - conv_acdc[self.k].Pvirt()
         elif self.type==201: #virtual injection in the conv filt bus
-            return self.val - conv[self.k].Qvirt()
+            return self.val - conv_acdc[self.k].Qvirt()
         elif self.type==202: # power flow trafo active             
-            return self.val - conv[self.k].Ptf(self.m)
+            return self.val - conv_acdc[self.k].Ptf(self.m)
         elif self.type==203: # power flow trafo reactive
-            return self.val - conv[self.k].Qtf(self.m)
+            return self.val - conv_acdc[self.k].Qtf(self.m)
         elif self.type==220:
-            return self.val - conv[self.k].Prc(self.m)
+            return self.val - conv_acdc[self.k].Prc(self.m)
         elif self.type==230:
-            return self.val - conv[self.k].Qrc(self.m)
+            return self.val - conv_acdc[self.k].Qrc(self.m)
         
     
     

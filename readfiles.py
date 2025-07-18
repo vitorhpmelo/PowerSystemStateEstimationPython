@@ -369,3 +369,37 @@ def save_DBUS(graph):
     dfDBUS.to_csv("DBUS.csv",header=None,index=None,float_format="%.7f")
 
 
+def print_converter_info(conv_acdc):
+    for conv in conv_acdc:
+        print(f"Converter {getattr(conv, 'i', 'N/A')}:")
+        print(f"  Pgrid: {getattr(conv, 'Pgrid', 'N/A')}")
+        print(f"  Qgrid: {getattr(conv, 'Qgrid', 'N/A')}")
+        print(f"  Pconv_ac: {getattr(conv, 'Pconv_ac', 'N/A')}")
+        print(f"  Qconv_ac: {getattr(conv, 'Qconv_ac', 'N/A')}")
+        print(f"  Ploss: {getattr(conv, 'Ploss', 'N/A')}")
+        print(f"  Pdc: {getattr(conv, 'Pdc', 'N/A')}")
+        print(f"  Iconv: {getattr(conv, 'Iconv', 'N/A')}")
+        print("  Internal Nodes:")
+        for k, node in getattr(conv, 'd_inter_nodes', {}).items():
+            print(f"    Node {k}: V={getattr(node, 'V', 'N/A')}, theta={getattr(node, 'theta', 'N/A')}")
+        print("-" * 40)
+def print_ac_bus_voltages(graph):
+    print("AC Bus Voltages:")
+    for node in graph:
+        V = getattr(node, 'V', None)
+        theta = getattr(node, 'theta', None)
+        print(f"  {node.bus.id}, {V},{theta}")
+
+def print_dc_bus_voltages(graph_dc):
+    print("\nDC Bus Voltages:")
+    for node in graph_dc:
+        Vdc = getattr(node, 'Vdc', None)
+        print(f" {node.bus_dc.id}, {Vdc}")
+
+def print_converter_internal_node_voltages(conv_acdc):
+    print("Converter Internal Node Voltages:")
+    for conv in conv_acdc:
+        conv_id = getattr(conv, 'i', 'N/A')
+        for k, node in getattr(conv, 'd_inter_nodes', {}).items():
+            if k != 0:
+                print(f"  {conv_id}, {k}, {getattr(node, 'V', 'N/A')},{getattr(node, 'theta', 'N/A')}")
