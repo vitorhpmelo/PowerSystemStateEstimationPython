@@ -263,7 +263,7 @@ def addUPFCingraph(graph,ramUPFC):
 
 
 
-def addACDCconv_ingraph(graph,graphdc,conv_acdc):
+def add_conv_acdc_ingraph(graph,graphdc,conv_acdc):
 
     if not conv_acdc:
         return

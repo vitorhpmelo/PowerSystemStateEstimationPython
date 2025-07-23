@@ -48,6 +48,10 @@ class conv_acdc():
         self.id_busdc=-1 #external name bus dc grid connected to the converter
         self.i_busac=-1 # internal (graph) bus ac grid connected to the converter
         self.i_busdc=-1 # internal (graph) bus dc grid connected to the converter
+        self.i_busconv=-1
+        self.i_busfilter=-1
+        self.key_tf=""
+        self.key_rc=""
         self.type_ac=1 # type of the ac bus (defines the controll of the VSC ) 
         self.type_dc=1 # type of the dc bus which is connected to
         self.P_grid=0 # set point of the active powers injected in the grid
@@ -141,8 +145,8 @@ class conv_acdc():
             rc.cykm()#calculates the ykm
             rc.twoPortCircuit()#creates the two port circuit
             self.d_inter_bran.update({1:rc})
-            node_filt.adjm.update({"0":tr})
-            node_filt.adjk.update({"1":rc})
+            node_filt.adjm.update({0:tr})
+            node_filt.adjk.update({1:rc})
 
         elif (self.flag_trans==1) :
 
