@@ -396,9 +396,11 @@ def create_graph_dc(bus_dc,bran_dc):
         k=item.fr
         m=item.to
         graph_dc[k].adjk.update({key:item})
+        graph_dc[k].adj.update({key:item})  # This line is added to maintain consistency with the AC graph
         graph_dc[k].ladjk.append(m)
         graph_dc[m].adjm.update({key:item})
         graph_dc[m].ladjm.append(k)
+        graph_dc[m].adj.update({key:item})
 
-    
+
     return graph_dc

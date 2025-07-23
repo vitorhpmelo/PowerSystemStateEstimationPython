@@ -30,14 +30,25 @@ def create_z_x_pf_dc(graph_dc):
     return zP,var_v
 
 
-def Vinici_lf_dc(graph_dc,useDBUS_DC=1):
-    '''
-    Function to initate the voltages (state variables) for the load flow, 
-    PQ buses recive 1 for the voltage module and 0 for the angle,
-    PV recive the V from the DBUS for the module
-    slack initate with the voltage from the DB 
-    @param: graph list of instances of the node class with all the information about the network
-    '''
+def Vinici_pf_dc(graph_dc,useDBUS_DC=1):
+    """
+    Initializes the DC bus voltages (state variables) for the power flow calculation.
+
+    For each node in the DC network:
+        - If useDBUS_DC == 1: Initializes node.Vdc with the value from the database (node.bus_dc.Vdc).
+        - If useDBUS_DC == 0: Initializes node.Vdc with a flat start (value 1).
+        - If useDBUS_DC == 2: Does not modify node.Vdc (pass) useful for the iteractive power flow.
+
+    Args:
+        graph_dc (iterable): List of node objects representing the DC network.
+        useDBUS_DC (int, optional): Initialization method for voltages.
+            1 = use values from database,
+            0 = flat start (all voltages set to 1),
+            2 = do not modify voltages.
+
+    Returns:
+        None. The function updates node.Vdc in-place.
+    """
 
     if useDBUS_DC==1:
         for node in graph_dc:
@@ -47,6 +58,44 @@ def Vinici_lf_dc(graph_dc,useDBUS_DC=1):
             node.Vdc=1
     elif useDBUS_DC==2:
         pass
+
+
+def Vinici_se_dc(graph_dc,useDBUS_DC=1):
+    """
+    Initializes the DC bus voltages (state variables) for the state estimation process in a DC network.
+    This function sets the initial values of the `Vdc` attribute for each node in the provided DC network graph, according to the specified initialization method. The initialization method is controlled by the `useDBUS_DC` parameter, which allows for different strategies:
+        - 1: Use voltage values from the associated database (`bus_dc.Vdc`) for each node.
+        - 0: Perform a flat start by setting all node voltages to 1 (per unit).
+        - 2: Do not modify the existing voltages (leave as is).
+        - 3: For nodes where `bus_dc.type == 0`, use the database value; otherwise, set voltage to 1.
+        graph_dc (iterable): Iterable of node objects representing the DC network. Each node is expected to have a `Vdc` attribute and a `bus_dc` attribute with `Vdc` and `type` fields.
+            2 = do not modify voltages,
+            3 = use database value for nodes with `bus_dc.type == 0`, otherwise set to 1.
+            Default is 1.
+        None. The function updates each node's `Vdc` attribute in-place.
+    Raises:
+        ValueError: If `useDBUS_DC` is not one of the allowed values (0, 1, 2, or 3).
+    Notes:
+        This function is typically used as part of the initialization phase in DC state estimation algorithms, ensuring that the voltage state variables are set according to the desired starting condition.
+    """
+
+    if useDBUS_DC==1:
+        for node in graph_dc:
+            node.Vdc=node.bus_dc.Vdc
+    elif useDBUS_DC==0:
+        for node in graph_dc:
+            node.Vdc=1
+    elif useDBUS_DC==2:
+        pass
+    elif useDBUS_DC==3:
+        for node in graph_dc:
+            if node.bus_dc.type==0:
+                node.Vdc=node.bus_dc.Vdc
+            else:
+                node.Vdc=1
+    else:
+        raise ValueError("useDBUS_DC must be 0, 1, 2 or 3")
+
 
 
                 
@@ -67,7 +116,7 @@ def power_flow_dc(graph_dc,prt=1,tol=1e-12,inici=1,itmax=20,printgrad=1,printres
     [z,var_v]=create_z_x_pf_dc(graph_dc)#create z and var_v and var_t for the traditional load flow
 
 
-    Vinici_lf_dc(graph_dc,useDBUS_DC=inici)
+    Vinici_pf_dc(graph_dc,useDBUS_DC=inici)
 
     dz=np.zeros(len(z))
     H=np.zeros((len(z),len(var_v)))
@@ -91,9 +140,9 @@ def power_flow_dc(graph_dc,prt=1,tol=1e-12,inici=1,itmax=20,printgrad=1,printres
         A=sparse.csc_matrix(H, dtype=float)
     
         dx=sliang.spsolve(A,dz)
-    
-        new_X_dc(graph_dc,var_v,dx)
-    
+
+        new_X_dc_pf(graph_dc,var_v,dx)
+
         maxdx=np.max(np.abs(dx))
         maxdz=np.max(np.abs(dz))
     
@@ -121,6 +170,12 @@ def power_flow_dc(graph_dc,prt=1,tol=1e-12,inici=1,itmax=20,printgrad=1,printres
 
 
 
+def calc_dz_dc(vecZ,graph,dz,range_i=None):
+    if range_i is None:
+        range_i = range(len(vecZ))
+    for i in range_i:
+        dz[i]=vecZ[i].dz(graph)
+
 
 
 def calc_H_pf_dc(z,var_v,gr_dc,H):
@@ -132,19 +187,57 @@ def calc_H_pf_dc(z,var_v,gr_dc,H):
             #-------------------ramos fr branchs DC----------------------------------------#
             for key,bran_dc in gr_dc[item.k].adjk.items():# o branch entra com k-m e barra k é a variável
                 if  gr_dc[item.k].bus_dc.type!=0:
-                    soma1=soma1+bran_dc.dPfdVdc(gr_dc,0,item.k) # cacula dPkm/dtk
+                    soma1=soma1+bran_dc.dPfdc_dVdc(gr_dc,0,item.k) # cacula dPkm/dtk
                 if  bran_dc.to in var_v.keys():
-                    H[i][var_v[bran_dc.to]]=bran_dc.dPfdVdc(gr_dc,0,bran_dc.to) #caclula dPkm/dtm to theta m na jacobiana
+                    H[i][var_v[bran_dc.to]]=bran_dc.dPfdc_dVdc(gr_dc,0,bran_dc.to) #caclula dPkm/dtm to theta m na jacobiana
             for key,bran_dc in gr_dc[item.k].adjm.items(): # o branch entra com k-m e barra m é a variável
                 if  gr_dc[item.k].bus_dc.type!=0:
-                    soma1=soma1+bran_dc.dPfdVdc(gr_dc,1,item.k)  # calcula dpmk/dm
+                    soma1=soma1+bran_dc.dPfdc_dVdc(gr_dc,1,item.k)  # calcula dpmk/dm
                 if  bran_dc.fr in var_v.keys():
-                    H[i][var_v[bran_dc.fr]]=bran_dc.dPfdVdc(gr_dc,1,bran_dc.fr) #faz calcula dPmk/dk
+                    H[i][var_v[bran_dc.fr]]=bran_dc.dPfdc_dVdc(gr_dc,1,bran_dc.fr) #faz calcula dPmk/dk
             if  gr_dc[item.k].bus_dc.type!=0:
                 H[i][var_v[item.k]]=soma1
         i=i+1
 
-        
+
+
+def calc_H_se_dc(z,var_v,gr_dc,H,offset=0):
+    i=offset
+    n_v=len(var_v)
+    for item in z:
+        soma1=0
+        if item.type==100:
+            #------------------- fr branchs DC----------------------------------------#
+            for key,bran_dc in gr_dc[item.k].adjk.items():# o branch entra com k-m e barra k é a variável
+                soma1=soma1+bran_dc.dPfdc_dVdc(gr_dc,0,item.k) # cacula dPkm/dtk
+                if  bran_dc.to in var_v.keys():
+                    H[i][var_v[bran_dc.to]]=bran_dc.dPfdc_dVdc(gr_dc,0,bran_dc.to) #caclula dPkm/dtm to theta m na jacobiana
+            for key,bran_dc in gr_dc[item.k].adjm.items(): # o branch entra com k-m e barra m é a variável
+                soma1=soma1+bran_dc.dPfdc_dVdc(gr_dc,1,item.k)  # calcula dpmk/dm
+                if  bran_dc.fr in var_v.keys():
+                    H[i][var_v[bran_dc.fr]]=bran_dc.dPfdc_dVdc(gr_dc,1,bran_dc.fr) #faz calcula dPmk/dk
+            H[i][var_v[item.k]]=soma1
+        elif item.type==101:
+            #------------------- fr branchs DC----------------------------------------#
+            for key,bran_dc in gr_dc[item.k].adjk.items():
+                soma1=soma1+bran_dc.dIfdc_dVdc(gr_dc,0,item.k) # cacula dIfkm/dtk
+                if  bran_dc.to in var_v.keys():
+                    H[i][var_v[bran_dc.to]]=bran_dc.dIfdc_dVdc(gr_dc,0,bran_dc.to)
+            for key,bran_dc in gr_dc[item.k].adjm.items():
+                soma1=soma1+bran_dc.dIfdc_dVdc(gr_dc,1,item.k)
+                if  bran_dc.fr in var_v.keys():
+                    H[i][var_v[bran_dc.fr]]=bran_dc.dIfdc_dVdc(gr_dc,1,bran_dc.fr)
+            H[i][var_v[item.k]]=soma1
+        elif item.type==102:
+            H[i][var_v[item.k]]=gr_dc[item.k].adj[item.br_id].dPfdc_dVdc(gr_dc,item.direction,item.k) 
+            H[i][var_v[item.m]]=gr_dc[item.k].adj[item.br_id].dPfdc_dVdc(gr_dc,item.direction,item.m)
+        elif item.type==103:
+            H[i][var_v[item.k]]=gr_dc[item.k].adj[item.br_id].dIfdc_dVdc(gr_dc,item.direction,item.k)
+            H[i][var_v[item.m]]=gr_dc[item.k].adj[item.br_id].dIfdc_dVdc(gr_dc,item.direction,item.m)
+        elif item.type==104:
+            H[i][var_v[item.k]]=1 #dVdc/dVdc
+        i=i+1
+
 
 
 def ini_Pgridslack(graph_dc,conv_acdc):
@@ -670,3 +763,57 @@ def power_flow_iterative(graph,graph_dc,conv_acdc,tol=1e-8,prt=1,printconv=1,pri
         it=it+1
         if(prt==1): 
             print("Slack bus iteration dz {:.2e}, it: {:d}".format(np.linalg.norm(dzP),it))
+
+
+
+def new_X_dc_pf(graph_dc,var_v,dx):
+    for key,item in var_v.items():
+        graph_dc[key].Vdc=graph_dc[key].Vdc+dx[item]
+
+def new_X_dc_se(graph,var_v,dx,offset=0):
+    for key,item in var_v.items():
+        graph[key].Vdc=graph[key].Vdc+dx[item+offset]
+
+
+def create_z_x_dc(graph_dc, dfDMEAS, ind_i_dc):
+    """
+    Creates the measurement vector (zdc) and variable index mapping (var_vdc) for the DC network.
+
+    Parameters:
+        graph_dc: List of DC bus objects representing the DC network.
+        dfDMEAS: DataFrame containing measurement data, including types and values.
+        ind_i_dc: Dictionary mapping DC bus IDs to their indices.
+
+    Returns:
+        zdc: List of DC measurement objects (meas_dc) constructed from dfDMEAS.
+        var_vdc: Dictionary mapping DC bus IDs to their index in the state vector.
+    """
+    zdc = []
+    var_vdc = {}
+    i = 0
+
+    for item in graph_dc:
+        var_vdc[item.id] = i
+        i += 1
+
+    for idx, row in dfDMEAS[(dfDMEAS["type"] > 99) & (dfDMEAS["type"] < 200)].iterrows():  # 100 - 199 are DC measurements
+        if int(row["type"]) in [100, 101, 104]:
+            mes = meas_dc(ind_i_dc[int(row["from"])], -1, int(row["type"]), row["zmeas"], row["prec"])
+        else:
+            k=ind_i_dc[int(row["from"])]
+            m=ind_i_dc[int(row["to"])]
+            dire=1
+            for (key,item) in graph_dc[k].adjk.items():
+                if item.to == m:
+                    dire=0
+                    br_id=key
+                    break
+            if dire==1:
+                for (key,item) in graph_dc[k].adjm.items():
+                    if item.fr == m:
+                        br_id=key
+                        break     
+            mes = meas_dc(k, m, int(row["type"]), row["zmeas"], row["prec"],br_id=br_id, dire=dire)
+
+        zdc.append(mes)
+    return zdc, var_vdc

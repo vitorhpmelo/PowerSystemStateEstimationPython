@@ -603,12 +603,82 @@ def print_converter_internal_node_voltages(conv_acdc):
                 print(f"  {conv_id}, {k}, {getattr(node, 'V', 'N/A')},{getattr(node, 'theta', 'N/A')}")
 
 
+def include_conv_in_injectioncac(graph, convs_acdc, dfDMEAS):
+    """
+    Updates the measurement DataFrame (`dfDMEAS`) by including the active (P) and reactive (Q) power injections
+    from AC/DC converters (with either transformer or reactor) into the corresponding bus measurements.
+    For each converter in `convs_acdc`, the function:
+      - Checks if the converter is connected via a transformer or reactor.
+      - Retrieves the power injections (P and Q) from the converter at time 0.
+      - Identifies the corresponding bus in the `graph` and finds the matching measurement rows in `dfDMEAS`.
+      - Adds the converter's P and Q injections to the "zmeas" column for the appropriate bus and measurement type.
+      - Prints a warning if the converter's bus is not found in the measurement DataFrame or if the converter is not supported.
+    Args:
+        graph (list): List or mapping of bus objects, where each element provides access to a bus via `.bus.id`.
+        convs_acdc (list): List of converter objects, each with attributes indicating connection type and methods to get P/Q injections.
+        dfDMEAS (pandas.DataFrame): DataFrame containing measurement data with columns "type", "from", and "zmeas".
+    Returns:
+        None: The function modifies `dfDMEAS` in place.
+    """
+
+    for conv in convs_acdc:
+        if conv.flag_trans == 1:
+            Pgrid=conv.Ptf(0)
+            Qgrid=conv.Qtf(0)
+            bus_id = graph[conv.i_busac].bus.id
+            maskP=(dfDMEAS["type"]==0) & (dfDMEAS["from"]==bus_id) 
+            maskQ=(dfDMEAS["type"]==1) & (dfDMEAS["from"]==bus_id) 
+            if not dfDMEAS[maskP].empty:
+                dfDMEAS.loc[maskP, "zmeas"] += Pgrid
+            else:
+                print("Converter not in a bus")
+            if not dfDMEAS[maskQ].empty:
+                dfDMEAS.loc[maskQ, "zmeas"] += Qgrid
+            else:
+                print("Converter not in a bus")
+        elif conv.flag_reactor == 1:
+            Pgrid=conv.Prc(0)
+            Qgrid=conv.Qrc(0)
+            bus_id = graph[conv.i_busac].bus.id
+            maskP=(dfDMEAS["type"]==0) & (dfDMEAS["from"]==bus_id) 
+            maskQ=(dfDMEAS["type"]==1) & (dfDMEAS["from"]==bus_id) 
+            if not dfDMEAS[maskP].empty:
+                dfDMEAS.loc[maskP, "zmeas"] += Pgrid
+            else:
+                print("Converter not in a bus")
+            if not dfDMEAS[maskQ].empty:
+                dfDMEAS.loc[maskQ, "zmeas"] += Qgrid
+            else:
+                print("Converter not in a bus")
+        else:
+            print("Converter without a transformer or reactor, not supported yet") # TODO: converter without a transformer or reactor, not supported yet
 
 
-def save_DMEAS_acdc(graph, bran, sys, graph_dc, bran_dc, convs_acdc, flag_save_csv=False):
+def save_DMEAS_acdc(graph, bran, graph_dc, bran_dc, convs_acdc, sys, flag_save_csv=False):
+    """
+    Combines AC, DC, and converter measurement data into a single DataFrame for a hybrid AC/DC power system.
+    This function collects measurement data from AC and DC networks, as well as from AC/DC converters,
+    updates the AC measurements with converter injections, and concatenates all measurements into a single DataFrame.
+    Optionally, the resulting DataFrame can be saved as a CSV file.
+    Args:
+        graph: The AC network graph object containing bus and branch data.
+        bran: The AC branch data structure.
+        graph_dc: The DC network graph object containing bus and branch data.
+        bran_dc: The DC branch data structure.
+        convs_acdc: The AC/DC converter data structure.
+        sys (str): The system directory or identifier used for saving files.
+        flag_save_csv (bool, optional): If True, saves the resulting DataFrame as a CSV file. Defaults to False.
+    Returns:
+        pandas.DataFrame: A DataFrame containing all AC, DC, and converter measurement data for the system.
+    """
+    
+    
     dfDMEAS = save_DMEAS_ac_pf(graph, bran, sys, flag_save_csv=flag_save_csv)
     dfDMEAS_dc = save_DMEAS_dc_pf(graph_dc, bran_dc, sys, flag_save_csv=flag_save_csv)
     dfDMEAsconv = save_DMEAS_conv_pf(convs_acdc, graph, graph_dc, sys, flag_save_csv=flag_save_csv)
+    include_conv_in_injectioncac(graph, convs_acdc, dfDMEAS)  # Update the measurements with converter injections
+    #include converter in the buses injections
+
     dfDMEASACDC = pd.concat([dfDMEAS, dfDMEAS_dc, dfDMEAsconv], ignore_index=True)
     if flag_save_csv:
         dfDMEASACDC.to_csv(sys + "/DMEASacdc_fp.csv", index=False, float_format="%.7f", header=True)

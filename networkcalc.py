@@ -1,3 +1,4 @@
+from matplotlib.pyplot import flag
 from classes import *
 from SE import *
 import numpy as np
@@ -246,9 +247,9 @@ def Vinici_DBUS(graph):
 
 def FACTSini(graph,useDFACTS=1):
     """
-    Function to initialize FACTS devices
+    Function to initialize FACTS devices #TODO describe this function arguments
     """
-    if useDFACTS==0:
+    if useDFACTS==0: 
         for no in graph:
             if no.FlagTCSC==1:
                 for  key in no.bFACTS_adjk.keys():
@@ -1821,9 +1822,6 @@ def new_X(graph,var_t,var_v,dx):
     for key,item in var_v.items():
         graph[key].V=graph[key].V+dx[item+n_theta]
 
-def new_X_dc(graph_dc,var_v,dx):
-    for key,item in var_v.items():
-        graph_dc[key].Vdc=graph_dc[key].Vdc+dx[item]
 
 
 
@@ -2249,11 +2247,37 @@ def create_z_c_x_LGI(graph,dfDMEAS,ind_i):
 
     return z,c,var_t,var_v
 
-def create_W(z,prec_virtual=1e-5,flag_ones=0):
+def create_W(z,mode=0,prec_virtual=1e-5,scale_virt=0.1): #TODO! modify all functions that use this function to include the new parameters
+    """
+    Constructs a weight matrix W for a given list of measurements or values for the WLS estimator.
+    The function generates a square matrix W whose diagonal elements are determined based on the properties
+    of the input list `z`, which may contain measurement objects (assumed to have `val`, `sigma`, and `type` attributes)
+    or other values. 
+    Parameters
+    ----------
+    z : list
+        List of measurement objects or values. Measurement objects are expected to have attributes `val`, `sigma`, and optionally `type`.
+    prec_virtual : float, optional
+        A small positive value used as a fallback for precision when measurement uncertainty is too small or not available. Default is 1e-5.
+    scale_virt : float, optional
+        A scaling factor for virtual measurements. Default is 0.1 when using mode 2.
+    mode : int, optional
+        Determines the weighting strategy:
+            - 0: Standard weighting based on measurement uncertainty, if the calculated standard deviation is below `prec_virtual`, it uses `prec_virtual` instead
+            - 1: Returns an identity matrix.
+            - 2: Determines the lowest sigma for non-zero measurements and makes the weight for the virtual measurments 1/10 of it
+
+    Returns
+    -------
+    W : numpy.ndarray
+        The constructed weight matrix of shape (len(z), len(z)), with diagonal elements set according to the specified rules.
+"""
+
+
 
 
     
-    if flag_ones==0:
+    if mode==0:
         W=np.zeros((len(z),len(z)))
         i=0
         for item in z:
@@ -2267,13 +2291,13 @@ def create_W(z,prec_virtual=1e-5,flag_ones=0):
                 else:
                     W[i][i]=1/(prec_virtual**2)
             i=i+1
-    elif flag_ones==2:
+    elif mode==2:
         min_sigma=1000
         for item in z:
             if isinstance(item,meas):
-                if (item.sigma<min_sigma) & (np.abs(item.val)>1e6):
+                if (item.sigma<min_sigma) & (np.abs(item.val)>1e-6):
                     min_sigma=item.sigma
-        prec_virtual= 0.1*min_sigma
+        prec_virtual= scale_virt*min_sigma
         W=np.zeros((len(z),len(z)))
         i=0
         for item in z:
@@ -2288,8 +2312,7 @@ def create_W(z,prec_virtual=1e-5,flag_ones=0):
                     W[i][i]=1/(min_sigma**2)
             i=i+1
 
-
-    else:
+    elif mode==1:
         W=np.eye(len(z))
     return W
 

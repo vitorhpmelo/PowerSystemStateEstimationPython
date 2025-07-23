@@ -2361,9 +2361,11 @@ class netinfo():
         self.nv=nv
 
 class meas():
-    def __init__(self,k,m,type,val,prec) -> None:
+    def __init__(self,k,m,type,val,prec,br_id=None,dire=0) -> None:
         self.k=k
         self.m=m
+        self.br_id=br_id
+        self.direction=dire
         self.type=type
         self.val=val
         self.prec=prec
@@ -2516,7 +2518,25 @@ class meas():
         elif self.type==230:
             return self.val - conv_acdc[self.k].Qrc(self.m)
         
-    
+
+class meas_dc(meas):
+    def __init__(self,k,m,type,val,prec,br_id=None,dire=0) -> None:
+        super().__init__(k,m,type,val,prec,br_id=br_id,dire=dire)
+        self.sigma=np.abs(val)*prec/3
+    def dz(self,graph_dc):
+        if self.type==100: # DC power flow injection measurement
+            return self.val-graph_dc[self.k].Pdc(graph_dc)
+        elif self.type==101: # current injection measurement
+            return self.val-graph_dc[self.k].Idc(graph_dc)
+        elif self.type==102: # DC power flow measurement
+            return self.val-graph_dc[self.k].adj[self.br_id].Pfdc(graph_dc,self.direction) #TODO modify this in the AC code
+        elif self.type==103:
+            return self.val-graph_dc[self.k].adj[self.br_id].Ifdc(graph_dc,self.direction) #TODO modify this in the AC code
+        elif self.type==104: # DC voltage measurement
+            return self.val-graph_dc[self.k].Vdc        
+        else:
+            raise ValueError("nonexistent measurement type in DC system")
+        
     
     
 
@@ -2601,19 +2621,29 @@ class branch_dc():
         else:
             k=self.to
             m=self.fr
-        return (graph[k].Vdc-graph[m].Vdc)/self.r
-    def dPfdVdc(self,graph,flag,var):
+        return self.p*(graph[k].Vdc-graph[m].Vdc)/self.r
+    def dPfdc_dVdc(self,graph,flag,var):
         if flag==0:
             k=self.fr
             m=self.to
         else:
             k=self.to
             m=self.fr
-        if k==var: # dPkm/dVdcm
+        if k==var: # dPkm/dVdck
             return self.p*(2*graph[k].Vdc-graph[m].Vdc)/self.r
         else: # dPkm/dVdcm
             return -self.p*graph[k].Vdc/self.r
-
+    def dIfdc_dVdc(self,graph,flag,var):
+        if flag==0:
+            k=self.fr
+            m=self.to
+        else:
+            k=self.to
+            m=self.fr
+        if k==var: # dIfkm/dVdck
+            return self.p*1/self.r
+        else: # dIfkm/dVdcm
+            return -self.p*1/self.r
 
 
 class node_graph_dc():
@@ -2621,6 +2651,7 @@ class node_graph_dc():
         self.Vdc=1
         self.adjk=dict()
         self.adjm=dict()
+        self.adj=dict()
         self.ladjk=[]
         self.ladjm=[]
         self.id=id

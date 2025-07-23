@@ -7,6 +7,7 @@ import scipy.sparse as sparse
 import numpy.linalg as liang
 import time as tm
 from networkcalc import *
+from networkcalc_dc import *
 import copy as copy
 #file with the information of the libary
 
@@ -1580,3 +1581,89 @@ def SE_WLS_FACTS_LM_BC_kTCSC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",
         dfits=[]
 
     return conv,it,dfits
+
+
+def SE_WLS_dc(graph_dc, dfDMEAS, ind_i_dc, itmax=10, tol=1e-6, tol2=1e-6, 
+                            prec_virtual=1e-6, scale_virt=0.1, printcond=0, printmat=0, 
+                            printgrad=True, printres=True,prt=1):
+    """
+    Runs the state estimation for DC networks.
+
+    Parameters:
+        graph_dc: DC network graph.
+        dfDMEAS: DataFrame with measurement data.
+        ind_i_dc: Index mapping for DC buses.
+        itmax: Maximum number of iterations.
+        tol: Tolerance for state update norm.
+        tol2: Tolerance for gradient reduction.
+        prec_virtual: Precision for virtual measurements.
+        scale_virt: Scaling for virtual measurements.
+        printcond: Print condition number flag.
+        printmat: Print matrix flag.
+        printgrad: Print gradient flag.
+        printres: Print result flag.
+        prt: Bypass print.
+
+    Returns:
+        conv: 1 if converged, 0 otherwise.
+        lstdx: List of state update norms per iteration.
+        lstdz: List of gradient reductions per iteration.
+    """
+    if prt==0:
+        printcond = 0
+        printmat = 0
+        printgrad = 0
+        printres = 0
+
+    Vinici_se_dc(graph_dc, useDBUS_DC=1)
+
+    zdc, var_vdc = create_z_x_dc(graph_dc, dfDMEAS, ind_i_dc)
+
+    H_dc = np.zeros((len(zdc), len(var_vdc)), dtype=np.float64)
+    W = create_W(zdc, mode=2, prec_virtual=prec_virtual, scale_virt=scale_virt)
+    dz_dc = np.zeros(len(zdc))
+    it = 0
+
+    lstdx = []
+    lstdz = []
+    conv = 0
+    a = 1.0
+
+    while it < itmax:
+        calc_dz_dc(zdc, graph_dc, dz_dc, range_i=range(len(zdc)))
+        calc_H_se_dc(zdc, var_vdc, graph_dc, H_dc)
+        grad_dc = np.matmul(np.matmul(H_dc.T, W), dz_dc)
+
+        try:
+            dx = NormalEQ_QR(H_dc, W, dz_dc, printcond=printcond, printmat=printmat)
+        except Exception:
+            conv = 0
+            it = itmax
+            print("Error in NormalEQ_QR calculation")
+            break
+
+        new_X_dc_se(graph_dc, var_vdc, dx)
+
+        if it == 0:
+            norminicial = liang.norm(grad_dc)
+
+        it += 1
+        if printgrad:
+            print("{:e},{:e}".format(liang.norm(grad_dc) / norminicial, liang.norm(a * dx)))
+        gradredux = liang.norm(grad_dc) / norminicial
+        maxdx = liang.norm(a * dx)
+        lstdx.append(maxdx)
+        lstdz.append(gradredux)
+        if maxdx > 1e5:
+            conv = 0
+            break
+        if gradredux < tol2 and maxdx < tol:
+            txt = "Conv in {:d} iterations".format(it)
+            if printres:
+                print(liang.norm(grad_dc) / norminicial)
+                print(txt)
+                prt_state_dc(graph_dc)
+            conv = 1
+            break
+
+    return conv, lstdx, lstdz

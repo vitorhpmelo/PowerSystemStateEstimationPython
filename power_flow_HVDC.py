@@ -18,7 +18,11 @@ import scipy.sparse.linalg as sliang
 
 
 
-sys="case5_2grids"
+
+
+
+
+sys="case24_3zones_acdc"
 
 dfDBUS,dfDBRAN,dfDMEAS,dfDFACTS=read_files(sys)
 
@@ -50,11 +54,17 @@ addACDCconv_ingraph(graph,graph_dc,convs_acdc)
 power_flow_iterative(graph,graph_dc,convs_acdc)
 
 #%% printing results
-print_converter_info(convs_acdc)
-print_ac_bus_voltages(graph)
-print_dc_bus_voltages(graph_dc)
-print_converter_internal_node_voltages(convs_acdc)
+# print_converter_info(convs_acdc)
+# print_ac_bus_voltages(graph)
+# print_dc_bus_voltages(graph_dc)
+# print_converter_internal_node_voltages(convs_acdc)
 
 # %%
 
 
+dfDMEAS=save_DMEAS_acdc(graph,bran, graph_dc, bran_dc, convs_acdc, sys)
+# %%
+
+
+
+# %%
