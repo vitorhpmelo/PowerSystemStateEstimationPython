@@ -151,7 +151,15 @@ dfDMEAS=save_DMEAS_acdc(graph,bran, graph_dc, bran_dc, convs_acdc, sys)
 include_conv_nodes_in_graph(graph,ind_i, bran, convs_acdc)
 
 #%%
+# Remove specific measurements from the graph
+# Example: Remove measurements with type == 201 (change as needed)
 
+types_to_remove = [
+206,    
+207]
+mask_remove = dfDMEAS["type"].isin(types_to_remove) 
+mask_remove2 = dfDMEAS["from"].isin([1,2]) 
+dfDMEAS = dfDMEAS[(mask_remove & mask_remove2)].reset_index(drop=True)
 
 prec_virtual=1e-6
 timax=30
@@ -177,17 +185,18 @@ n_teta=len(var_t)
 n_v=len(var_v)
 n_vdc=len(var_vdc)
 dz=np.zeros(len(z_ac)+len(z_conv))
-W=create_W(z_ac+z_conv,mode=2,prec_virtual=prec_virtual) 
+z=z_ac + z_conv
+W=create_W(z,mode=2,prec_virtual=prec_virtual) 
 lstdx=[]
 lstdz=[]
-
+#%%
 it=0
 it2=0
 a=1
 conv=0
-Vinici(graph,flatStart=1,ind_i=ind_i)
-z=z_ac + z_conv
-while(it <5):
+Vinici(graph,flatStart=7,ind_i=ind_i)
+
+while(it <1):
 
     calc_dz(z,graph,dz)
     calc_H_EE(z,var_t,var_v,graph,Hac)

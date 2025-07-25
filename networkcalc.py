@@ -118,6 +118,8 @@ def Vinici(graph,flatStart=0,dfDMEAS=[],ind_i=[]):
         if no.bus.type == 0:
             thetaini=no.bus.theta
             break
+    
+
 
 
     if flatStart==0:
@@ -159,6 +161,11 @@ def Vinici(graph,flatStart=0,dfDMEAS=[],ind_i=[]):
                 graph[k].adjk[key].AttY()
     elif flatStart==6:
         pass
+    elif flatStart==7:
+        for no in graph:
+            no.V=1
+            no.theta=45*np.pi/180
+
     else:
         for no in graph:
             no.V=1
@@ -1573,7 +1580,7 @@ def calc_H_EE(z,var_t,var_v,graph,H):
                 Vk=graph[item.k].V
                 tk=graph[item.k].theta
                 Bsh=graph[item.k].Bs
-                soma1=soma1+Vk*(-Bsh*np.cos(tk))
+                soma1=soma1-Vk*Bsh*np.cos(tk)
             if graph[item.k].FlagSVC==1:
                 Vk=graph[item.k].V
                 tk=graph[item.k].theta
@@ -1646,7 +1653,7 @@ def calc_H_EE(z,var_t,var_v,graph,H):
                 Vk=graph[item.k].V
                 tk=graph[item.k].theta
                 Bsh=graph[item.k].Bs
-                soma1=soma1+Vk*(-Bsh*np.sin(tk))
+                soma1=soma1-Vk*Bsh*np.sin(tk)
             if graph[item.k].FlagSVC==1:
                 Vk=graph[item.k].V
                 tk=graph[item.k].theta
@@ -1682,7 +1689,7 @@ def calc_H_EE(z,var_t,var_v,graph,H):
                 Vk=graph[item.k].V
                 tk=graph[item.k].theta
                 Bsh=graph[item.k].Bs
-                soma2=soma2+Bsh*np.sin(tk) 
+                soma2=soma2+Bsh*np.cos(tk) 
             if graph[item.k].FlagSVC==1:
                 Vk=graph[item.k].V
                 tk=graph[item.k].theta
@@ -2355,7 +2362,7 @@ def create_W(z,mode=0,prec_virtual=1e-5,scale_virt=0.1): #TODO! modify all funct
         for item in z:
             if not isinstance(item,meas):
                 W[i][i]=1/(prec_virtual**2)
-            elif (np.abs(item.val)<1e-6) & ((item.type == 0 )|(item.type == 1)|(item.type == 6 )|(item.type == 7)):
+            elif (np.abs(item.val)<1e-6) & (item.type in [0, 1, 6, 7]):
                 W[i][i]=1/(prec_virtual**2)
             else:
                 if np.abs((item.sigma))>prec_virtual:
