@@ -1465,7 +1465,7 @@ def SE_WLS_FACTS_LM_BC_kTCSC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",
 
     Vinici(graph,flatStart=flatstart,dfDMEAS=dfDMEAS,ind_i=ind_i)
 
-    [z,var_t,var_v]=create_z_x(graph,dfDMEAS,ind_i)
+    Hac=create_z_x(graph,dfDMEAS,ind_i)
     var_tcsc=create_var_TCSC(graph)
     var_svc=create_x_SVC(graph)
     [var_UPFC,c_upfc]=create_c_x_UPFC(graph)

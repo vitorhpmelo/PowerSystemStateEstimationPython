@@ -264,6 +264,13 @@ def addUPFCingraph(graph,ramUPFC):
 
 
 def add_conv_acdc_ingraph(graph,graphdc,conv_acdc):
+    """
+    Adds AC/DC converters to the buses which they are connected in the graph.
+
+    @param graph - list of AC network nodes
+    @param graphdc - list of DC network nodes
+    @param conv_acdc - list of converter AC/DC instances
+    """
 
     if not conv_acdc:
         return

@@ -149,7 +149,7 @@ def prt_state(graph,flag_radians=0):
     """
     if flag_radians==0:
         for no in graph:
-            s="Bus: {:d} | V : {:f} | t : {:f}".format(no.bus.id,no.V,no.theta*180/np.pi)
+            s="Bus: {:s} | V : {:f} | t : {:f}".format(str(no.bus.id),no.V,no.theta*180/np.pi)
             print(s)
     else:
         for no in graph:
@@ -628,6 +628,8 @@ def include_conv_in_injectioncac(graph, convs_acdc, dfDMEAS):
             bus_id = graph[conv.i_busac].bus.id
             maskP=(dfDMEAS["type"]==0) & (dfDMEAS["from"]==bus_id) 
             maskQ=(dfDMEAS["type"]==1) & (dfDMEAS["from"]==bus_id) 
+            maskIre=(dfDMEAS["type"]==6) & (dfDMEAS["from"]==bus_id) 
+            maskIim=(dfDMEAS["type"]==7) & (dfDMEAS["from"]==bus_id) 
             if not dfDMEAS[maskP].empty:
                 dfDMEAS.loc[maskP, "zmeas"] += Pgrid
             else:
@@ -636,18 +638,37 @@ def include_conv_in_injectioncac(graph, convs_acdc, dfDMEAS):
                 dfDMEAS.loc[maskQ, "zmeas"] += Qgrid
             else:
                 print("Converter not in a bus")
+            if not dfDMEAS[maskIre].empty:
+                dfDMEAS.loc[maskIre, "zmeas"] += conv.Itf_re(0)
+            else:
+                print("Converter not in a bus")
+            if not dfDMEAS[maskIim].empty:
+                dfDMEAS.loc[maskIim, "zmeas"] += conv.Itf_im(0)
+            else:
+                print("Converter not in a bus")
+
         elif conv.flag_reactor == 1:
             Pgrid=conv.Prc(0)
             Qgrid=conv.Qrc(0)
             bus_id = graph[conv.i_busac].bus.id
             maskP=(dfDMEAS["type"]==0) & (dfDMEAS["from"]==bus_id) 
             maskQ=(dfDMEAS["type"]==1) & (dfDMEAS["from"]==bus_id) 
+            maskIre=(dfDMEAS["type"]==6) & (dfDMEAS["from"]==bus_id) 
+            maskIim=(dfDMEAS["type"]==7) & (dfDMEAS["from"]==bus_id) 
             if not dfDMEAS[maskP].empty:
                 dfDMEAS.loc[maskP, "zmeas"] += Pgrid
             else:
                 print("Converter not in a bus")
             if not dfDMEAS[maskQ].empty:
                 dfDMEAS.loc[maskQ, "zmeas"] += Qgrid
+            else:
+                print("Converter not in a bus")
+            if not dfDMEAS[maskIre].empty:
+                dfDMEAS.loc[maskIre, "zmeas"] += conv.Irc_re(0)
+            else:
+                print("Converter not in a bus")
+            if not dfDMEAS[maskIim].empty:
+                dfDMEAS.loc[maskIim, "zmeas"] += conv.Irc_im(0)
             else:
                 print("Converter not in a bus")
         else:

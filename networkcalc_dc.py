@@ -775,7 +775,7 @@ def new_X_dc_se(graph,var_v,dx,offset=0):
         graph[key].Vdc=graph[key].Vdc+dx[item+offset]
 
 
-def create_z_x_dc(graph_dc, dfDMEAS, ind_i_dc):
+def create_z_x_dc_se(graph_dc, dfDMEAS, ind_i_dc):
     """
     Creates the measurement vector (zdc) and variable index mapping (var_vdc) for the DC network.
 

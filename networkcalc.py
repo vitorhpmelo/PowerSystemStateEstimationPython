@@ -2211,7 +2211,7 @@ def create_z_x(graph,dfDMEAS,ind_i):
         j=j+1
 
     for idx,row in dfDMEAS.iterrows():
-        if (int(row["type"])==0) or (int(row["type"])==1) or  (int(row["type"])==4) or  (int(row["type"])==5) or  (int(row["type"])==6) or  (int(row["type"])==7)  or (int(row["type"])==11) :
+        if int(row["type"]) in [0, 1, 4, 5, 6, 7, 11]:  # Types that do not require a "to" bus
             mes=meas(ind_i[int(row["from"])],-1,int(row["type"]),row["zmeas"],row["prec"])
         else:  
             mes=meas(ind_i[int(row["from"])],ind_i[int(row["to"])],int(row["type"]),row["zmeas"],row["prec"])
@@ -2219,6 +2219,58 @@ def create_z_x(graph,dfDMEAS,ind_i):
 
     return z,var_t,var_v
 
+
+
+
+def create_z_x_se_ac(graph,dfDMEAS,ind_i):
+    """
+    Creates the measurement vector `z` and the variable index dictionaries `var_t` and `var_v` for AC state estimator.
+    Considering only the AC network measurements (no converter internal measurements or DC network measurements).
+
+    This function processes the provided graph and measurement DataFrame to build:
+    - `z`: a list of measurement objects for state estimation.
+    - `var_t`: a dictionary mapping bus IDs to their corresponding index in the state vector for voltage angles (theta).
+    - `var_v`: a dictionary mapping bus IDs to their corresponding index in the state vector for voltage magnitudes.
+
+    The function handles different measurement types, including those that do not require a "to" bus, and accounts for the presence of PMU angle measurements.
+
+    Args:
+        graph (iterable): Collection of bus objects representing the network topology.
+        dfDMEAS (pandas.DataFrame): DataFrame containing measurement data with columns "type", "from", "to", "zmeas", and "prec".
+        ind_i (dict): Dictionary mapping bus indices to bus objects.
+
+    Returns:
+        tuple: (z, var_t, var_v)
+            z (list): List of measurement objects for state estimation.
+            var_t (dict): Mapping of bus IDs to voltage angle indices.
+            var_v (dict): Mapping of bus IDs to voltage magnitude indices.
+    """
+
+    z=[]
+    var_t={}
+    var_v={}
+    i=0
+    j=0
+    flag_PMU_theta=0
+
+    flag_PMU_theta = (len(dfDMEAS[dfDMEAS["type"]==5])>0)
+
+    for item in graph:
+        if item.bus.type!=0 or flag_PMU_theta==1:
+            var_t[item.id]=i
+            i=i+1
+        var_v[item.id]=j
+        j=j+1
+
+    mask=dfDMEAS["type"]<100
+    for idx,row in dfDMEAS[mask].iterrows():
+        if int(row["type"]) in [0, 1, 4, 5, 6, 7, 11]:  # Types that do not require a "to" bus
+            mes=meas(ind_i[int(row["from"])],-1,int(row["type"]),row["zmeas"],row["prec"])
+        else:  
+            mes=meas(ind_i[int(row["from"])],ind_i[int(row["to"])],int(row["type"]),row["zmeas"],row["prec"])
+        z.append(mes)
+
+    return z,var_t,var_v
 
 
 def create_z_c_x_LGI(graph,dfDMEAS,ind_i):
