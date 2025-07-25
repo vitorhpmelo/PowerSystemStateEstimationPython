@@ -148,99 +148,11 @@ power_flow_iterative(graph,graph_dc,convs_acdc)
 dfDMEAS=save_DMEAS_acdc(graph,bran, graph_dc, bran_dc, convs_acdc, sys)
 # %%
 
-include_conv_nodes_in_graph(graph,ind_i, bran, convs_acdc)
 
-#%%
-# Remove specific measurements from the graph
-# Example: Remove measurements with type == 201 (change as needed)
-
-types_to_remove = [
-206,    
-207]
-mask_remove = dfDMEAS["type"].isin(types_to_remove) 
-mask_remove2 = dfDMEAS["from"].isin([1,2]) 
-dfDMEAS = dfDMEAS[(mask_remove & mask_remove2)].reset_index(drop=True)
-
-prec_virtual=1e-6
-timax=30
-printcond=0
-printmat=0
-printgrad=True
-printres=True
-tol=1e-6
-tol2=1e-6
-
-# ACDC converter internal measurements
-
-[z_ac,var_t,var_v]=create_z_x_se_ac(graph, dfDMEAS, ind_i)
-z_conv = create_z_se_conv(dfDMEAS, convs_acdc, ind_id_conv)
-[z_dc,var_vdc]=create_z_x_dc_se(graph_dc, dfDMEAS, ind_i_dc)
-#create losses constraints
-
-Hac=np.zeros((len(z_ac)+len(z_conv), len(var_t)+len(var_v)))
 
 #%%
 
-n_teta=len(var_t)
-n_v=len(var_v)
-n_vdc=len(var_vdc)
-dz=np.zeros(len(z_ac)+len(z_conv))
-z=z_ac + z_conv
-W=create_W(z,mode=2,prec_virtual=prec_virtual) 
-lstdx=[]
-lstdz=[]
-#%%
-it=0
-it2=0
-a=1
-conv=0
-Vinici(graph,flatStart=7,ind_i=ind_i)
 
-while(it <1):
-
-    calc_dz(z,graph,dz)
-    calc_H_EE(z,var_t,var_v,graph,Hac)
-
-
-    grad=np.matmul(np.matmul(Hac.T,W),dz)
-
-    try: 
-        dx=NormalEQ_QR(Hac,W,dz,printcond=printcond,printmat=printmat)
-    except:
-        conv=0
-        it=30
-        break
-
-    Jxk=np.matmul(np.matmul(dz,W),dz)
-    if it==0:
-        norminicial=liang.norm(grad) if liang.norm(grad) > 1e-10 else 1
-
-
-
-    new_X(graph,var_t,var_v,a*dx)
-    
-
-    it=it+1
-    if printgrad==True:
-        print("{:e},{:e}".format( liang.norm(grad)/norminicial,liang.norm(a*dx)))
-    
-    gradredux=liang.norm(grad)/norminicial
-    maxdx= liang.norm(a*dx)
-    lstdx.append(maxdx)
-    lstdz.append(gradredux)
-    
-    if maxdx>1e5:
-        conv=0
-        it=30
-        break
-    if gradredux <tol2 and maxdx<tol:
-        txt="Conv in {:d} iterations".format(it)
-        if printres==True:
-            print(liang.norm(grad)/norminicial)
-            print(txt)
-            prt_state(graph)
-        conv=1
-        break
 
 
 # %%

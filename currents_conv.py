@@ -55,6 +55,7 @@ tf=45*np.pi/180
 tc=45*np.pi/180
 tg=45*np.pi/180
 
+H= np.zeros((4,12))
 
 dIfre_dVf.subs({V_f:vf,V_c:vc,V_g:vg,t_f:tf,t_c:tc,t_g:tg})
 dIfim_dVf.subs({V_f:vf,V_c:vc,V_g:vg,t_f:tf,t_c:tc,t_g:tg})
@@ -66,6 +67,6 @@ dIfre_dtc.subs({V_f:vf,V_c:vc,V_g:vg,t_f:tf,t_c:tc,t_g:tg})
 dIfim_dtc.subs({V_f:vf,V_c:vc,V_g:vg,t_f:tf,t_c:tc,t_g:tg})
 dIfre_dVg.subs({V_f:vf,V_c:vc,V_g:vg,t_f:tf,t_c:tc,t_g:tg})
 dIfim_dVg.subs({V_f:vf,V_c:vc,V_g:vg,t_f:tf,t_c:tc,t_g:tg})
-dIfre_dtg.subs({V_f:vf,V_c:vc,V_g:vg,t_f:tf,t_c:tc,t_g:tg})
-dIfim_dtg.subs({V_f:vf,V_c:vc,V_g:vg,t_f:tf,t_c:tc,t_g:tg})
+H[0][0]=dIfre_dtg.subs({V_f:vf,V_c:vc,V_g:vg,t_f:tf,t_c:tc,t_g:tg})
+H[0][2]=dIfim_dtg.subs({V_f:vf,V_c:vc,V_g:vg,t_f:tf,t_c:tc,t_g:tg})
 #%%

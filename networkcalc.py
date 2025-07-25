@@ -1831,7 +1831,6 @@ def new_X(graph,var_t,var_v,dx):
 
 
 
-
 def new_X_SVC(graph,offset,var_svc,dx):
     for key,item in var_svc.items():
         graph[key].SVC.BSVC=graph[key].SVC.BSVC+dx[offset+item]

@@ -170,11 +170,11 @@ def power_flow_dc(graph_dc,prt=1,tol=1e-12,inici=1,itmax=20,printgrad=1,printres
 
 
 
-def calc_dz_dc(vecZ,graph,dz,range_i=None):
-    if range_i is None:
-        range_i = range(len(vecZ))
-    for i in range_i:
-        dz[i]=vecZ[i].dz(graph)
+def calc_dz_dc(vecZ,graph,dz,offset=0):
+    i=offset
+    for z in vecZ:
+        dz[i]=z.dz(graph)
+        i=i+1
 
 
 
@@ -201,9 +201,9 @@ def calc_H_pf_dc(z,var_v,gr_dc,H):
 
 
 
-def calc_H_se_dc(z,var_v,gr_dc,H,offset=0):
-    i=offset
-    n_v=len(var_v)
+def calc_H_se_dc(z,var_v,gr_dc,H,offseti=0,offset_j=0):
+    i=offseti
+    j=offset_j
     for item in z:
         soma1=0
         if item.type==100:
@@ -211,31 +211,31 @@ def calc_H_se_dc(z,var_v,gr_dc,H,offset=0):
             for key,bran_dc in gr_dc[item.k].adjk.items():# o branch entra com k-m e barra k é a variável
                 soma1=soma1+bran_dc.dPfdc_dVdc(gr_dc,0,item.k) # cacula dPkm/dtk
                 if  bran_dc.to in var_v.keys():
-                    H[i][var_v[bran_dc.to]]=bran_dc.dPfdc_dVdc(gr_dc,0,bran_dc.to) #caclula dPkm/dtm to theta m na jacobiana
+                    H[i][j+var_v[bran_dc.to]]=bran_dc.dPfdc_dVdc(gr_dc,0,bran_dc.to) #caclula dPkm/dtm to theta m na jacobiana
             for key,bran_dc in gr_dc[item.k].adjm.items(): # o branch entra com k-m e barra m é a variável
                 soma1=soma1+bran_dc.dPfdc_dVdc(gr_dc,1,item.k)  # calcula dpmk/dm
                 if  bran_dc.fr in var_v.keys():
-                    H[i][var_v[bran_dc.fr]]=bran_dc.dPfdc_dVdc(gr_dc,1,bran_dc.fr) #faz calcula dPmk/dk
-            H[i][var_v[item.k]]=soma1
+                    H[i][j+var_v[bran_dc.fr]]=bran_dc.dPfdc_dVdc(gr_dc,1,bran_dc.fr) #faz calcula dPmk/dk
+            H[i][j+var_v[item.k]]=soma1
         elif item.type==101:
             #------------------- fr branchs DC----------------------------------------#
             for key,bran_dc in gr_dc[item.k].adjk.items():
                 soma1=soma1+bran_dc.dIfdc_dVdc(gr_dc,0,item.k) # cacula dIfkm/dtk
                 if  bran_dc.to in var_v.keys():
-                    H[i][var_v[bran_dc.to]]=bran_dc.dIfdc_dVdc(gr_dc,0,bran_dc.to)
+                    H[i][j+var_v[bran_dc.to]]=bran_dc.dIfdc_dVdc(gr_dc,0,bran_dc.to)
             for key,bran_dc in gr_dc[item.k].adjm.items():
                 soma1=soma1+bran_dc.dIfdc_dVdc(gr_dc,1,item.k)
                 if  bran_dc.fr in var_v.keys():
-                    H[i][var_v[bran_dc.fr]]=bran_dc.dIfdc_dVdc(gr_dc,1,bran_dc.fr)
-            H[i][var_v[item.k]]=soma1
+                    H[i][j+var_v[bran_dc.fr]]=bran_dc.dIfdc_dVdc(gr_dc,1,bran_dc.fr)
+            H[i][j+var_v[item.k]]=soma1
         elif item.type==102:
-            H[i][var_v[item.k]]=gr_dc[item.k].adj[item.br_id].dPfdc_dVdc(gr_dc,item.direction,item.k) 
-            H[i][var_v[item.m]]=gr_dc[item.k].adj[item.br_id].dPfdc_dVdc(gr_dc,item.direction,item.m)
+            H[i][j+var_v[item.k]]=gr_dc[item.k].adj[item.br_id].dPfdc_dVdc(gr_dc,item.direction,item.k) 
+            H[i][j+var_v[item.m]]=gr_dc[item.k].adj[item.br_id].dPfdc_dVdc(gr_dc,item.direction,item.m)
         elif item.type==103:
-            H[i][var_v[item.k]]=gr_dc[item.k].adj[item.br_id].dIfdc_dVdc(gr_dc,item.direction,item.k)
-            H[i][var_v[item.m]]=gr_dc[item.k].adj[item.br_id].dIfdc_dVdc(gr_dc,item.direction,item.m)
+            H[i][j+var_v[item.k]]=gr_dc[item.k].adj[item.br_id].dIfdc_dVdc(gr_dc,item.direction,item.k)
+            H[i][j+var_v[item.m]]=gr_dc[item.k].adj[item.br_id].dIfdc_dVdc(gr_dc,item.direction,item.m)
         elif item.type==104:
-            H[i][var_v[item.k]]=1 #dVdc/dVdc
+            H[i][j+var_v[item.k]]=1 #dVdc/dVdc
         i=i+1
 
 
@@ -766,13 +766,13 @@ def power_flow_iterative(graph,graph_dc,conv_acdc,tol=1e-8,prt=1,printconv=1,pri
 
 
 
-def new_X_dc_pf(graph_dc,var_v,dx):
+def new_X_dc_pf(graph_dc,var_v,dx,offset=0):
     for key,item in var_v.items():
-        graph_dc[key].Vdc=graph_dc[key].Vdc+dx[item]
+        graph_dc[key].Vdc=graph_dc[key].Vdc+dx[item+offset]
 
-def new_X_dc_se(graph,var_v,dx,offset=0):
+def new_X_dc_se(graph_dc,var_v,dx,offset=0):
     for key,item in var_v.items():
-        graph[key].Vdc=graph[key].Vdc+dx[item+offset]
+        graph_dc[key].Vdc=graph_dc[key].Vdc+dx[item+offset]
 
 
 def create_z_x_dc_se(graph_dc, dfDMEAS, ind_i_dc):
