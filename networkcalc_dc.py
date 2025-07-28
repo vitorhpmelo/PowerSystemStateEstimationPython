@@ -239,6 +239,144 @@ def calc_H_se_dc(z,var_v,gr_dc,H,offseti=0,offset_j=0):
         elif item.type==104:
             H[i][j+var_v[item.k]]=1 #dVdc/dVdc
         i=i+1
+    return i
+
+
+def calc_C_se_dc(z,var_v,gr_dc,convs_acdc,H,offseti=0,offset_j=0):
+    i=offseti
+    j=offset_j
+    
+    for item in z:
+        bus_dc=convs_acdc[item.k].i_busdc
+        soma1=0
+        if item.type==299:
+            #------------------- fr branchs DC----------------------------------------#
+            for key,bran_dc in gr_dc[bus_dc].adjk.items():# o branch entra com k-m e barra k é a variável
+                soma1=soma1+bran_dc.dPfdc_dVdc(gr_dc,0,bus_dc) # cacula dPkm/dtk
+                if  bran_dc.to in var_v.keys():
+                    H[i][j+var_v[bran_dc.to]]=bran_dc.dPfdc_dVdc(gr_dc,0,bran_dc.to) #caclula dPkm/dtm to theta m na jacobiana
+            for key,bran_dc in gr_dc[bus_dc].adjm.items(): # o branch entra com k-m e barra m é a variável
+                soma1=soma1+bran_dc.dPfdc_dVdc(gr_dc,1,bus_dc)  # calcula dpmk/dm
+                if  bran_dc.fr in var_v.keys():
+                    H[i][j+var_v[bran_dc.fr]]=bran_dc.dPfdc_dVdc(gr_dc,1,bran_dc.fr) #faz calcula dPmk/dk
+            H[i][j+var_v[bus_dc]]=soma1
+        i=i+1
+    return i
+
+
+def calc_C_se_ac(z,var_t,var_v,convs_acdc,graph,H,offset=0):
+    i=offset
+    n_theta=len(var_t)
+    bus_v=var_v.keys()
+    bus_t=var_t.keys()
+    
+    for item in z:
+        soma1=0
+        soma2=0
+        bus_ac=convs_acdc[item.k].i_busconv
+        if item.type==299:
+             #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[bus_ac].adjk.items():#calcula as derivadas relativa as barras de e a do próprio angulo
+                if  bus_ac in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dPfdt(graph,0,bus_ac) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.to in bus_t:
+                    H[i][var_t[branch.to]]=branch.dPfdt(graph,0,branch.to)  # calcula a derivada daquela barra em relação a seguinte
+            for key,branch in graph[bus_ac].adjm.items(): #calcula as derivadas em relação aos fluxo em relação aos nos que aquela barra é to
+                if  bus_ac in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dPfdt(graph,1,bus_ac) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.fr in bus_t:#checa se o angulo daquela barra é variável
+                    H[i][var_t[branch.fr]]=branch.dPfdt(graph,1,branch.fr) 
+            if  bus_ac in bus_t:
+                H[i][var_t[bus_ac]]=soma1
+            soma1=0
+            #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[bus_ac].adjk.items(): ##derivadas modulo de tensão
+                if bus_ac in bus_v:
+                    soma2=soma2+branch.dPfdV(graph,0,bus_ac)
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.to]+n_theta]=branch.dPfdV(graph,0,branch.to)
+            for key,branch in graph[bus_ac].adjm.items():
+                if bus_ac in bus_v:
+                    soma2=soma2+branch.dPfdV(graph,1,bus_ac) 
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.fr]+n_theta]=branch.dPfdV(graph,1,branch.fr)
+            if bus_ac in bus_v:
+                if graph[item.k].FlagBS==1:
+                    soma2=soma2-2*graph[item.k].Bs*graph[item.k].V 
+                H[i][var_v[bus_ac]+n_theta]=soma2
+            soma2=0
+        
+        i=i+1
+    return i
+
+
+
+def calc_C_se_loss(z,var_t,var_v,convs_acdc,graph,H,offset=0):
+    i=offset
+    n_theta=len(var_t)
+    bus_v=var_v.keys()
+    bus_t=var_t.keys()
+    
+    for item in z:
+        sumt_re=0
+        sumt_im=0
+        sumv_im=0
+        sumv_re=0
+        [Ire,Im]=convs_acdc[item.k].Iconv_se(graph)
+        if (np.abs(Ire)<1e-9 and np.abs(Ire)<1e-9):
+            continue
+
+        bus_ac=convs_acdc[item.k].i_busconv
+        a=convs_acdc[item.k].a
+        b=convs_acdc[item.k].b
+        c=convs_acdc[item.k].c
+        Iconv=np.sqrt((Ire**2)+(Im**2)) 
+
+        if item.type==299: #derivadas Iinj_re
+            for key,branch in graph[bus_ac].adjk.items():#calcula as derivadas relativa as barras de e a do próprio angulo
+                if  bus_ac in bus_t: #checa se o angulo daquela barra é variável
+                    sumt_re=sumt_re+branch.dIrefdt(graph,0,bus_ac) #soma a derivada de cada fluxo incidente a barra de
+                    sumt_im=sumt_im+branch.dIimfdt(graph,0,bus_ac)
+                if  branch.to in bus_t:
+                    H[i][var_t[branch.to]]+=(b+2*c*Iconv)*((Ire*branch.dIrefdt(graph,0,branch.to)) + (Im*branch.dIimfdt(graph,0,branch.to)))/Iconv   # calcula a derivada daquela barra em relação a seguinte
+            for key,branch in graph[bus_ac].adjm.items(): #calcula as derivadas em relação aos fluxo em relação aos nos que aquela barra é to
+                if  bus_ac in bus_t: #checa se o angulo daquela barra é variável
+                    sumt_re=sumt_re+branch.dIrefdt(graph,1,bus_ac) #soma a derivada de cada fluxo incidente a barra de
+                    sumt_im=sumt_im+branch.dIimfdt(graph,1,bus_ac)
+                if  branch.fr in bus_t:#checa se o angulo daquela barra é variável
+                    H[i][var_t[branch.fr]]+=(b+2*c*Iconv)*((Ire*branch.dIrefdt(graph,1,branch.fr)) +(Im*branch.dIimfdt(graph,1,branch.fr)))/Iconv
+            #-------------------ramos de branchs UPFC (derivadas não prontas) ----------------------------------------#
+            if graph[bus_ac].FlagBS==1:
+                Vk=graph[bus_ac].V
+                tk=graph[bus_ac].theta
+                Bsh=graph[bus_ac].Bs
+                sumt_re=sumt_re-Vk*Bsh*np.cos(tk) 
+                sumt_im=sumt_im-Vk*Bsh*np.sin(tk)  
+            if  bus_ac in bus_t:
+                H[i][var_t[bus_ac]]+=(b+2*c*Iconv)*((Ire*sumt_re) +(Im*sumt_im))/Iconv
+            #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[bus_ac].adjk.items(): ##derivadas modulo de tensão
+                if bus_ac in bus_v:
+                    sumv_re=sumv_re+branch.dIrefdv(graph,0,bus_ac)
+                    sumv_im=sumv_im+branch.dIimfdv(graph,0,bus_ac)  
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.to]+n_theta]+=(b+2*c*Iconv)*(Ire*branch.dIrefdv(graph,0,branch.to) + Im*branch.dIimfdv(graph,0,branch.to))/Iconv
+            for key,branch in graph[bus_ac].adjm.items():
+                if bus_ac in bus_v:
+                    sumv_re=sumv_re+branch.dIrefdv(graph,1,bus_ac) 
+                    sumv_im=sumv_im+branch.dIimfdv(graph,1,bus_ac)
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.fr]+n_theta]+=(b+2*c*Iconv)*(Ire*branch.dIrefdv(graph,1,branch.fr) + Im*branch.dIimfdv(graph,1,branch.fr))/Iconv
+            #  #-------------------ramos de branchs UPFC----------------------------------------#
+            if graph[bus_ac].FlagBS==1:
+                Vk=graph[bus_ac].V
+                tk=graph[bus_ac].theta
+                Bsh=graph[bus_ac].Bs
+                sumv_re=sumv_re-Bsh*np.sin(tk) 
+                sumv_im=sumv_im+Bsh*np.cos(tk)  
+            H[i][var_v[bus_ac]+n_theta]+=(b+2*c*Iconv)*((Ire*sumv_re) +(Im*sumv_im))/Iconv
+        i=i+1
+    return i
 
 
 
@@ -852,5 +990,14 @@ def create_z_se_conv(dfDMEAS, convs_acdc, ind_id_conv):
             m = meas_conv(conv.i, -1, int(row["type"]), row["zmeas"], row["prec"])  
         else:
             print("type not recognized: ", int(row["type"]))
+        z_Conv.append(m)
+    return z_Conv
+
+
+def create_c_se_conv(convs_acdc):
+
+    z_Conv = []
+    for conv in convs_acdc:  # filter bus measurements        
+        m = meas_conv(conv.i, -1, 299,0, 1)  
         z_Conv.append(m)
     return z_Conv

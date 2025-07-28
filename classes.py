@@ -194,6 +194,33 @@ class conv_acdc():
         return self.d_inter_nodes[1].P(self.d_inter_nodes)
     def Qvirt(self): #filter bus virtual injection
         return self.d_inter_nodes[1].Q(self.d_inter_nodes)
+    def Iconv_se(self,graph):
+        Iconv_re=0
+        Iconv_im=0
+        if graph[self.i_busconv].FlagBS==1:
+            Iconv_re += graph[self.i_busconv].V*(-graph[self.i_busconv].Bs*np.sin(graph[self.i_busconv].theta))
+            Iconv_im += graph[self.i_busconv].V*(graph[self.i_busconv].Bs*np.cos(graph[self.i_busconv].theta))
+        for (key,item) in graph[self.i_busconv].adjk.items():
+            Iconv_re += item.Iref(graph,0)
+            Iconv_im += item.Iimf(graph,0)
+        for (key,item) in graph[self.i_busconv].adjm.items():
+            Iconv_re += item.Iref(graph,1)
+            Iconv_im += item.Iimf(graph,1)
+
+        return Iconv_re, Iconv_im
+
+    def Ploss_se(self,graph):
+        Iconv_re, Iconv_im = self.Iconv_se(graph)
+        Iconv = np.sqrt(Iconv_re**2 + Iconv_im**2)
+        return self.a + self.b*Iconv + self.c*Iconv**2
+    
+    def Pac_se(self,graph):
+        return graph[self.i_busconv].P(graph)
+    def Pdc_se(self,graph_dc):
+        return graph_dc[self.i_busdc].Pdc(graph_dc)
+
+
+        
     
 
 
@@ -2534,8 +2561,9 @@ class meas_conv(meas):
             return self.val - graph[conv_acdc[self.k].i_busac].V/graph_dc[conv_acdc[self.k].i_busdc].Vdc
         elif self.type==245:
             return self.val - (graph[conv_acdc[self.k].i_busac].theta - graph[conv_acdc[self.k].i_busconv].theta)
-    
-    
+        elif self.type==299: # conv constraints
+            return conv_acdc[self.k].Pdc_se(graph_dc) + conv_acdc[self.k].Pac_se(graph) + conv_acdc[self.k].Ploss_se(graph)
+
 
 class meas_dc(meas):
     def __init__(self,k,m,type,val,prec,br_id=None,dire=0) -> None:

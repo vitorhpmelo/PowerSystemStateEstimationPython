@@ -3082,7 +3082,7 @@ def create_W(z,mode=0,prec_virtual=1e-5,scale_virt=0.1): #TODO! modify all funct
         for item in z:
             if not isinstance(item,meas):
                 W[i][i]=1/(prec_virtual**2)
-            elif (np.abs(item.val)<1e-6) & (item.type in [0, 1, 6, 7]):
+            elif (np.abs(item.val)<1e-6) & (item.type in [0, 1, 6, 7,299]):
                 W[i][i]=1/(prec_virtual**2)
             else:
                 if np.abs((item.sigma))>prec_virtual:
