@@ -1798,6 +1798,13 @@ def calc_dz(vecZ,graph,dz):
         i=i+1
 
 
+def calc_dz_ac(vecZ,graph,dz,offset=0):
+    i=offset
+    for z in vecZ:
+        dz[i]=z.dz(graph)
+        i=i+1
+    return i
+
 
 def calc_h(vecZ,graph,h):
     i=0
@@ -1887,6 +1894,720 @@ def new_X_EE_UPFC_lim(graph,offset,var_UPFC,dx,a=1):
         graph[p].bUFPC_adjk[key].Vsh=graph[p].bUFPC_adjk[key].Vsh+a*dx[offset+3*n_upfc+var_UPFC[key]]
 
 
+def calc_H_EE_ac(z,var_t,var_v,graph,H,offset=0):
+    i=offset
+    n_theta=len(var_t)
+    bus_v=var_v.keys()
+    bus_t=var_t.keys()
+    for item in z:
+        soma1=0
+        soma2=0
+        if item.type==0:
+             #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items():#calcula as derivadas relativa as barras de e a do próprio angulo
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dPfdt(graph,0,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.to in bus_t:
+                    H[i][var_t[branch.to]]=branch.dPfdt(graph,0,branch.to)  # calcula a derivada daquela barra em relação a seguinte
+            for key,branch in graph[item.k].adjm.items(): #calcula as derivadas em relação aos fluxo em relação aos nos que aquela barra é to
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dPfdt(graph,1,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.fr in bus_t:#checa se o angulo daquela barra é variável
+                    H[i][var_t[branch.fr]]=branch.dPfdt(graph,1,branch.fr) 
+            #-------------------ramos de branchs UPFC----------------------------------------#
+            for key,upfc in graph[item.k].bUFPC_adjk.items():# o branch entra com p-s e barra p é a variável
+                if  item.k in bus_t:
+                    soma1=soma1+upfc.dPpsdtp(graph) # cacula dPps/dtp dPfdt(graph,0,de)
+                if upfc.s in bus_t:
+                    H[i][var_t[upfc.s]]=upfc.dPpsdts(graph) # cacula dPps/dts  dPfdt(graph,0,to)
+            for key,upfc in graph[item.k].bUFPC_adjm.items(): #o branch entra com p-s e barra s é a variável
+                if  item.k in bus_t:
+                    soma1=soma1+upfc.dPspdts(graph) # calcula dPsp/dts dfPf(graph,1,to)
+                if upfc.p in bus_t:
+                    H[i][var_t[upfc.p]]=upfc.dPspdtp(graph) #cacula dPsp/dtp  dfPf(graph,1,de)
+            if  item.k in bus_t:
+                H[i][var_t[item.k]]=soma1
+            soma1=0
+            #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items(): ##derivadas modulo de tensão
+                if item.k in bus_v:
+                    soma2=soma2+branch.dPfdV(graph,0,item.k)
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.to]+n_theta]=branch.dPfdV(graph,0,branch.to)
+            for key,branch in graph[item.k].adjm.items():
+                if item.k in bus_v:
+                    soma2=soma2+branch.dPfdV(graph,1,item.k) 
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.fr]+n_theta]=branch.dPfdV(graph,1,branch.fr)
+             #-------------------ramos de branchs UPFC----------------------------------------#
+            for key,upfc in graph[item.k].bUFPC_adjk.items():# o branch entra com p-s e barra p é a variável
+                if item.k in bus_v:
+                    soma2=soma2+upfc.dPpsdVp(graph) # cacula dPps/dVp dPfdV(graph,0,de)
+                if upfc.s in bus_v:
+                    H[i][var_v[upfc.s]+n_theta]=upfc.dPpsdVs(graph) # cacula dPps/dVs  dPfdV(graph,0,to)
+            for key,upfc in graph[item.k].bUFPC_adjm.items(): #o branch entra com p-s e barra s é a variável
+                if  item.k in bus_v:
+                    soma2=soma2+upfc.dPspdVs(graph) # calcula dPsp/dVs dfPf(graph,1,to)
+                if upfc.p in bus_v:
+                    H[i][var_v[upfc.p]+n_theta]=upfc.dPspdVp(graph) #cacula dPsp/dVp  dfPfdV(graph,1,de)          
+            if item.k in bus_v:
+                if graph[item.k].FlagSVC==1:
+                    soma2=soma2+2*graph[item.k].SVC.Gk*graph[item.k].V
+                H[i][var_v[item.k]+n_theta]=soma2
+            soma2=0
+        elif item.type==1:
+#-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items():#calcula as derivadas relativa as barras de e a do próprio angulo
+                if  item.k in bus_t:
+                    soma1=soma1+branch.dQfdt(graph,0,item.k)
+                if  branch.to in bus_t:
+                    H[i][var_t[branch.to]]=branch.dQfdt(graph,0,branch.to)
+            for key,branch in graph[item.k].adjm.items():
+                if  item.k in bus_t:
+                    soma1=soma1+branch.dQfdt(graph,1,item.k) 
+                if  branch.fr in bus_t:
+                    H[i][var_t[branch.fr]]=branch.dQfdt(graph,1,branch.fr)
+#-------------------ramos de branchs UPFC----------------------------------------#
+            for key,upfc in graph[item.k].bUFPC_adjk.items():# o branch entra com p-s e barra p é a variável
+                if  item.k in bus_t:
+                    soma1=soma1+upfc.dQpsdtp(graph) # cacula dQps/dtp dQfdt(graph,0,de)
+                if upfc.s in bus_t:
+                    H[i][var_t[upfc.s]]=upfc.dQpsdts(graph) # cacula dQps/dts  dQfdt(graph,0,to)
+            for key,upfc in graph[item.k].bUFPC_adjm.items(): #o branch entra com p-s e barra s é a variável
+                if  item.k in bus_t:
+                    soma1=soma1+upfc.dQspdts(graph) # calcula dQsp/dts dfQf(graph,1,to)
+                if upfc.p in bus_t:
+                    H[i][var_t[upfc.p]]=upfc.dQspdtp(graph) #cacula dQsp/dtp  dfPf(graph,1,de)  
+            if  item.k in bus_t:
+                H[i][var_t[item.k]]=soma1
+            soma1=0
+            #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items(): ##derivadas modulo de tensão
+                if item.k in bus_v:
+                    soma2=soma2+branch.dQfdV(graph,0,item.k)
+                if  branch.to in bus_v:
+                    H[i][var_v[branch.to]+n_theta]=branch.dQfdV(graph,0,branch.to)
+            for key,branch in graph[item.k].adjm.items():
+                if item.k in bus_v:
+                    soma2=soma2+branch.dQfdV(graph,1,item.k) 
+                if  branch.fr in bus_v:
+                    H[i][var_v[branch.fr]+n_theta]=branch.dQfdV(graph,1,branch.fr)
+            #-------------------ramos de branchs UPFC----------------------------------------#
+            for key,upfc in graph[item.k].bUFPC_adjk.items():# o branch entra com p-s e barra p é a variável
+                if  item.k in bus_v:
+                    soma2=soma2+upfc.dQpsdVp(graph) # cacula dQps/dVp dQfdV(graph,0,de)
+                if upfc.s in bus_v:
+                    H[i][var_v[upfc.s]+n_theta]=upfc.dQpsdVs(graph) # cacula dQps/dVs  dPfdV(graph,0,to)
+            for key,upfc in graph[item.k].bUFPC_adjm.items(): #o branch entra com p-s e barra s é a variável
+                if  item.k in bus_v:
+                    soma2=soma2+upfc.dQspdVs(graph) # calcula dQsp/dVs dfQf(graph,1,to)
+                if upfc.p in bus_v:
+                    H[i][var_v[upfc.p]+n_theta]=upfc.dQspdVp(graph) #cacula dQsp/dVp  dfPfdV(graph,1,de)  
+            if graph[item.k].FlagBS==1:
+                soma2=soma2-2*graph[item.k].Bs*graph[item.k].V 
+            if graph[item.k].FlagSVC==1:
+                soma2=soma2-2*graph[item.k].SVC.Bk*graph[item.k].V    
+            H[i][var_v[item.k]+n_theta]=soma2
+            soma2=0
+        elif item.type==2:
+            k=item.k
+            m=item.m
+            km=str(k)+"-"+str(m)
+            mk=str(m)+"-"+str(k)
+            if km in graph[k].adjk.keys():
+                if k in bus_t:
+                    H[i][var_t[k]]= graph[k].adjk[km].dPfdt(graph,0,k)
+                H[i][var_v[k]+n_theta]= graph[k].adjk[km].dPfdV(graph,0,k)
+                if m in bus_t:
+                    H[i][var_t[m]]= graph[k].adjk[km].dPfdt(graph,0,m)
+                H[i][var_v[m]+n_theta]= graph[k].adjk[km].dPfdV(graph,0,m)
+            elif mk in graph[k].adjm.keys():
+                if k in bus_t:
+                    H[i][var_t[k]]= graph[k].adjm[mk].dPfdt(graph,1,k)
+                H[i][var_v[k]+n_theta]= graph[k].adjm[mk].dPfdV(graph,1,k)
+                if m in bus_t:
+                    H[i][var_t[m]]= graph[k].adjm[mk].dPfdt(graph,1,m)
+                H[i][var_v[m]+n_theta]= graph[k].adjm[mk].dPfdV(graph,1,m)
+            #---------------------derivadas em função dos branchs fixos e do UPFC
+            elif km in graph[k].bUFPC_adjk.keys(): # medida de fluxo de k-m e o branch entrou como km 
+                if k in var_t.keys():
+                    H[i][var_t[k]]= graph[k].bUFPC_adjk[km].dPpsdtp(graph) #dPkmdtk
+                if k in var_v.keys():
+                    H[i][var_v[k]+n_theta]= graph[k].bUFPC_adjk[km].dPpsdVp(graph) #dPkmdtvk
+                if m in var_t.keys():
+                    H[i][var_t[m]]= graph[k].bUFPC_adjk[km].dPpsdts(graph) # Dpkmdtm detrivada em relação barra to
+                if m in var_v.keys():
+                    H[i][var_v[m]+n_theta]= graph[k].bUFPC_adjk[km].dPpsdVs(graph) # 
+            elif mk in graph[k].bUFPC_adjm.keys():
+                if k in var_t.keys():
+                    H[i][var_t[k]]= graph[k].bUFPC_adjm[mk].dPspdts(graph) 
+                if k in var_v.keys():
+                    H[i][var_v[k]+n_theta]= graph[k].bUFPC_adjm[mk].dPspdVs(graph)
+                if m in var_t.keys():
+                    H[i][var_t[m]]= graph[k].bUFPC_adjm[mk].dPspdtp(graph) # dPpsds
+                if m in var_v.keys():
+                    H[i][var_v[m]+n_theta]= graph[k].bUFPC_adjm[mk].dPspdVp(graph)
+            
+            else:
+                print("erro ao calcular fluxo na Jacobiana, medida Fluxo de P {:d}-{:d}".format(graph[k].id,graph[m].id))
+                exit(1)
+        elif item.type==3:
+                k=item.k
+                m=item.m
+                km=str(k)+"-"+str(m)
+                mk=str(m)+"-"+str(k)
+                if km in graph[k].adjk.keys():
+                    if k in bus_t:
+                        H[i][var_t[k]]= graph[k].adjk[km].dQfdt(graph,0,k)
+                    H[i][var_v[k]+n_theta]= graph[k].adjk[km].dQfdV(graph,0,k)
+                    if m in bus_t:
+                        H[i][var_t[m]]= graph[k].adjk[km].dQfdt(graph,0,m)
+                    H[i][var_v[m]+n_theta]= graph[k].adjk[km].dQfdV(graph,0,m)
+                elif mk in graph[k].adjm.keys():
+                    if k in bus_t:
+                        H[i][var_t[k]]= graph[k].adjm[mk].dQfdt(graph,1,k)
+                    H[i][var_v[k]+n_theta]= graph[k].adjm[mk].dQfdV(graph,1,k)
+                    if m in bus_t:
+                        H[i][var_t[m]]= graph[k].adjm[mk].dQfdt(graph,1,m)
+                    H[i][var_v[m]+n_theta]= graph[k].adjm[mk].dQfdV(graph,1,m)
+                #---------------------derivadas em função dos branchs fixos e do UPFC
+                elif km in graph[k].bUFPC_adjk.keys(): # medida de fluxo de k-m e o branch entrou como km 
+                    if k in var_t.keys():
+                        H[i][var_t[k]]= graph[k].bUFPC_adjk[km].dQpsdtp(graph) #dPkmdtk
+                    if k in var_v.keys():
+                        H[i][var_v[k]+n_theta]= graph[k].bUFPC_adjk[km].dQpsdVp(graph) #dPkmdtvk
+                    if m in var_t.keys():
+                        H[i][var_t[m]]= graph[k].bUFPC_adjk[km].dQpsdts(graph) # Dpkmdtm detrivada em relação barra to
+                    if m in var_v.keys():
+                        H[i][var_v[m]+n_theta]= graph[k].bUFPC_adjk[km].dQpsdVs(graph) # 
+                elif mk in graph[k].bUFPC_adjm.keys():
+                    if k in var_t.keys():
+                        H[i][var_t[k]]= graph[k].bUFPC_adjm[mk].dQspdts(graph) 
+                    if k in var_v.keys():
+                        H[i][var_v[k]+n_theta]= graph[k].bUFPC_adjm[mk].dQspdVs(graph)
+                    if m in var_t.keys():
+                        H[i][var_t[m]]= graph[k].bUFPC_adjm[mk].dQspdtp(graph) # dPpsds
+                    if m in var_v.keys():
+                        H[i][var_v[m]+n_theta]= graph[k].bUFPC_adjm[mk].dQspdVp(graph)
+                
+                else:
+                    print("erro ao calcular fluxo na Jacobiana, medida Fluxo de P {:d}-{:d}".format(graph[k].id,graph[m].id))
+                    exit(1)
+        elif item.type==4:
+            k=item.k
+            H[i][var_v[k]+n_theta]=1
+
+        elif item.type==5:
+            k=item.k
+            if k in bus_t:
+                H[i][var_t[k]]=1        
+
+        elif item.type==6: #derivadas Iinj_re
+             #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items():#calcula as derivadas relativa as barras de e a do próprio angulo
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dIrefdt(graph,0,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.to in bus_t:
+                    H[i][var_t[branch.to]]=branch.dIrefdt(graph,0,branch.to)  # calcula a derivada daquela barra em relação a seguinte
+            for key,branch in graph[item.k].adjm.items(): #calcula as derivadas em relação aos fluxo em relação aos nos que aquela barra é to
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dIrefdt(graph,1,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.fr in bus_t:#checa se o angulo daquela barra é variável
+                    H[i][var_t[branch.fr]]=branch.dIrefdt(graph,1,branch.fr) 
+            #-------------------ramos de branchs UPFC (derivadas não prontas) ----------------------------------------#
+            for key,upfc in graph[item.k].bUFPC_adjk.items():# o branch entra com p-s e barra p é a variável
+                if  item.k in bus_t:
+                    soma1=soma1+upfc.dIps_redtp(graph) # cacula dIpsre/dtp dPfdt(graph,0,de)
+                if upfc.s in bus_t:
+                    H[i][var_t[upfc.s]]=upfc.dIps_redts(graph) # cacula dIpsre/dts  dPfdt(graph,0,to)
+            for key,upfc in graph[item.k].bUFPC_adjm.items(): #o branch entra com p-s e barra s é a variável
+                if  item.k in bus_t:
+                    soma1=soma1+upfc.dIsp_redts(graph) # calcula dIresp/dts dfPf(graph,1,to)
+                if upfc.p in bus_t:
+                    H[i][var_t[upfc.p]]=upfc.dIsp_redtp(graph) #cacula dIresp/dtp  dfPf(graph,1,de)
+            if graph[item.k].FlagBS==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bsh=graph[item.k].Bs
+                soma1=soma1-Vk*Bsh*np.cos(tk)
+            if graph[item.k].FlagSVC==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bk=graph[item.k].SVC.Bk
+                Gk=graph[item.k].SVC.Gk
+                soma1=soma1+Vk*(-Bk*np.cos(tk)-Gk*np.sin(tk))
+            if  item.k in bus_t:
+                H[i][var_t[item.k]]=soma1 
+            soma1=0
+            #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items(): ##derivadas modulo de tensão
+                if item.k in bus_v:
+                    soma2=soma2+branch.dIrefdv(graph,0,item.k)
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.to]+n_theta]=branch.dIrefdv(graph,0,branch.to)
+            for key,branch in graph[item.k].adjm.items():
+                if item.k in bus_v:
+                    soma2=soma2+branch.dIrefdv(graph,1,item.k) 
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.fr]+n_theta]=branch.dIrefdv(graph,1,branch.fr)
+            #  #-------------------ramos de branchs UPFC----------------------------------------#
+            for key,upfc in graph[item.k].bUFPC_adjk.items():# o branch entra com p-s e barra p é a variável
+                if item.k in bus_v:
+                    soma2=soma2+upfc.dIps_redVp(graph) # cacula dPps/dVp dPfdV(graph,0,de)
+                if upfc.s in bus_v:
+                    H[i][var_v[upfc.s]+n_theta]=upfc.dIps_redVs(graph) # cacula dPps/dVs  dPfdV(graph,0,to)
+            for key,upfc in graph[item.k].bUFPC_adjm.items(): #o branch entra com p-s e barra s é a variável
+                if  item.k in bus_v:
+                    soma2=soma2+upfc.dIsp_redVs(graph) # calcula dPsp/dVs dfPf(graph,1,to)
+                if upfc.p in bus_v:
+                    H[i][var_v[upfc.p]+n_theta]=upfc.dIsp_redVp(graph) #cacula dPsp/dVp  dfPfdV(graph,1,de)          
+
+            if graph[item.k].FlagBS==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bsh=graph[item.k].Bs
+                soma2=soma2-Bsh*np.sin(tk) 
+            if graph[item.k].FlagSVC==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bk=graph[item.k].SVC.Bk
+                Gk=graph[item.k].SVC.Gk
+                soma2=soma2-Bk*np.sin(tk) + Gk*np.cos(tk)
+            H[i][var_v[item.k]+n_theta]=soma2
+            soma2=0
+        elif item.type==7: #derivadas Iinj_im
+             #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items():#calcula as derivadas relativa as barras de e a do próprio angulo
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dIimfdt(graph,0,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.to in bus_t:
+                    H[i][var_t[branch.to]]=branch.dIimfdt(graph,0,branch.to)  # calcula a derivada daquela barra em relação a seguinte
+            for key,branch in graph[item.k].adjm.items(): #calcula as derivadas em relação aos fluxo em relação aos nos que aquela barra é to
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dIimfdt(graph,1,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.fr in bus_t:#checa se o angulo daquela barra é variável
+                    H[i][var_t[branch.fr]]=branch.dIimfdt(graph,1,branch.fr) 
+            # -------------------ramos de branchs UPFC (derivadas não prontas) ----------------------------------------#
+            for key,upfc in graph[item.k].bUFPC_adjk.items():# o branch entra com p-s e barra p é a variável
+                if  item.k in bus_t:
+                    soma1=soma1+upfc.dIps_imdtp(graph) # cacula dPps/dtp dPfdt(graph,0,de)
+                if upfc.s in bus_t:
+                    H[i][var_t[upfc.s]]=upfc.dIps_imdts(graph) # cacula dPps/dts  dPfdt(graph,0,to)
+            for key,upfc in graph[item.k].bUFPC_adjm.items(): #o branch entra com p-s e barra s é a variável
+                if  item.k in bus_t:
+                    soma1=soma1+upfc.dIsp_imdts(graph) # calcula dPsp/dts dfPf(graph,1,to)
+                if upfc.p in bus_t:
+                    H[i][var_t[upfc.p]]=upfc.dIsp_imdtp(graph) #cacula dPsp/dtp  dfPf(graph,1,de)
+            if graph[item.k].FlagBS==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bsh=graph[item.k].Bs
+                soma1=soma1-Vk*Bsh*np.sin(tk)
+            if graph[item.k].FlagSVC==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bk=graph[item.k].SVC.Bk
+                Gk=graph[item.k].SVC.Gk
+                soma1=soma1+Vk*(-Bk*np.sin(tk) + Gk*np.cos(tk))
+            if  item.k in bus_t:
+                H[i][var_t[item.k]]=soma1 
+            soma1=0
+            #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items(): ##derivadas modulo de tensão
+                if item.k in bus_v:
+                    soma2=soma2+branch.dIimfdv(graph,0,item.k)
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.to]+n_theta]=branch.dIimfdv(graph,0,branch.to)
+            for key,branch in graph[item.k].adjm.items():
+                if item.k in bus_v:
+                    soma2=soma2+branch.dIimfdv(graph,1,item.k) 
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.fr]+n_theta]=branch.dIimfdv(graph,1,branch.fr)
+             #-------------------ramos de branchs UPFC----------------------------------------#
+            for key,upfc in graph[item.k].bUFPC_adjk.items():# o branch entra com p-s e barra p é a variável
+                if item.k in bus_v:
+                    soma2=soma2+upfc.dIps_imdVp(graph) # cacula dPps/dVp dPfdV(graph,0,de)
+                if upfc.s in bus_v:
+                    H[i][var_v[upfc.s]+n_theta]=upfc.dIps_imdVs(graph) # cacula dPps/dVs  dPfdV(graph,0,to)
+            for key,upfc in graph[item.k].bUFPC_adjm.items(): #o branch entra com p-s e barra s é a variável
+                if  item.k in bus_v:
+                    soma2=soma2+upfc.dIsp_imdVs(graph) # calcula dPsp/dVs dfPf(graph,1,to)
+                if upfc.p in bus_v:
+                    H[i][var_v[upfc.p]+n_theta]=upfc.dIsp_imdVp(graph) #cacula dPsp/dVp  dfPfdV(graph,1,de)          
+            if graph[item.k].FlagBS==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bsh=graph[item.k].Bs
+                soma2=soma2+Bsh*np.cos(tk) 
+            if graph[item.k].FlagSVC==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bk=graph[item.k].SVC.Bk
+                Gk=graph[item.k].SVC.Gk
+                soma2=soma2+Bk*np.cos(tk) +Gk*np.sin(tk)
+            H[i][var_v[item.k]+n_theta]=soma2
+            soma2=0
+        elif item.type==8:
+            k=item.k
+            m=item.m
+            km=str(k)+"-"+str(m)
+            mk=str(m)+"-"+str(k)
+            if km in graph[k].adjk.keys():
+                if k in bus_t:
+                    H[i][var_t[k]]= graph[k].adjk[km].dIrefdt(graph,0,k)
+                H[i][var_v[k]+n_theta]= graph[k].adjk[km].dIrefdv(graph,0,k)
+                if m in bus_t:
+                    H[i][var_t[m]]= graph[k].adjk[km].dIrefdt(graph,0,m)
+                H[i][var_v[m]+n_theta]= graph[k].adjk[km].dIrefdv(graph,0,m)
+            elif mk in graph[k].adjm.keys():
+                if k in bus_t:
+                    H[i][var_t[k]]= graph[k].adjm[mk].dIrefdt(graph,1,k)
+                H[i][var_v[k]+n_theta]= graph[k].adjm[mk].dIrefdv(graph,1,k)
+                if m in bus_t:
+                    H[i][var_t[m]]= graph[k].adjm[mk].dIrefdt(graph,1,m)
+                H[i][var_v[m]+n_theta]= graph[k].adjm[mk].dIrefdv(graph,1,m)
+            #---------------------derivadas em função dos branchs fixos e do UPFC (FALTA IMPLEMENTAR)
+            elif km in graph[k].bUFPC_adjk.keys(): # medida de fluxo de k-m e o branch entrou como km 
+                if k in var_t.keys():
+                    H[i][var_t[k]]= graph[k].bUFPC_adjk[km].dIps_redtp(graph) #dIps_redtp
+                if k in var_v.keys():
+                    H[i][var_v[k]+n_theta]= graph[k].bUFPC_adjk[km].dIps_redVp(graph) #dPkmdtvk
+                if m in var_t.keys():
+                    H[i][var_t[m]]= graph[k].bUFPC_adjk[km].dIps_redts(graph) # Dpkmdtm detrivada em relação barra to
+                if m in var_v.keys():
+                    H[i][var_v[m]+n_theta]= graph[k].bUFPC_adjk[km].dIps_redVs(graph) # 
+            elif mk in graph[k].bUFPC_adjm.keys():
+                if k in var_t.keys():
+                    H[i][var_t[k]]= graph[k].bUFPC_adjm[mk].dIsp_redts(graph) 
+                if k in var_v.keys():
+                    H[i][var_v[k]+n_theta]= graph[k].bUFPC_adjm[mk].dIsp_redVs(graph)
+                if m in var_t.keys():
+                    H[i][var_t[m]]= graph[k].bUFPC_adjm[mk].dIsp_redtp(graph) # dPpsds
+                if m in var_v.keys():
+                    H[i][var_v[m]+n_theta]= graph[k].bUFPC_adjm[mk].dIsp_redVp(graph)
+            
+            else:
+                print("erro ao calcular fluxo na Jacobiana, medida Fluxo de Ire {:d}-{:d}".format(graph[k].id,graph[m].id))
+                exit(1)
+        elif item.type==9:
+                k=item.k
+                m=item.m
+                km=str(k)+"-"+str(m)
+                mk=str(m)+"-"+str(k)
+                if km in graph[k].adjk.keys():
+                    if k in bus_t:
+                        H[i][var_t[k]]= graph[k].adjk[km].dIimfdt(graph,0,k)
+                    H[i][var_v[k]+n_theta]= graph[k].adjk[km].dIimfdv(graph,0,k)
+                    if m in bus_t:
+                        H[i][var_t[m]]= graph[k].adjk[km].dIimfdt(graph,0,m)
+                    H[i][var_v[m]+n_theta]= graph[k].adjk[km].dIimfdv(graph,0,m)
+                elif mk in graph[k].adjm.keys():
+                    if k in bus_t:
+                        H[i][var_t[k]]= graph[k].adjm[mk].dIimfdt(graph,1,k)
+                    H[i][var_v[k]+n_theta]= graph[k].adjm[mk].dIimfdv(graph,1,k)
+                    if m in bus_t:
+                        H[i][var_t[m]]= graph[k].adjm[mk].dIimfdt(graph,1,m)
+                    H[i][var_v[m]+n_theta]= graph[k].adjm[mk].dIimfdv(graph,1,m)
+                #---------------------derivadas em função dos branchs fixos e do UPFC
+                elif km in graph[k].bUFPC_adjk.keys(): # medida de fluxo de k-m e o branch entrou como km 
+                    if k in var_t.keys():
+                        H[i][var_t[k]]= graph[k].bUFPC_adjk[km].dIps_imdtp(graph) #dIps_redtp
+                    if k in var_v.keys():
+                        H[i][var_v[k]+n_theta]= graph[k].bUFPC_adjk[km].dIps_imdVp(graph) #dPkmdtvk
+                    if m in var_t.keys():
+                        H[i][var_t[m]]= graph[k].bUFPC_adjk[km].dIps_imdts(graph) # Dpkmdtm detrivada em relação barra to
+                    if m in var_v.keys():
+                        H[i][var_v[m]+n_theta]= graph[k].bUFPC_adjk[km].dIps_imdVs(graph) # 
+                elif mk in graph[k].bUFPC_adjm.keys():
+                    if k in var_t.keys():
+                        H[i][var_t[k]]= graph[k].bUFPC_adjm[mk].dIsp_imdts(graph) 
+                    if k in var_v.keys():
+                        H[i][var_v[k]+n_theta]= graph[k].bUFPC_adjm[mk].dIsp_imdVs(graph)
+                    if m in var_t.keys():
+                        H[i][var_t[m]]= graph[k].bUFPC_adjm[mk].dIsp_imdtp(graph) # dPpsds
+                    if m in var_v.keys():
+                        H[i][var_v[m]+n_theta]= graph[k].bUFPC_adjm[mk].dIsp_imdVp(graph)
+                else:
+                    print("erro ao calcular fluxo na Jacobiana, medida Fluxo de I {:d}-{:d}".format(graph[k].id,graph[m].id))
+                    exit(1)
+    
+        elif item.type==13:
+            k=item.k
+            H[i][var_t[k]]=1
+        elif item.type==15:
+            k=item.k
+            H[i][var_t[k]]=1
+        i=i+1
+    return i
+
+
+def calc_H_se_conv(z,var_t,var_v,var_dc,conv_acdc,graph,graph_dc,H,offset=0):
+    i=offset
+    n_theta=len(var_t)
+    n_v=len(var_v)
+    bus_v=var_v.keys()
+    bus_t=var_t.keys()
+    bus_dc=var_dc.keys()
+    for item in z:
+        soma1=0
+        soma2=0
+        if item.type==0:
+             #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items():#calcula as derivadas relativa as barras de e a do próprio angulo
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dPfdt(graph,0,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.to in bus_t:
+                    H[i][var_t[branch.to]]=branch.dPfdt(graph,0,branch.to)  # calcula a derivada daquela barra em relação a seguinte
+            for key,branch in graph[item.k].adjm.items(): #calcula as derivadas em relação aos fluxo em relação aos nos que aquela barra é to
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dPfdt(graph,1,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.fr in bus_t:#checa se o angulo daquela barra é variável
+                    H[i][var_t[branch.fr]]=branch.dPfdt(graph,1,branch.fr) 
+            #-------------------ramos de branchs UPFC----------------------------------------#
+            if  item.k in bus_t:
+                H[i][var_t[item.k]]=soma1
+            soma1=0
+            #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items(): ##derivadas modulo de tensão
+                if item.k in bus_v:
+                    soma2=soma2+branch.dPfdV(graph,0,item.k)
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.to]+n_theta]=branch.dPfdV(graph,0,branch.to)
+            for key,branch in graph[item.k].adjm.items():
+                if item.k in bus_v:
+                    soma2=soma2+branch.dPfdV(graph,1,item.k) 
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.fr]+n_theta]=branch.dPfdV(graph,1,branch.fr)
+             #-------------------ramos de branchs UPFC----------------------------------------#
+            if item.k in bus_v:
+                if graph[item.k].FlagSVC==1:
+                    soma2=soma2+2*graph[item.k].SVC.Gk*graph[item.k].V
+                H[i][var_v[item.k]+n_theta]=soma2
+            soma2=0
+        elif item.type==1:
+#-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items():#calcula as derivadas relativa as barras de e a do próprio angulo
+                if  item.k in bus_t:
+                    soma1=soma1+branch.dQfdt(graph,0,item.k)
+                if  branch.to in bus_t:
+                    H[i][var_t[branch.to]]=branch.dQfdt(graph,0,branch.to)
+            for key,branch in graph[item.k].adjm.items():
+                if  item.k in bus_t:
+                    soma1=soma1+branch.dQfdt(graph,1,item.k) 
+                if  branch.fr in bus_t:
+                    H[i][var_t[branch.fr]]=branch.dQfdt(graph,1,branch.fr)
+            if  item.k in bus_t:
+                H[i][var_t[item.k]]=soma1
+            soma1=0
+            #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items(): ##derivadas modulo de tensão
+                if item.k in bus_v:
+                    soma2=soma2+branch.dQfdV(graph,0,item.k)
+                if  branch.to in bus_v:
+                    H[i][var_v[branch.to]+n_theta]=branch.dQfdV(graph,0,branch.to)
+            for key,branch in graph[item.k].adjm.items():
+                if item.k in bus_v:
+                    soma2=soma2+branch.dQfdV(graph,1,item.k) 
+                if  branch.fr in bus_v:
+                    H[i][var_v[branch.fr]+n_theta]=branch.dQfdV(graph,1,branch.fr)
+            #-------------------ramos de branchs UPFC----------------------------------------#
+            if graph[item.k].FlagBS==1:
+                soma2=soma2-2*graph[item.k].Bs*graph[item.k].V 
+            H[i][var_v[item.k]+n_theta]=soma2
+            soma2=0
+        elif item.type==2:
+            k=item.k
+            m=item.m
+            km=str(k)+"-"+str(m)
+            mk=str(m)+"-"+str(k)
+            if km in graph[k].adjk.keys():
+                if k in bus_t:
+                    H[i][var_t[k]]= graph[k].adjk[km].dPfdt(graph,0,k)
+                H[i][var_v[k]+n_theta]= graph[k].adjk[km].dPfdV(graph,0,k)
+                if m in bus_t:
+                    H[i][var_t[m]]= graph[k].adjk[km].dPfdt(graph,0,m)
+                H[i][var_v[m]+n_theta]= graph[k].adjk[km].dPfdV(graph,0,m)
+            elif mk in graph[k].adjm.keys():
+                if k in bus_t:
+                    H[i][var_t[k]]= graph[k].adjm[mk].dPfdt(graph,1,k)
+                H[i][var_v[k]+n_theta]= graph[k].adjm[mk].dPfdV(graph,1,k)
+                if m in bus_t:
+                    H[i][var_t[m]]= graph[k].adjm[mk].dPfdt(graph,1,m)
+                H[i][var_v[m]+n_theta]= graph[k].adjm[mk].dPfdV(graph,1,m)
+            else:
+                raise RuntimeError(f"Error calculating Jacobian: Power flow measurement between buses {graph[k].id} and {graph[m].id} not found in the network branches or UPFC devices.")
+        elif item.type==3:
+                k=item.k
+                m=item.m
+                km=str(k)+"-"+str(m)
+                mk=str(m)+"-"+str(k)
+                if km in graph[k].adjk.keys():
+                    if k in bus_t:
+                        H[i][var_t[k]]= graph[k].adjk[km].dQfdt(graph,0,k)
+                    H[i][var_v[k]+n_theta]= graph[k].adjk[km].dQfdV(graph,0,k)
+                    if m in bus_t:
+                        H[i][var_t[m]]= graph[k].adjk[km].dQfdt(graph,0,m)
+                    H[i][var_v[m]+n_theta]= graph[k].adjk[km].dQfdV(graph,0,m)
+                elif mk in graph[k].adjm.keys():
+                    if k in bus_t:
+                        H[i][var_t[k]]= graph[k].adjm[mk].dQfdt(graph,1,k)
+                    H[i][var_v[k]+n_theta]= graph[k].adjm[mk].dQfdV(graph,1,k)
+                    if m in bus_t:
+                        H[i][var_t[m]]= graph[k].adjm[mk].dQfdt(graph,1,m)
+                    H[i][var_v[m]+n_theta]= graph[k].adjm[mk].dQfdV(graph,1,m)
+                #---------------------derivadas em função dos branchs fixos e do UPFC
+                else:
+                    raise RuntimeError(f"Error calculating Jacobian: Reactive power measurement between buses {graph[k].id} and {graph[m].id} not found in the network branches or UPFC devices.")
+        elif item.type==4:
+            k=item.k
+            H[i][var_v[k]+n_theta]=1
+
+        elif item.type==5:
+            k=item.k
+            if k in bus_t:
+                H[i][var_t[k]]=1        
+
+        elif item.type==6: #derivadas Iinj_re
+             #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items():#calcula as derivadas relativa as barras de e a do próprio angulo
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dIrefdt(graph,0,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.to in bus_t:
+                    H[i][var_t[branch.to]]=branch.dIrefdt(graph,0,branch.to)  # calcula a derivada daquela barra em relação a seguinte
+            for key,branch in graph[item.k].adjm.items(): #calcula as derivadas em relação aos fluxo em relação aos nos que aquela barra é to
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dIrefdt(graph,1,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.fr in bus_t:#checa se o angulo daquela barra é variável
+                    H[i][var_t[branch.fr]]=branch.dIrefdt(graph,1,branch.fr) 
+            #-------------------ramos de branchs UPFC (derivadas não prontas) ----------------------------------------#
+            if graph[item.k].FlagBS==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bsh=graph[item.k].Bs
+                soma1=soma1-Vk*Bsh*np.cos(tk)
+            if  item.k in bus_t:
+                H[i][var_t[item.k]]=soma1 
+            soma1=0
+            #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items(): ##derivadas modulo de tensão
+                if item.k in bus_v:
+                    soma2=soma2+branch.dIrefdv(graph,0,item.k)
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.to]+n_theta]=branch.dIrefdv(graph,0,branch.to)
+            for key,branch in graph[item.k].adjm.items():
+                if item.k in bus_v:
+                    soma2=soma2+branch.dIrefdv(graph,1,item.k) 
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.fr]+n_theta]=branch.dIrefdv(graph,1,branch.fr)
+            #  #-------------------ramos de branchs UPFC----------------------------------------#
+            if graph[item.k].FlagBS==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bsh=graph[item.k].Bs
+                soma2=soma2-Bsh*np.sin(tk) 
+            H[i][var_v[item.k]+n_theta]=soma2
+            soma2=0
+        elif item.type==7: #derivadas Iinj_im
+             #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items():#calcula as derivadas relativa as barras de e a do próprio angulo
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dIimfdt(graph,0,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.to in bus_t:
+                    H[i][var_t[branch.to]]=branch.dIimfdt(graph,0,branch.to)  # calcula a derivada daquela barra em relação a seguinte
+            for key,branch in graph[item.k].adjm.items(): #calcula as derivadas em relação aos fluxo em relação aos nos que aquela barra é to
+                if  item.k in bus_t: #checa se o angulo daquela barra é variável
+                    soma1=soma1+branch.dIimfdt(graph,1,item.k) #soma a derivada de cada fluxo incidente a barra de
+                if  branch.fr in bus_t:#checa se o angulo daquela barra é variável
+                    H[i][var_t[branch.fr]]=branch.dIimfdt(graph,1,branch.fr) 
+            # -------------------ramos de branchs UPFC (derivadas não prontas) ----------------------------------------#
+            if graph[item.k].FlagBS==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bsh=graph[item.k].Bs
+                soma1=soma1-Vk*Bsh*np.sin(tk)
+            if  item.k in bus_t:
+                H[i][var_t[item.k]]=soma1 
+            soma1=0
+            #-------------------ramos de branchs normais e TCSC----------------------------------------#
+            for key,branch in graph[item.k].adjk.items(): ##derivadas modulo de tensão
+                if item.k in bus_v:
+                    soma2=soma2+branch.dIimfdv(graph,0,item.k)
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.to]+n_theta]=branch.dIimfdv(graph,0,branch.to)
+            for key,branch in graph[item.k].adjm.items():
+                if item.k in bus_v:
+                    soma2=soma2+branch.dIimfdv(graph,1,item.k) 
+                if  branch.fr in var_v.keys():
+                    H[i][var_v[branch.fr]+n_theta]=branch.dIimfdv(graph,1,branch.fr)
+            if graph[item.k].FlagBS==1:
+                Vk=graph[item.k].V
+                tk=graph[item.k].theta
+                Bsh=graph[item.k].Bs
+                soma2=soma2+Bsh*np.cos(tk) 
+            H[i][var_v[item.k]+n_theta]=soma2
+            soma2=0
+        elif item.type==8:
+            k=item.k
+            m=item.m
+            km=str(k)+"-"+str(m)
+            mk=str(m)+"-"+str(k)
+            if km in graph[k].adjk.keys():
+                if k in bus_t:
+                    H[i][var_t[k]]= graph[k].adjk[km].dIrefdt(graph,0,k)
+                H[i][var_v[k]+n_theta]= graph[k].adjk[km].dIrefdv(graph,0,k)
+                if m in bus_t:
+                    H[i][var_t[m]]= graph[k].adjk[km].dIrefdt(graph,0,m)
+                H[i][var_v[m]+n_theta]= graph[k].adjk[km].dIrefdv(graph,0,m)
+            elif mk in graph[k].adjm.keys():
+                if k in bus_t:
+                    H[i][var_t[k]]= graph[k].adjm[mk].dIrefdt(graph,1,k)
+                H[i][var_v[k]+n_theta]= graph[k].adjm[mk].dIrefdv(graph,1,k)
+                if m in bus_t:
+                    H[i][var_t[m]]= graph[k].adjm[mk].dIrefdt(graph,1,m)
+                H[i][var_v[m]+n_theta]= graph[k].adjm[mk].dIrefdv(graph,1,m)
+
+            else:
+                raise RuntimeError(f"Error calculating Jacobian: Real current flow measurement between buses {graph[k].id}-{graph[m].id} not found in the network branches or UPFC devices.")
+        elif item.type==9:
+                k=item.k
+                m=item.m
+                km=str(k)+"-"+str(m)
+                mk=str(m)+"-"+str(k)
+                if km in graph[k].adjk.keys():
+                    if k in bus_t:
+                        H[i][var_t[k]]= graph[k].adjk[km].dIimfdt(graph,0,k)
+                    H[i][var_v[k]+n_theta]= graph[k].adjk[km].dIimfdv(graph,0,k)
+                    if m in bus_t:
+                        H[i][var_t[m]]= graph[k].adjk[km].dIimfdt(graph,0,m)
+                    H[i][var_v[m]+n_theta]= graph[k].adjk[km].dIimfdv(graph,0,m)
+                elif mk in graph[k].adjm.keys():
+                    if k in bus_t:
+                        H[i][var_t[k]]= graph[k].adjm[mk].dIimfdt(graph,1,k)
+                    H[i][var_v[k]+n_theta]= graph[k].adjm[mk].dIimfdv(graph,1,k)
+                    if m in bus_t:
+                        H[i][var_t[m]]= graph[k].adjm[mk].dIimfdt(graph,1,m)
+                    H[i][var_v[m]+n_theta]= graph[k].adjm[mk].dIimfdv(graph,1,m)
+                #---------------------derivadas em função dos branchs fixos e do UPFC
+                else:
+                    raise RuntimeError("Error calculating Jacobian: Real current flow measurement between buses {:d}-{:d} not found in the network branches or UPFC devices.".format(graph[k].id, graph[m].id))
+        elif item.type==244: # M measurement
+            k=item.k
+            b_ac=conv_acdc[item.k].i_busac
+            b_dc=conv_acdc[item.k].i_busdc
+            if b_ac in bus_v:
+                H[i][var_v[b_ac]+n_theta]=1/graph_dc[b_dc].Vdc
+            if b_dc in bus_dc:
+                H[i][var_dc[b_dc]+n_theta+n_v]= - (graph[b_ac].V**2)/graph_dc[b_dc].Vdc
+        elif item.type==245: # delta measurement
+            k=item.k
+            b_ac=conv_acdc[item.k].i_busac
+            b_conv=conv_acdc[item.k].i_busconv
+            if b_ac in bus_t:
+                H[i][var_t[b_ac]]=1
+            if b_conv in bus_t:
+                H[i][var_t[b_conv]]=-1
+        i=i+1
+    return i
 
 
 def reini_X_TCSC(graph,var_x,z):

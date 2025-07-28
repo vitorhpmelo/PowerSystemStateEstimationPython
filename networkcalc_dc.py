@@ -9,11 +9,12 @@ import scipy.sparse as sparse
 import csv
 
 
-def calc_dz_conv(vecZ,convs_acdc,dz):
-    i=0
+def calc_dz_conv(vecZ,convs_acdc,graph,graph_dc,dz,offset=0):
+    i=offset  
     for z in vecZ:
-        dz[i]=z.dz_conv(convs_acdc)
+        dz[i]=z.dz_conv(convs_acdc,graph,graph_dc)
         i=i+1
+    return i
 
 
 def create_z_x_pf_dc(graph_dc):
@@ -175,6 +176,7 @@ def calc_dz_dc(vecZ,graph,dz,offset=0):
     for z in vecZ:
         dz[i]=z.dz(graph)
         i=i+1
+    return i
 
 
 
@@ -427,18 +429,18 @@ def create_z_x_conv_powerflow(conv):
         i=i+1
 
     if 1 in conv.d_inter_nodes.keys(): # if the filter bus exists 
-        measPconv=meas(conv.i,1,220,conv.Pconv_ac,0) # reactive power flow measurement in the reactor
-        measQtrf=meas(conv.i,0,203,-conv.Qgrid,0) # reactive power flow measurement in the trafo
-        measPvirt=meas(conv.i,0,200,0,0)
-        measQvirt=meas(conv.i,0,201,0,0)
+        measPconv=meas_conv(conv.i,1,220,conv.Pconv_ac,0) # reactive power flow measurement in the reactor
+        measQtrf=meas_conv(conv.i,0,203,-conv.Qgrid,0) # reactive power flow measurement in the trafo
+        measPvirt=meas_conv(conv.i,0,200,0,0)
+        measQvirt=meas_conv(conv.i,0,201,0,0)
         z=[measPconv,measQtrf,measPvirt,measQvirt]
     elif 1 in conv.d_inter_bran.keys():
-        measPconv=meas(conv.i,1,202,conv.Pconv_ac,0)
-        measQtrf=meas(conv.i,0,203,-conv.Qgrid,0)
+        measPconv=meas_conv(conv.i,1,202,conv.Pconv_ac,0)
+        measQtrf=meas_conv(conv.i,0,203,-conv.Qgrid,0)
         z=[measPconv,measQtrf]
     else:
-        measPconv=meas(conv.i,1,220,conv.Pconv_ac,0)
-        measQtrf=meas(conv.i,0,230,-conv.Qgrid,0)
+        measPconv=meas_conv(conv.i,1,220,conv.Pconv_ac,0)
+        measQtrf=meas_conv(conv.i,0,230,-conv.Qgrid,0)
         z=[measPconv,measQtrf]
 
     return z,var_v,var_t
@@ -632,7 +634,7 @@ def conv_intern_Pf(conv_acdc,i_conv,tol=1e-8):
 
     div=0
     while (it<10):
-        calc_dz_conv(z,conv_acdc,dz)
+        calc_dz_conv(z,conv_acdc,graph=[],graph_dc=[],dz=dz)
 
         calcH_conv_pf(z,var_t,var_v,conv_acdc,H)
 
@@ -817,3 +819,38 @@ def create_z_x_dc_se(graph_dc, dfDMEAS, ind_i_dc):
 
         zdc.append(mes)
     return zdc, var_vdc
+
+
+
+def create_z_se_conv(dfDMEAS, convs_acdc, ind_id_conv):
+
+    dconvtyp_actype = {
+    200: 0, 201: 1, 202: 2, 203: 3, 204: 4, 205: 5, 240: 4, 250: 5,
+    202: 2, 203: 3, 220: 2, 230: 3, 206: 6, 207: 7, 208: 8, 209: 9,
+    280: 8, 290: 9
+    }
+    mask = (dfDMEAS["type"] > 199) & (dfDMEAS["type"] < 300)
+
+    z_Conv = []
+    for idx, row in dfDMEAS[mask].iterrows():
+        conv = convs_acdc[ind_id_conv[int(row["from"])]]
+        if int(row["type"]) in [200, 201, 204, 205, 206, 207]:  # filter bus measurements        
+            m = meas_conv(conv.i_busfilter, -1, dconvtyp_actype[int(row["type"])], row["zmeas"], row["prec"])
+        elif int(row["type"]) in [240, 250]:  # converter bus measurements
+            m = meas_conv(conv.i_busconv, -1, dconvtyp_actype[int(row["type"])], row["zmeas"], row["prec"])
+        elif int(row["type"]) in [202, 203, 208, 209]:  # transformer internal flows (power and current)
+            external = conv.i_busac
+            internal = conv.i_busfilter if conv.flag_reactor == 1 else conv.i_busconv
+            (from_bus, to_bus) = (external, internal) if int(row["to"]) == 0 else (internal, external)
+            m = meas_conv(from_bus, to_bus, dconvtyp_actype[int(row["type"])], row["zmeas"], row["prec"])
+        elif int(row["type"]) in [220, 230, 280, 290]:  # reactor internal flows (power and current) 
+            internal = conv.i_busconv
+            external = conv.i_busfilter if conv.flag_trans == 1 else conv.i_busconv
+            (from_bus, to_bus) = (external, internal) if int(row["to"]) == 0 else (internal, external)
+            m = meas_conv(from_bus, to_bus, dconvtyp_actype[int(row["type"])], row["zmeas"], row["prec"])
+        elif int(row["type"]) in [244,245]:  
+            m = meas_conv(conv.i, -1, int(row["type"]), row["zmeas"], row["prec"])  
+        else:
+            print("type not recognized: ", int(row["type"]))
+        z_Conv.append(m)
+    return z_Conv

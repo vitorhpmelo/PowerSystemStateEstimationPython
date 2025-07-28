@@ -428,6 +428,7 @@ def save_DMEAS_conv_pf(convs_acdc,graph,graph_dc,sys,flag_save_csv=True):
     280 - ACDC Converter internal reactor Current flow Re (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
     290 - ACDC Converter internal reactor Current flow Im (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
     244 - ACDC Converter voltage ratio M = Vac/Vdc
+    245 - ACDC Converter voltage angle difference T = theta_grid - theta_conv
     """
 
 
@@ -457,6 +458,7 @@ def save_DMEAS_conv_pf(convs_acdc,graph,graph_dc,sys,flag_save_csv=True):
     Irc_im=[] # reactive power flow in the reactor
 
     M=[]
+    T=[]
 
     #calculates the Power Inejection (Reactive and Active)
     for conv in convs_acdc:
@@ -520,16 +522,17 @@ def save_DMEAS_conv_pf(convs_acdc,graph,graph_dc,sys,flag_save_csv=True):
             Irc_re.append(linha)
             linha=[290,conv.id,1,conv.Irc_im(1),1.0]
             Irc_im.append(linha)
-        if 2 in conv.d_inter_nodes.keys():
-            linha=[244,conv.id,-1,conv.d_inter_nodes[2].V/graph_dc[conv.i_busdc].Vdc,1.0]
-            M.append(linha) # M = Vac/Vdc, Vac is the voltage in the AC bus and Vdc is the voltage in the DC bus
+
+        linha=[244,conv.id,-1,graph[conv.i_busac].V/graph_dc[conv.i_busdc].Vdc,1.0]
+        M.append(linha) # M = Vac/Vdc, Vac is the voltage in the AC grid bus and Vdc is the voltage in the DC bus
+        linha=[245,conv.id,-1,graph[conv.i_busac].theta-conv.d_inter_nodes[2].theta,1.0]
+        T.append(linha) 
 
 
 
 
 
-
-    meas=Pinj+Qinj+Iinj_re+Iinj_im+Vm_f+Vangl_f+Vm_c+Vangl_c+Ptf+Qtf+Itf_re+Itf_im+Prc+Qrc+Irc_re+Irc_im +M
+    meas=Pinj+Qinj+Iinj_re+Iinj_im+Vm_f+Vangl_f+Vm_c+Vangl_c+Ptf+Qtf+Itf_re+Itf_im+Prc+Qrc+Irc_re+Irc_im +M +T
 
 
     

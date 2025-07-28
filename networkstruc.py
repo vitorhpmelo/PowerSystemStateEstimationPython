@@ -411,3 +411,67 @@ def create_graph_dc(bus_dc,bran_dc):
 
 
     return graph_dc
+
+def include_conv_nodes_in_graph(graph,ind_i, bran, convs_acdc):
+    """
+    Adds converter interface nodes and branches to the power system graph.
+    This function iterates over a list of AC/DC converter objects, adding their
+    internal nodes and branches to the provided graph and branch dictionaries.
+    For each converter, it creates new node and branch objects as needed,
+    updates their properties, and maps the new nodes inside the converters.
+    Args:
+        graph (list): List of node objects representing the power system buses.
+        bran (dict): Dictionary of branch objects representing the system branches.
+        convs_acdc (list): List of converter objects, each containing internal nodes
+            (d_inter_nodes) and branches (d_inter_bran) to be added to the graph.
+    Side Effects:
+        Modifies the `graph` list and `bran` dictionary in place by adding new nodes
+        and branches corresponding to the converter interfaces.
+    Notes:
+        - Assumes that node_graph and branch constructors, as well as methods like
+          cykm() and twoPortCircuit(), are defined elsewhere.
+        - Updates converter attributes (i_busconv, i_busfilter) to reflect new node indices.
+        - Maintains adjacency information for each node in the graph.
+    """
+    
+    nac_nodes = len(graph)
+    nac_bran = len(bran)
+
+
+
+    for conv in convs_acdc:
+        dnew_i = {}
+        for (key, node) in conv.d_inter_nodes.items():
+            if key != 0:  # it is not the grid bus, already in the graph
+                new = node_graph(nac_nodes, node.bus)
+                new.V = node.V
+                new.theta = node.theta
+                graph.append(new)
+                dnew_i[key] = nac_nodes
+                if key == 2:
+                    conv.i_busconv = nac_nodes
+                else:
+                    conv.i_busfilter = nac_nodes
+                    new.FlagBS=1
+                    new.Bs = node.Bs
+                ind_i[node.bus.id] = nac_nodes
+                nac_nodes += 1
+            else:
+                dnew_i[key] = conv.i_busac
+        for (key, br) in conv.d_inter_bran.items():
+            key_str = str(dnew_i[br.fr]) + "-" + str(dnew_i[br.to])
+            item = branch(br.id, dnew_i[br.fr], dnew_i[br.to], br.type, nac_bran)
+            item.x = br.x
+            item.r = br.r
+            item.bsh = br.bsh  # divides the shunt suceptance by two
+            item.tap = br.tap
+            item.cykm()  # calculates the ykm
+            item.twoPortCircuit()  # creates the two port circuit
+            bran[key_str] = item
+            graph[dnew_i[br.fr]].adjk.update({key_str: item})
+            graph[dnew_i[br.fr]].ladjk.append(dnew_i[br.to])
+            graph[dnew_i[br.to]].adjm.update({key_str:item})
+            graph[dnew_i[br.to]].ladjm.append(dnew_i[br.fr])
+            nac_bran += 1
+
+

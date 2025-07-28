@@ -1706,7 +1706,7 @@ def SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_co
     """
 
     # ACDC converter internal measurements
-    include_conv_nodes_in_graph(graph,ind_i, bran, convs_acdc)
+    
 
     [z_ac, var_t, var_v] = create_z_x_se_ac(graph, dfDMEAS, ind_i)
     z_conv = create_z_se_conv(dfDMEAS, convs_acdc, ind_id_conv)
@@ -1732,16 +1732,19 @@ def SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_co
     Vinici(graph, flatStart=2, ind_i=ind_i)
     Vinici_se_dc(graph_dc)
 
-    offset_zdc = len(z_ac) + len(z_conv)
+
     offset_jdc= n_t + n_v
 
 
 
     while it < itmax:
-        calc_dz(z_ac + z_conv, graph, dz)
-        calc_dz_dc(z_dc, graph_dc, dz, offset=offset_zdc)
-        calc_H_EE(z_ac + z_conv, var_t, var_v, graph, H)
-        calc_H_se_dc(z_dc, var_vdc, graph_dc, H, offseti=offset_zdc, offset_j=offset_jdc)
+        offset=calc_dz_ac(z_ac, graph, dz, offset=0)
+        offset=calc_dz_conv(z_conv, convs_acdc,graph,graph_dc,dz,offset)
+        offset=calc_dz_dc(z_dc, graph_dc, dz, offset=offset)
+        
+        offset=calc_H_EE_ac(z_ac, var_t, var_v, graph, H)
+        offset=calc_H_se_conv(z_conv, var_t, var_v, var_vdc, convs_acdc, graph, graph_dc, H, offset=offset)
+        calc_H_se_dc(z_dc, var_vdc, graph_dc, H, offseti=offset, offset_j=offset_jdc)
 
         grad = np.matmul(np.matmul(H.T, W), dz)
 

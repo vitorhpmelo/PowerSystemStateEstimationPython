@@ -2508,8 +2508,17 @@ class meas():
         elif self.type==4:
             return graph[self.k].V
     
-    def dz_conv(self,conv_acdc): 
-        if self.type==200: #virtual injection in the conv filt bus
+
+        
+
+class meas_conv(meas):
+    def __init__(self,k,m,type,val,prec,br_id=None,dire=0) -> None:
+        super().__init__(k,m,type,val,prec,br_id=br_id,dire=dire)
+        self.sigma=np.abs(val)*prec/3
+    def dz_conv(self,conv_acdc,graph,graph_dc): 
+        if self.type in [0,1,2,3,4,5,6,7,8,9]: #active power
+             return self.dz(graph)
+        elif self.type==200: #virtual injection in the conv filt bus
             return self.val - conv_acdc[self.k].Pvirt()
         elif self.type==201: #virtual injection in the conv filt bus
             return self.val - conv_acdc[self.k].Qvirt()
@@ -2521,7 +2530,12 @@ class meas():
             return self.val - conv_acdc[self.k].Prc(self.m)
         elif self.type==230:
             return self.val - conv_acdc[self.k].Qrc(self.m)
-        
+        elif self.type==244:
+            return self.val - graph[conv_acdc[self.k].i_busac].V/graph_dc[conv_acdc[self.k].i_busdc].Vdc
+        elif self.type==245:
+            return self.val - (graph[conv_acdc[self.k].i_busac].theta - graph[conv_acdc[self.k].i_busconv].theta)
+    
+    
 
 class meas_dc(meas):
     def __init__(self,k,m,type,val,prec,br_id=None,dire=0) -> None:
