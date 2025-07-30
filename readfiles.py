@@ -705,5 +705,5 @@ def save_DMEAS_acdc(graph, bran, graph_dc, bran_dc, convs_acdc, sys, flag_save_c
 
     dfDMEASACDC = pd.concat([dfDMEAS, dfDMEAS_dc, dfDMEAsconv], ignore_index=True)
     if flag_save_csv:
-        dfDMEASACDC.to_csv(sys + "/DMEASacdc_fp.csv", index=False, float_format="%.7f", header=True)
+        dfDMEASACDC.to_csv(sys + "/DMEAS_fp.csv", index=False, float_format="%.7f", header=True)
     return dfDMEASACDC

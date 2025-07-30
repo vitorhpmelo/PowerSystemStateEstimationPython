@@ -197,7 +197,7 @@ def create_dfV_PMUs(dfDMEASpf,lst_V):
 
 
 
-def create_DMEAS(sys,prec,graph,bran,dUPFC={},dfDMEASpf=pd.DataFrame()):
+def create_DMEAS_old(sys,prec,graph,bran,dUPFC={},dfDMEASpf=pd.DataFrame()):
     """
     Creates a DMEAS file with the measurements according to the "measplan.csv" file
     if, it reads the measurements avaible in the "DMEAS_pf.csv" file, if it do not exits it runs
@@ -283,6 +283,181 @@ def create_DMEAS(sys,prec,graph,bran,dUPFC={},dfDMEASpf=pd.DataFrame()):
 
     dfDMEAS=pd.concat([dfPISCADA,dfIPSM,dfPSEUDO,dfVirtuais,dfPFSCADA,dfFPSM,dfVSCADA,dfVSM,dfIfPMU,dfIinjPMU,dfVPMU])
     return dfDMEAS
+
+
+def build_prec_standard(df):
+    """
+    Generates a dictionary mapping each column in the input measplan to a predefined precision value
+    based on the column's name pattern (vartype_source)  var_type  = Pf, Vm, If, etc. Source = SCADA, PMU, CONV.
+    Function employed in the create_DMEAS_new function
+    This is useful for setting measurement error standards in power system state estimation.
+    Args:
+        df (pandas.DataFrame): Input DataFrame whose columns represent different measurement variables.
+    Returns:
+        dict: A dictionary where keys are column names and values are the corresponding precision standards.
+    """
+
+    prec_standard = {}
+    for col in df.columns:
+        var_type = col.split("_")[0]
+        if "SCADA" in col:
+            if var_type in ["Pf", "Pi"]:
+                prec_standard[col] = 0.02
+            elif var_type in ["Vm"]:
+                prec_standard[col] = 0.01
+        elif "PMU" in col:
+            if var_type in ["If", "Ii"]:
+                prec_standard[col] = 0.001
+            elif var_type in ["V"]:
+                prec_standard[col] = 0.001
+        elif "CONV" in col:
+            if var_type in ["Pftf", "Pfpr", "Pifilt"]:
+                prec_standard[col] = 0.02
+            elif var_type in ["Vmfilt", "Vmconv"]:
+                prec_standard[col] = 0.01
+            elif var_type in ["M"]:
+                prec_standard[col] = 0.01
+            elif var_type in ["Iftf", "Ifpr"]:
+                prec_standard[col] = 0.001
+            elif var_type in ["Vpfilt", "Vpconv"]:
+                prec_standard[col] = 0.001
+            else:
+                prec_standard[col] = 0.01
+    return prec_standard
+
+
+def build_bus_measurements(bus_measurements, dtypes, prec, dfDMEAS_pf):
+    """
+    Constructs a dictionary of filtered bus measurements DataFrames with precision values.
+    For each key in `bus_measurements`, this function filters the `dfDMEAS_pf` DataFrame
+    to include only rows where the 'type' column matches the types specified in `dtypes`
+    and the 'from' column matches the bus identifiers in `bus_measurements`. It then adds
+    a 'prec' column to each filtered DataFrame, assigning the corresponding precision value
+    from `prec`.
+    Function employed in the create_DMEAS function
+    Args:
+        bus_measurements (dict): Dictionary mapping measurement names to lists of bus identifiers.
+        dtypes (dict): Dictionary mapping bus types to lists of measurement types.
+        prec (dict): Dictionary mapping measurement names to precision values.
+        dfDMEAS_pf (pd.DataFrame): DataFrame containing measurement data with at least 'type' and 'from' columns.
+    Returns:
+        dict: Dictionary mapping measurement names to filtered DataFrames with an added 'prec' column.
+    """
+
+    dmeas = {}
+    for col in bus_measurements.keys():
+        fr = bus_measurements[col]
+        types = dtypes[col.split("_")[0]]
+        prec_value = prec[col]
+        mask = dfDMEAS_pf["type"].isin(types) & dfDMEAS_pf["from"].isin(fr)
+        dmeas[col] = dfDMEAS_pf[mask].copy()
+        dmeas[col]["prec"] = prec_value
+    return dmeas
+
+def build_branch_measurements(branch_measurements, dtypes, prec, dfDMEAS_pf):
+    """
+    Constructs a dictionary of filtered branch measurement DataFrames with precision values.
+    For each measurement type specified in `branch_measurements`, this function:
+    - Filters the input DataFrame `dfDMEAS_pf` to include only rows matching the specified branch pairs (`from`, `to`)
+      and measurement types.
+    - Adds a precision column to each filtered DataFrame based on the `prec` dictionary.
+    - Returns a dictionary mapping each measurement type to its corresponding filtered DataFrame.
+    Function employed in the create_DMEAS function
+    Args:
+        branch_measurements (dict): Dictionary where keys are measurement types and values are dicts with "from" and "to" lists.
+        dtypes (dict): Dictionary mapping measurement type prefixes to lists of valid types.
+        prec (dict): Dictionary mapping measurement types to their precision values.
+        dfDMEAS_pf (pandas.DataFrame): DataFrame containing all branch measurements with columns "type", "from", and "to".
+    Returns:
+        dict: Dictionary mapping measurement types to filtered pandas DataFrames with an added "prec" column.
+    """
+
+    dmeas = {}
+    for col in branch_measurements.keys():
+        fr = branch_measurements[col]["from"]
+        to = branch_measurements[col]["to"]
+        bran = list(zip(fr, to))
+        types = dtypes[col.split("_")[0]]
+        prec_value = prec[col]
+        mask = dfDMEAS_pf.apply(lambda row: (row["type"] in types) and ((row["from"], row["to"]) in bran), axis=1)
+        dmeas[col] = dfDMEAS_pf[mask].copy()
+        dmeas[col]["prec"] = prec_value
+    return dmeas
+
+def create_DMEAS(sys,dfDMEAS_pf=pd.DataFrame(),prec={}):
+    """
+    Generates a DataFrame containing the measurement set for the system based on the "measplan.csv" file.
+    Reads available measurements from "DMEAS_pf.csv"; if not present, raises an exception.
+    Accepts the system name (sys) and a dictionary of measurement precisions (prec).
+    Returns a pandas DataFrame with the selected measurements and their precision values.
+    """
+    #read the file with the measurement pla
+    if dfDMEAS_pf.empty:
+        
+        try: # if the DMEAS exists the program reads it, this file is not mandatory for power flow 
+            dfDMEAS_pf=pd.read_csv(sys+"/DMEAS_pf.csv")
+        except:
+            raise Exception("There is no DMEAS_pf file, run the power flow first")
+
+    try:
+        df=pd.read_csv(sys+"/measplan.csv",keep_default_na=False)
+    except:
+        raise Exception("There is no measurement plan file")
+    
+    prec={}
+    df=pd.read_csv(sys+"/measplan.csv",keep_default_na=False)
+
+
+    prec_standard = build_prec_standard(df)
+
+
+    for key in list(set(prec_standard.keys())-(prec.keys())):
+        prec[key]=prec_standard[key]
+
+    dtypes_ac={"Pi":[0,1],"Pf":[2,3],"Vm":[4,5],"If":[6,7],"Ii":[8,9]}
+    dtypes_conv={"Pftf":[202,203],"Pfpr":[220,230],"Pifilt":[200,201],
+                "Vmfilt":[204],"Vmconv":[240],"Iifilt":[206,207],
+                "Iftf":[208,209],"Ifpr":[280,290],"M":[244],
+                "Vpfilt":[204,205],"Vpconv":[240,250]
+                }
+    
+    
+
+    dtypes = {**dtypes_ac, **dtypes_conv}
+
+    
+
+    bus_measurements = {}  
+    branch_measurements = {} 
+
+    for col in df.columns:
+        meas=list(filter(None,df[col].to_list()))
+        if len(meas)>0:
+            if "-" in meas[0]:
+                # branch measurement
+                fr=[]
+                to=[]
+                for x in meas:
+                    fr.append(int(x.split("-")[0]))
+                    to.append(int(x.split("-")[1]))
+                branch_measurements[col] = {"from": fr, "to": to}
+            else:
+                bus_measurements[col] = np.int64(meas)
+
+    
+
+    dmeas_bus = build_bus_measurements(bus_measurements, dtypes, prec, dfDMEAS_pf)
+    dmeas_bran = build_branch_measurements(branch_measurements, dtypes, prec, dfDMEAS_pf)
+
+
+    dfDMEAS_combined = pd.concat(
+        [dmeas_bus[key] for key in dmeas_bus] + [dmeas_bran[key] for key in dmeas_bran],
+        ignore_index=True
+    )
+    return dfDMEAS_combined
+
+
+
 
 def insert_res(dfDMEASsr):
     """

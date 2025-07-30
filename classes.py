@@ -2562,7 +2562,7 @@ class meas_conv(meas):
         elif self.type==245:
             return self.val - (graph[conv_acdc[self.k].i_busac].theta - graph[conv_acdc[self.k].i_busconv].theta)
         elif self.type==299: # conv constraints
-            return conv_acdc[self.k].Pdc_se(graph_dc) + conv_acdc[self.k].Pac_se(graph) + conv_acdc[self.k].Ploss_se(graph)
+            return -(conv_acdc[self.k].Pdc_se(graph_dc) + conv_acdc[self.k].Pac_se(graph) + conv_acdc[self.k].Ploss_se(graph))
 
 
 class meas_dc(meas):
