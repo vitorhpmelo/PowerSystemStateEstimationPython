@@ -344,7 +344,7 @@ def fbacktracking(graph,dx,z,var_t,var_v,H,dz,W):
             print("backtrackin falhou")
         break
     
-def get_state(graph,sample="ref",df_ref=pd.DataFrame()):
+def get_state_old(graph,sample="ref",df_ref=pd.DataFrame()):
     d={}
     d["tipo"]=[]
     d["de"]=[]
@@ -379,6 +379,67 @@ def get_state(graph,sample="ref",df_ref=pd.DataFrame()):
     dfAns=pd.DataFrame(data=d)
 
     return dfAns
+
+
+def get_state(graph,sample="ref",df_ref=pd.DataFrame()):
+    d={}
+    d["type"]=[]
+    d["bus"]=[]
+    d["val"]=[]
+    d["sample"]=[]
+    d["val_ref"]=[]
+    for no in graph:
+        #teta
+        d["type"].append("t")
+        d["bus"].append(copy.deepcopy(no.id))
+        d["val"].append(copy.deepcopy(no.theta))
+        d["sample"].append(copy.deepcopy(sample))
+        #v
+        d["type"].append("v")
+        d["bus"].append(copy.deepcopy(no.id))
+        d["val"].append(copy.deepcopy(no.V))
+        d["sample"].append(copy.deepcopy(sample))
+        if df_ref.empty:
+            d["val_ref"].append(np.nan)
+            d["val_ref"].append(np.nan)
+        else:
+            #teta
+            mask=(df_ref["type"]=="t") & (df_ref["bus"]==no.id)
+            val=df_ref.loc[mask,"val"].values[0]
+            d["val_ref"].append(val)
+            #v
+            mask=(df_ref["type"]=="v") & (df_ref["bus"]==no.id)
+            val=df_ref.loc[mask,"val"].values[0]
+            d["val_ref"].append(val)
+
+    dfAns=pd.DataFrame(data=d)
+
+    return dfAns
+
+def get_state_dc(graph_dc,sample="ref",df_ref=pd.DataFrame()):
+    d={}
+    d["type"]=[]
+    d["bus"]=[]
+    d["val"]=[]
+    d["sample"]=[]
+    d["val_ref"]=[]
+    for no in graph_dc:
+        #teta
+        d["type"].append("vdc")
+        d["bus"].append(copy.deepcopy(no.id))
+        d["val"].append(copy.deepcopy(no.Vdc))
+        d["sample"].append(copy.deepcopy(sample))
+        if df_ref.empty:
+            d["val_ref"].append(np.nan)
+        else:
+            mask=(df_ref["type"]=="vdc") & (df_ref["bus"]==no.id)
+            val=df_ref.loc[mask,"val"].values[0]
+            d["val_ref"].append(val)
+
+    dfAns=pd.DataFrame(data=d)
+
+    return dfAns
+
 
 def get_state_TCSC(ramTCSC):
     x={}
@@ -1723,7 +1784,7 @@ def SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_co
 
     dz = np.zeros(len(z_ac) + len(z_conv) + len(z_dc) + len(c_conv))
 
-    W = create_W(z_ac + z_conv + z_dc + c_conv, mode=2, prec_virtual=prec_virtual,scale_virt=scale_virt)
+    W = create_W(z_ac + z_conv + c_conv + z_dc, mode=2, prec_virtual=prec_virtual, scale_virt=scale_virt)
     lstdx = []
     lstdz = []
     it = 0
@@ -1753,6 +1814,10 @@ def SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_co
         
         offset=calc_C_se_dc(c_conv,var_vdc,graph_dc,convs_acdc,H,offseti=offset, offset_j=offset_jdc)
         calc_H_se_dc(z_dc, var_vdc, graph_dc, H, offseti=offset, offset_j=offset_jdc)
+
+        if it==0:
+            np.savetxt("H_acdc.csv", H, delimiter=",", fmt="%.15e")
+            np.savetxt("W_acdc.csv", np.diag(W), delimiter=",", fmt="%.15e")
 
 
         grad = np.matmul(np.matmul(H.T, W), dz)

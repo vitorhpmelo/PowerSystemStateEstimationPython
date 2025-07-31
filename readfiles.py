@@ -523,7 +523,7 @@ def save_DMEAS_conv_pf(convs_acdc,graph,graph_dc,sys,flag_save_csv=True):
             linha=[290,conv.id,1,conv.Irc_im(1),1.0]
             Irc_im.append(linha)
 
-        linha=[244,conv.id,-1,graph[conv.i_busac].V/graph_dc[conv.i_busdc].Vdc,1.0]
+        linha=[244,conv.id,-1,conv.d_inter_nodes[2].V/graph_dc[conv.i_busdc].Vdc,1.0]
         M.append(linha) # M = Vac/Vdc, Vac is the voltage in the AC grid bus and Vdc is the voltage in the DC bus
         linha=[245,conv.id,-1,graph[conv.i_busac].theta-conv.d_inter_nodes[2].theta,1.0]
         T.append(linha) 

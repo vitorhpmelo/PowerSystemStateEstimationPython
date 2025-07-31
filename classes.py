@@ -2558,7 +2558,7 @@ class meas_conv(meas):
         elif self.type==230:
             return self.val - conv_acdc[self.k].Qrc(self.m)
         elif self.type==244:
-            return self.val - graph[conv_acdc[self.k].i_busac].V/graph_dc[conv_acdc[self.k].i_busdc].Vdc
+            return self.val - graph[conv_acdc[self.k].i_busconv].V/graph_dc[conv_acdc[self.k].i_busdc].Vdc
         elif self.type==245:
             return self.val - (graph[conv_acdc[self.k].i_busac].theta - graph[conv_acdc[self.k].i_busconv].theta)
         elif self.type==299: # conv constraints

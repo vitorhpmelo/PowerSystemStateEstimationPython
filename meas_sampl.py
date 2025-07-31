@@ -300,17 +300,18 @@ def build_prec_standard(df):
     prec_standard = {}
     for col in df.columns:
         var_type = col.split("_")[0]
-        if "SCADA" in col:
+        meas_type = col.split("_")[1]
+        if "SCADA" == meas_type:
             if var_type in ["Pf", "Pi"]:
                 prec_standard[col] = 0.02
             elif var_type in ["Vm"]:
                 prec_standard[col] = 0.01
-        elif "PMU" in col:
+        elif "PMU" == meas_type:
             if var_type in ["If", "Ii"]:
                 prec_standard[col] = 0.001
             elif var_type in ["V"]:
                 prec_standard[col] = 0.001
-        elif "CONV" in col:
+        elif "CONV" == meas_type:
             if var_type in ["Pftf", "Pfpr", "Pifilt"]:
                 prec_standard[col] = 0.02
             elif var_type in ["Vmfilt", "Vmconv"]:
@@ -323,6 +324,17 @@ def build_prec_standard(df):
                 prec_standard[col] = 0.001
             else:
                 prec_standard[col] = 0.01
+        elif "SCADAdc" == col:
+            if var_type in ["Vmdc","Ifdc","Iidc"]:
+                prec_standard[col] = 0.01
+            elif var_type in ["Pfdc","Pidc"]:
+                prec_standard[col] = 0.02
+        elif "PMUdc" == col:
+            if var_type in ["Vmdc","Ifdc","Iidc"]:
+                prec_standard[col] = 0.001
+        else:
+            prec_standard[col] = 0.01
+
     return prec_standard
 
 
@@ -414,21 +426,19 @@ def create_DMEAS(sys,dfDMEAS_pf=pd.DataFrame(),prec={}):
     for key in list(set(prec_standard.keys())-(prec.keys())):
         prec[key]=prec_standard[key]
 
-    dtypes_ac={"Pi":[0,1],"Pf":[2,3],"Vm":[4,5],"If":[6,7],"Ii":[8,9]}
+    dtypes_ac={"Pi":[0,1],"Pf":[2,3],"Vm":[4],"If":[6,7],"Ii":[8,9],"Vp":[4,5]}
     dtypes_conv={"Pftf":[202,203],"Pfpr":[220,230],"Pifilt":[200,201],
                 "Vmfilt":[204],"Vmconv":[240],"Iifilt":[206,207],
                 "Iftf":[208,209],"Ifpr":[280,290],"M":[244],
                 "Vpfilt":[204,205],"Vpconv":[240,250]
                 }
-    
-    
 
-    dtypes = {**dtypes_ac, **dtypes_conv}
+    dtypes_dc={"Pidc":[100],"Iidc":[101],"Pfdc":[102],"Ifdc":[103],"Vmdc":[104]}
 
-    
+    dtypes = {**dtypes_ac, **dtypes_conv, **dtypes_dc}
 
-    bus_measurements = {}  
-    branch_measurements = {} 
+    bus_measurements = {}
+    branch_measurements = {}
 
     for col in df.columns:
         meas=list(filter(None,df[col].to_list()))

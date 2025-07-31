@@ -2592,7 +2592,7 @@ def calc_H_se_conv(z,var_t,var_v,var_dc,conv_acdc,graph,graph_dc,H,offset=0):
                     raise RuntimeError("Error calculating Jacobian: Real current flow measurement between buses {:d}-{:d} not found in the network branches or UPFC devices.".format(graph[k].id, graph[m].id))
         elif item.type==244: # M measurement
             k=item.k
-            b_ac=conv_acdc[item.k].i_busac
+            b_ac=conv_acdc[item.k].i_busconv
             b_dc=conv_acdc[item.k].i_busdc
             if b_ac in bus_v:
                 H[i][var_v[b_ac]+n_theta]=1/graph_dc[b_dc].Vdc
