@@ -90,27 +90,29 @@ include_conv_nodes_in_graph(graph,ind_i, bran, convs_acdc)
 
 dfDMEAS=create_DMEAS(sys,dfDMEAS_pf=dfDMEAS_pf)
 #%%
-np.random.seed(42)
-# dfDMEAS=insert_res(dfDMEAS)
+np.random.seed(30)
+dfDMEAS=insert_res(dfDMEAS)
 
 dfState_ref=get_state(graph)
 dfStatedc_ref=get_state_dc(graph_dc)
 #%%
 df_res=pd.DataFrame()
+df_resEG=pd.DataFrame()
 error_list= [0, 5, 10, 15, 20,25,30]  # Percentage errors to be introduced
 for e in error_list:
 
     d_original_losses=introduce_error_converter_losses(convs_acdc, error_a=e, error_b=e, error_c=e)
-
-
     SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_conv,scale_virt=0.1)
-
-    remove_error_converter_losses(d_original_losses, convs_acdc)
+    
+    dfEG=renorm_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_conv, scale_virt=0.1)
+    dfEG["sample"]=e
+    df_resEG=pd.concat([df_resEG, dfEG])
     dfStateac_se= get_state(graph,df_ref=dfState_ref,sample=e)
     dfStatedc_se= get_state_dc(graph_dc,df_ref=dfStatedc_ref,sample=e)
     dfState_acdc=pd.concat([dfStateac_se, dfStatedc_se])
     dfState_acdc["error"]=np.abs(dfState_acdc["val"] - dfState_acdc["val_ref"])
     df_res=pd.concat([df_res, dfState_acdc])
+    remove_error_converter_losses(d_original_losses, convs_acdc)
 
 # %%
 
@@ -137,5 +139,45 @@ plt.tight_layout()
 plt.show()
 
 
+# Plot scatter plot of gross errors by samples
+
+plt.figure(figsize=(20, 6))
+i=0
+for e in error_list:
+    mask = (df_resEG["sample"] == e)
+    plt.scatter(np.array(df_resEG[mask].index+((i-len(error_list)/2)/len(error_list))), df_resEG[mask]["rn"], label=f"{e}%")
+    i+=1
+# Draw shaded areas between consecutive indexes for each sample
+
+indices = np.array(df_resEG[mask].index.to_list()) - 0.5
+for i in range(len(indices) - 1):
+    if i%2 == 0:
+        plt.axvspan(indices[i], indices[i+1], color='green', alpha=0.1)
+
+
+
+df_resEG[mask].Type
+
+d={0:"P", 1:"Q",2:"Pf",3:"Qf",4:"V",104:"Vdc", 244 :"M",299:"Ploss"}
+
+meas_labels=[]
+
+for (idx,row) in df_resEG[mask].iterrows():
+    s=d[row["Type"]]
+    s=s+str(row["fr"])
+    if row["to"] != -1:
+        s=s+"-"+str(row["to"])
+    meas_labels.append(s)
+
+plt.xticks(indices+0.5, meas_labels, rotation=90)
+
+
+plt.xlabel("measurement")
+plt.ylabel("Rn")
+
+plt.xlim(-1, max(indices)+1)
+plt.legend()
+plt.grid(axis="y")
+plt.show()
 
 # %%
