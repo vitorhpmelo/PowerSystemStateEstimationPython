@@ -69,27 +69,5 @@ dfDMEAS=insert_res(dfDMEASsr)
 dfState_ref=get_state(graph)
 dfStatedc_ref=get_state_dc(graph_dc)
 #%%
-SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_conv,scale_virt=0.1,printmat=True)
-# %%
-dfStateac_se= get_state(graph,df_ref=dfState_ref,sample="SE")
-dfStatedc_se= get_state_dc(graph_dc,df_ref=dfStatedc_ref,sample="SE")
-#%%
-dfState_acdc=pd.concat([dfStateac_se, dfStatedc_se])
-
-#%%
-MAE={}
-
-for var in list(set(dfState_acdc["type"].values)):
-    MAE[var]=np.mean(np.abs(dfState_acdc[dfState_acdc["type"]==var]["val"] - dfState_acdc[dfState_acdc["type"]==var]["val_ref"]))
-
-# %%
-dvars = {"vdc": r"$Vdc$", "V": r"$V$", "t": r"$\theta$"}
-
-plt.figure(figsize=(8, 5))
-plt.bar([dvars.get(k, k) for k in MAE.keys()], MAE.values())
-plt.xlabel('Variable')
-plt.ylabel('Mean Absolute Error (MAE)')
-plt.title('MAE per Variable')
-plt.tight_layout()
-plt.show()
+SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_conv,scale_virt=0.1,printmat=True,flagPMU_theta=1,itmax=1)
 # %%

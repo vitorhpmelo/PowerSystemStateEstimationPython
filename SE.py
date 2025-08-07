@@ -1730,7 +1730,7 @@ def SE_WLS_dc(graph_dc, dfDMEAS, ind_i_dc, itmax=10, tol=1e-6, tol2=1e-6,
     return conv, lstdx, lstdz
 
 
-def SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_conv, prec_virtual=1e-6,scale_virt=0.1, printcond=0, printmat=0, printgrad=True, printres=True, tol=1e-6, tol2=1e-6, itmax=20):
+def SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_conv, prec_virtual=1e-6,scale_virt=0.1, printcond=0, printmat=0, printgrad=True, printres=True, tol=1e-6, tol2=1e-6, itmax=20,flagPMU_theta=0):
     """
     Performs Weighted Least Squares (WLS) State Estimation for hybrid AC/DC power systems.
     This function estimates the state variables (voltages, angles, etc.) of a power system that includes both AC and DC networks, as well as AC/DC converters internal voltages.
@@ -1741,9 +1741,9 @@ def SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_co
         dfDMEAS: DataFrame or structure containing measurement data for both AC and DC systems.
         ind_i: Indices or identifiers for AC nodes/buses.
         ind_i_dc: Indices or identifiers for DC nodes.
-        ind_id_conv: Indices or identifiers for converter nodes.
+        ind_id_conv: Indices or identifiers for converter nodes.    
         prec_virtual (float, optional): Precision parameter for virtual measurements. Default is 1e-6.
-        scale_virt (float, optional): Scaling factor for virtual measurements. Default is 0.1.
+        scale_virt (float, optional): Scaling factor for virtual measurements. Default is 0.1.h
         printcond (int, optional): Flag to print condition number information. Default is 0.
         printmat (int, optional): Flag to print matrix information. Default is 0.
         printgrad (bool, optional): Flag to print gradient information during iterations. Default is True.
@@ -1767,9 +1767,8 @@ def SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_co
     """
 
     # ACDC converter internal measurements
-    
 
-    [z_ac, var_t, var_v] = create_z_x_se_ac(graph, dfDMEAS, ind_i)
+    [z_ac, var_t, var_v] = create_z_x_se_ac(graph, dfDMEAS, ind_i, flagPMU_theta=flagPMU_theta)
     z_conv = create_z_se_conv(dfDMEAS, convs_acdc, ind_id_conv)
 
     c_conv = create_c_se_conv(convs_acdc)
@@ -1815,9 +1814,8 @@ def SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_co
         offset=calc_C_se_dc(c_conv,var_vdc,graph_dc,convs_acdc,H,offseti=offset, offset_j=offset_jdc)
         calc_H_se_dc(z_dc, var_vdc, graph_dc, H, offseti=offset, offset_j=offset_jdc)
 
-        if it==0:
-            np.savetxt("H_acdc.csv", H, delimiter=",", fmt="%.15e")
-            np.savetxt("W_acdc.csv", np.diag(W), delimiter=",", fmt="%.15e")
+        if (it==0) and (printmat):
+            print_jacobian_info(H, W,z_ac, z_conv, c_conv, z_dc, var_t, var_v, var_vdc)
 
 
         grad = np.matmul(np.matmul(H.T, W), dz)

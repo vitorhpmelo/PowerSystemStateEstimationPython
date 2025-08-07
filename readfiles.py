@@ -707,3 +707,33 @@ def save_DMEAS_acdc(graph, bran, graph_dc, bran_dc, convs_acdc, sys, flag_save_c
     if flag_save_csv:
         dfDMEASACDC.to_csv(sys + "/DMEAS_fp.csv", index=False, float_format="%.7f", header=True)
     return dfDMEASACDC
+
+
+def print_jacobian_info(H, W, z_ac, z_conv, c_conv, z_dc, var_t, var_v, var_vdc):
+        np.savetxt("H_acdc.csv", H, delimiter=",", fmt="%.15e")
+        z_list = []
+        i=0
+        for z in z_ac:
+            z_list.append("z_ac_{}".format(i))
+            i += 1
+        for z in z_conv:
+            z_list.append("z_conv_{}".format(i))
+            i += 1
+        for z in c_conv:
+            z_list.append("c_conv_{}".format(i))
+            i += 1
+        for z in z_dc:
+            z_list.append("z_dc_{}".format(i))
+            i += 1
+        var_list = []
+        for v in sorted(var_t.keys()):
+            var_list.append("var_t_{}".format(v))
+        for v in sorted(var_v.keys()):
+            var_list.append("var_v_{}".format(v))
+        for v in sorted(var_vdc.keys()):
+            var_list.append("var_vdc_{}".format(v))
+        np.savetxt("z_acdc.csv", np.array(z_list), delimiter=",",
+                        fmt="%s")
+        np.savetxt("var_acdc.csv", np.array(var_list), delimiter=",",
+                        fmt="%s")
+        np.savetxt("W_acdc.csv", np.diag(W), delimiter=",", fmt="%.15e")

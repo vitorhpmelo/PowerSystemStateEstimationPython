@@ -2949,7 +2949,7 @@ def create_z_x(graph,dfDMEAS,ind_i):
 
 
 
-def create_z_x_se_ac(graph,dfDMEAS,ind_i):
+def create_z_x_se_ac(graph,dfDMEAS,ind_i,flagPMU_theta=0):
     """
     Creates the measurement vector `z` and the variable index dictionaries `var_t` and `var_v` for AC state estimator.
     Considering only the AC network measurements (no converter internal measurements or DC network measurements).
@@ -2978,9 +2978,9 @@ def create_z_x_se_ac(graph,dfDMEAS,ind_i):
     var_v={}
     i=0
     j=0
-    flag_PMU_theta=0
 
-    flag_PMU_theta = (len(dfDMEAS[dfDMEAS["type"]==5])>0)
+
+    flag_PMU_theta = (len(dfDMEAS[dfDMEAS["type"]==5])>0) or flagPMU_theta
 
     for item in graph:
         if item.bus.type!=0 or flag_PMU_theta==1:
