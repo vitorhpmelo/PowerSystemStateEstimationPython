@@ -19,7 +19,7 @@ def create_x_z_priori(graph,dfDMED_sl_ant,ind_i,flag_PMU_teta_prx=0):
     i=0
     j=0
     for item in graph:
-        if (item.bar.type==1 or item.bar.type==2) or flag_PMU_teta_prx==1:
+        if (item.bus.type==1 or item.bus.type==2) or flag_PMU_teta_prx==1:
             var_t[item.id]=i
             i=i+1
         var_v[item.id]=j
@@ -27,9 +27,9 @@ def create_x_z_priori(graph,dfDMED_sl_ant,ind_i,flag_PMU_teta_prx=0):
     
     for idx,row in dfDMED_sl_ant.iterrows():
         if (int(row["type"])==0) or (int(row["type"])==1) or  (int(row["type"])==4) or  (int(row["type"])==5) or  (int(row["type"])==6) or  (int(row["type"])==7)  or (int(row["type"])==11) :
-            mes=meas(ind_i[int(row["de"])],-1,int(row["type"]),row["zmed"],row["prec"])
+            mes=meas(ind_i[int(row["from"])],-1,int(row["type"]),row["zmeas"],row["prec"])
         else:  
-            mes=meas(ind_i[int(row["de"])],ind_i[int(row["para"])],int(row["type"]),row["zmed"],row["prec"])
+            mes=meas(ind_i[int(row["from"])],ind_i[int(row["to"])],int(row["type"]),row["zmeas"],row["prec"])
         z_sl_ant.append(mes)
 
 
@@ -60,7 +60,7 @@ def calc_priori(graph,dfDMED_sl_ant,dfDMED_sl_atual,indi,lamb=1.0):
     n_SVC=len(var_svc)
     n_UPFC=len(var_UPFC)
     nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
-    W=create_W(z_sl_ant+list(c_upfc),flag_ones=2) #expandir W para caber as c_FACTS
+    W=create_W(z_sl_ant+list(c_upfc),mode=2) #expandir W para caber as c_FACTS
         
     C_UPFC=np.zeros((len(c_upfc),nvar))
 
@@ -87,10 +87,10 @@ def calc_dx_sl(dx_sl,graph,priori,var_t,var_v,var_x,var_svc,var_UPFC):
 
     
     for key,item in var_t.items():
-        dx_sl[item]=graph[key].teta-priori.no[key].teta
+        dx_sl[item]=graph[key].theta-priori.node[key].theta
     n_var=len(var_t)
     for key,item in var_v.items():
-        dx_sl[item+n_var]=graph[key].V-priori.no[key].V
+        dx_sl[item+n_var]=graph[key].V-priori.node[key].V
 
     n_var=n_var+len(var_v)
     for key,item in var_x.items():
@@ -120,9 +120,9 @@ def ini_var_MAP(graph,priori,mode=0):
     #priori_estimate
     if mode==1:
         i=0
-        for no in priori.no:
+        for no in priori.node:
             graph[i].V=no.V
-            graph[i].teta=no.teta
+            graph[i].theta=no.theta
             if graph[i].FlagTCSC==1:
                 for key in graph[i].bFACTS_adjk.keys():
                     graph[i].bFACTS_adjk[key].xtcsc=priori.tcsc[key]
@@ -145,13 +145,13 @@ def ini_var_MAP(graph,priori,mode=0):
 
         tetaini=0
         for no in graph:
-            if no.bar.type == 0:
-                tetaini=no.bar.teta
+            if no.bus.type == 0:
+                tetaini=no.bus.theta
                 break
         
         for i in range(len(graph)):
             graph[i].V=1
-            graph[i].teta=tetaini
+            graph[i].theta=tetaini
             if graph[i].FlagTCSC==1:
                 for key in graph[i].bFACTS_adjk.keys():
                     graph[i].bFACTS_adjk[key].xtcsc=graph[i].bFACTS_adjk[key].xtcsc_ini
@@ -174,13 +174,13 @@ def ini_var_MAP(graph,priori,mode=0):
 
         tetaini=0
         for no in graph:
-            if no.bar.type == 0:
-                tetaini=no.bar.teta
+            if no.bus.type == 0:
+                tetaini=no.bus.theta
                 break
 
         for i in range(len(graph)):
-            graph[i].V=graph[i].bar.V
-            graph[i].teta=tetaini.bar.teta
+            graph[i].V=graph[i].bus.V
+            graph[i].theta=tetaini
             if graph[i].FlagTCSC==1:
                 for key in graph[i].bFACTS_adjk.keys():
                     graph[i].bFACTS_adjk[key].xtcsc=graph[i].bFACTS_adjk[key].xtcsc_ini
@@ -199,7 +199,7 @@ def ini_var_MAP(graph,priori,mode=0):
         i=0
         for no in priori.no:
             graph[i].V=no.V+np.random.normal(0,0.01)
-            graph[i].teta=no.teta+np.random.normal(0,0.01)
+            graph[i].theta=no.theta+np.random.normal(0,0.01)
             if graph[i].FlagTCSC==1:
                 for key in graph[i].bFACTS_adjk.keys():
                     graph[i].bFACTS_adjk[key].xtcsc=priori.tcsc[key]+np.random.normal(0,0.01)
@@ -558,7 +558,7 @@ def SE_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
     dz=np.zeros(len(z))
     dx_sl=np.zeros(nvar)
     
-    W=create_W(z+list(c_upfc),flag_ones=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
+    W=create_W(z+list(c_upfc),mode=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
     
     C_UPFC=np.zeros((len(c_upfc),nvar))
 

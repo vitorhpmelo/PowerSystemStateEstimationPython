@@ -189,7 +189,7 @@ addTCSCingraph(graph,ramTCSC)
 addSVCingraph(graph,busSVC)
 
 addUPFCingraph(graph,ramUPFC)
-
+#%%
 
 #casos de compensação
 #tempo de simulação em segundos
@@ -245,64 +245,23 @@ loads_P,loads_Q=get_var_loads(dfDBARs,n_simulacoes,[5])
 
 plt.plot(loads_P[5])
 #%%
-# plt.ylim(ymin=44,ymax=51)
-#%%
-#cria_setpointsFACTS
-
-pertcsc=5
-persvc=1
-perupfc_psp=5
-perupfc_qsp=5
-perupfc_vp=1
-
-
-
-[tcsc_setpoint,svc_setpoint,upfcs_Psp_setpoint,upfcs_Qsp_setpoint,upfcs_Vp_setpoint]=cria_setpoint_FACTS(graph,ramTCSC,busSVC,ramUPFC,n_simulacoes,pertcsc,persvc,perupfc_psp,perupfc_qsp,perupfc_vp)
-
-#%%
-
-
-
-
-for i in range(2*35,2*80): 
-    svc_setpoint[2][i]=svc_setpoint[2][i]*1.02
-
-
-for i in range(2*50,2*80): 
-    tcsc_setpoint["1-14"][i]=tcsc_setpoint["1-14"][i]*1.02
-
-
-for i in range(2*70,2*80):
-    upfcs_Vp_setpoint["5-15"][i]=upfcs_Vp_setpoint["5-15"][i]*1.02
-    
-
-
-xtcsc_ini=-0.01
-svc_ini=0.1
 
 
 #%%
 
+
+
+#%%
 dDMEDfps={}
 dState_ref={}
 dStateFACTS_ref={}
 amostras_convergidas=0
 for amostra in range(n_simulacoes):
-    for key ,tcsc in ramTCSC.items():
-        tcsc.Pfesp=tcsc_setpoint[key][amostra]
-        tcsc.xtcsc_ini=xtcsc_ini
-    for key,svc in busSVC.items():
-        graph[key].bar.V=svc_setpoint[key][amostra]
-        svc.Bini=svc_ini
-    for key,upfc in ramUPFC.items():
-        upfc.Psp_set=upfcs_Psp_setpoint[key][amostra]
-        upfc.Qsp_set=upfcs_Qsp_setpoint[key][amostra]
-        graph[upfc.p].bar.V=upfcs_Vp_setpoint[key][amostra]
-    
+
     for idx,barra in dfDBARs[amostra].iterrows():
         k=ind_i[int(barra.id)]
-        graph[k].bar.Pd=barra["Pd"]/100
-        graph[k].bar.Qd=barra["Qd"]/100
+        graph[k].bus.Pd=barra["Pd"]/100
+        graph[k].bus.Qd=barra["Qd"]/100
 
     try:    
         conv=power_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
@@ -313,13 +272,11 @@ for amostra in range(n_simulacoes):
     if conv==1:
         amostras_convergidas=amostras_convergidas+1
         ram.update(ramTCSC)
-        dDMEDfps[amostra]=save_DMEAS_pf(graph,ram,sys,ramUPFC)
+        dDMEDfps[amostra]=save_DMEAS_ac_pf(graph,ram,sys,ramUPFC)
         dState_ref[amostra]=get_state(graph)
-        dStateFACTS_ref[amostra]=get_state_FACTS(ramTCSC,busSVC,ramUPFC)
 
 #%%
 dfSATES_ref=pd.DataFrame() #salva os valores de referência das variáveis de estado normais
-dfSATES_FACTS_ref=pd.DataFrame() #salva os valores de referência das variáveis de estado dos FACTS
 
 for key,item in dState_ref.items():
     df=item
@@ -327,56 +284,25 @@ for key,item in dState_ref.items():
     df["scenario"]=key
     dfSATES_ref=pd.concat([dfSATES_ref,df])
     
-for key,item in dStateFACTS_ref.items():
-    df=item
-    df["method"]="PF"
-    df["scenario"]=key
-    dfSATES_FACTS_ref=pd.concat([dfSATES_FACTS_ref,df])
+
 #%%
-dfSATES_ref.sort_values(by=["scenario","de","tipo"],ignore_index=True,inplace=True)
-dfSATES_FACTS_ref.sort_values(by=["scenario","de","tipo"],ignore_index=True,inplace=True)
+dfSATES_ref.sort_values(by=["scenario","bus","type"],ignore_index=True,inplace=True)
 
 #%%
 
 
-#%%
-
-
-if measFACTS==True:
-    dfDMEDs={}
-    for ts in range(n_simulacoes):
-        prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.005,"PMU_Iinj":0.005,"PMUs_V":0.005}
-        dfDMED=create_DMED(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[ts])
-        dfDMEDFACTs=create_DMED_FACTS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[ts])
-        dfDMEDsr=pd.concat([dfDMED.copy(),dfDMEDFACTs.copy()])
-        dfDMEDs[ts]=dfDMEDsr.copy()
-else:
-    dfDMEDs={}
-    for ts in range(n_simulacoes):
-        prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.05,"SMV":0.03,"PSEUDO":0.3,"VIRTUAL":1e-5,"TCSCvar":0.01,"SVCvar":0.01,"UPFCt_sh":0.01,"UPFCV_sh":0.01,"UPFCt_se":0.01,"UPFCV_se":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
-        dfDMED=create_DMED(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[ts])
-        dfDMEDs[ts]=dfDMED.copy()
+dfDMEDs={}
+for ts in range(n_simulacoes):
+    prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.05,"SMV":0.03,"PSEUDO":0.3,"VIRTUAL":1e-5,"TCSCvar":0.01,"SVCvar":0.01,"UPFCt_sh":0.01,"UPFCV_sh":0.01,"UPFCt_se":0.01,"UPFCV_se":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
+    dfDMED=create_DMEAS_old(sys,prec,graph,ram,ramUPFC,dfDMEASpf=dDMEDfps[ts])
+    dfDMEDs[ts]=dfDMED.copy()
 
 
 prec_LIM=0.007
 
 
 #%%
-TCSCini=-0.01
-Bini=0.1
-V_sh_ini=1.0
-t_sh_ini=0
-V_se_ini=0.05
-t_se_ini=-120*np.pi/180
-cx="x1"
 
-dconv_MAP_SCADA={}
-dconv_MAP_PMU={}
-dconv_WLS={}
-dnits_MAP_SCADA={}
-dnits_MAP_PMU={}
-dnits_WLS={}
-N=100
 
 dState_MAP_SCADA={}
 dStateFACTS_MAP_SCADA={}
@@ -408,10 +334,18 @@ simulacoes.sort()
 #%%
 print("Lambda {:f}".format(lamb))
 
+
+dconv_MAP_SCADA={}
+dconv_MAP_PMU={}
+dconv_WLS={}
+dnits_MAP_SCADA={}
+dnits_MAP_PMU={}
+dnits_WLS={}
+
 # namostras= int(ts_SCADA/ts_PMU)
 
 # lamdas= np.linspace(0.5,0.005,namostras)
-
+N=1
 #%%
 np.random.seed(1)
 cont=0
@@ -449,27 +383,15 @@ for n in tqdm(range(N)):
 
         dfDMED_WLSn=pd.concat([dfDMEDSCADAn,dfDMEDPMUn])
 
-        for key ,tcsc in ramTCSC.items():
-            tcsc.xtcsc_ini=TCSCini
-        for key,svc in busSVC.items():
-            svc.Bini=Bini
 
-        for key,upfc in ramUPFC.items():
-            upfc.Vsh_ini=V_sh_ini
-            upfc.tsh_ini=t_sh_ini
-            upfc.Vse_ini=V_se_ini
-            upfc.tse_ini=t_se_ini
     
         conv_WLS,nits_WLS,dfITsWLS=SE_WLS_FACTS_noBC(graph,dfDMED_WLSn,ind_i,printgrad=0,printres=0,printits=2,flatstart=2,tol=1e-6,tol2=1e-1)
 
 
         if conv_WLS==0:
             print("caso divergente")
-
-
         if conv_WLS==True:
             dState_WLS[ts].append(get_state(graph,n,df_ref=dState_ref[ts]))
-            dStateFACTS_WLS[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n,df_ref=dStateFACTS_ref[ts]))
         
 
         conv_MAP_SCADA,nits_MAP_SCADA,dfITsMAP_SCADA=SE_WLS_FACTS_noBC(graph,dfDMEDSCADAn,ind_i,printgrad=0,flatstart=2,printres=0,printits=2,tol2=1e-1,tol=1e-6)
@@ -477,10 +399,8 @@ for n in tqdm(range(N)):
         if conv_MAP_SCADA==0:
             print("caso divergente")
 
-
         if conv_MAP_SCADA==True:
             dState_MAP_SCADA[ts].append(get_state(graph,n,df_ref=dState_ref[ts]))
-            dStateFACTS_MAP_SCADA[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n,df_ref=dStateFACTS_ref[ts]))
         
         if conv_MAP_SCADA==True:
             priori=calc_priori(graph,dfDMEDSCADAn,dfDMEDPMUn,ind_i,lamb=lamb)
@@ -493,7 +413,6 @@ for n in tqdm(range(N)):
             
         if conv_MAP_PMU==True:
             dState_MAP_PMU[ts].append(get_state(graph,n,df_ref=dState_ref[ts]))
-            dStateFACTS_MAP_PMU[ts].append(get_state_FACTS(ramTCSC,busSVC,ramUPFC,n,df_ref=dStateFACTS_ref[ts]))
 
         
         dconv_WLS[ts].append(conv_WLS)

@@ -32,7 +32,7 @@ sys="IEEE14_rakp2009"
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
 
 
-[bars,nbars,pv,pq,ind_i]=creat_bus(dfDBAR)
+[bars,nbars,pv,pq,ind_i]=create_bus(dfDBAR)
 [ram,nbran]=create_bran(dfDBRAN,ind_i)
 #%%
 [ramTCSC,nbranTCSC]=create_TCSC(dfDFACTS,ind_i)
@@ -96,7 +96,7 @@ for idx, row in dfcasos.iterrows():
     #get states and 
     if conv==1:
         ram.update(ramTCSC)
-        dDMEDfps[idx]=save_DMEAS_pf(graph,ram,sys,ramUPFC)
+        dDMEDfps[idx]=save_DMEAS_ac_pf(graph,ram,sys,ramUPFC)
         dState_ref[idx]=get_state(graph)
         dStateTCSC_ref[idx]=get_state_FACTS(ramTCSC,busSVC,ramUPFC)
 
@@ -105,7 +105,7 @@ prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.
 
 
 #%%
-dfDMEDsr=create_DMED(sys,prec,graph,ram)
+dfDMEDsr=create_DMEAS(sys,prec,graph,ram)
 
 
 prec_PMUs=0.007

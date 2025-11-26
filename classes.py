@@ -2630,7 +2630,7 @@ class prioriMAP():
 
         Wmei_prio=np.diag(np.sqrt(np.diag(W)))
 
-        self.WmeiH=np.sqrt(k)*Wmei_prio@H
+        self.WmeiH=np.sqrt(lamb)*Wmei_prio@H
         
 
 

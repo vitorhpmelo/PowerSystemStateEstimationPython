@@ -581,7 +581,7 @@ def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
     nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
     dz=np.zeros(len(z))
     h=np.zeros(len(z))
-    W=create_W(z+list(c_upfc),flag_ones=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
+    W=create_W(z+list(c_upfc),mode=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
     
     C_UPFC=np.zeros((len(c_upfc),nvar))
 
