@@ -31,7 +31,7 @@ else:
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys) # lê arquivos
 
 
-[bars,nbars,pv,pq,ind_i]=creat_bus(dfDBAR)
+[bars,nbars,pv,pq,ind_i]=create_bus(dfDBAR)
 [ram,nbran]=create_bran(dfDBRAN,ind_i)
 
 [ramTCSC,nbranTCSC]=create_TCSC(dfDFACTS,ind_i)
@@ -122,8 +122,8 @@ if measFACTS==True:
     dfDMEDs={}
     for idx, row in dfcasos.iterrows():
         prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.005,"PMU_Iinj":0.005,"PMUs_V":0.005}
-        dfDMED=create_DMED(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[idx])
-        dfDMEDFACTs=create_DMED_FACTS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[idx])
+        dfDMED=create_DMEAS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[idx])
+        dfDMEDFACTs=create_DMEAS_FACTS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[idx])
         dfDMEDsr=pd.concat([dfDMED.copy(),dfDMEDFACTs.copy()])
         dfDMEDs[idx]=dfDMEDsr.copy()
 else:

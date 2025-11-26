@@ -3,6 +3,17 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+import matplotlib.font_manager
+
+print([f.name for f in matplotlib.font_manager.fontManager.ttflist if 'Liberation Sans' in f.name])
+mpl.rcParams['font.family'] = 'Liberation Sans'
+
+
+# Also keep your existing settings
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
+
 #%%
 pal=["#EF5850","#6060F0","#45A369","#8A7B36","#F0CB26","#1DF06D"]
 file="SE_data/"
