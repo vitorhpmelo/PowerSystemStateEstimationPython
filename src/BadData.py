@@ -2,15 +2,15 @@
 Arquivo com as funções utilizadas para cálculos de BadData/Erros Grosseiros 
 """
 
-from classes import *
+from src.classes import *
 import numpy as np
 import pandas as pd
-from readfiles import *
+from src.readfiles import *
 import scipy as scy
 import scipy.sparse.linalg as sliang 
 import scipy.sparse as sparse 
-from networkcalc import *
-from networkcalc_dc import *
+from src.networkcalc import *
+from src.networkcalc_dc import *
 import numpy.linalg as liang
 
 
@@ -87,7 +87,7 @@ def renorm(graph,dfDMED,ind_i,cov):
             zpara.append(graph[m.m].bar.id)
         else:
             zpara.append(-1) # cria listas
-    d={"Tipo":zT,"de":zde,"para":zpara,"Res":dz,"Rn":Rn,"bhat":bhat} # salva dataframe com resultados
+    d={"type":zT,"fr":zde,"to":zpara,"Res":dz,"Rn":Rn,"bhat":bhat} # salva dataframe com resultados
     dfRes=pd.DataFrame(d)
     return dfRes
 
@@ -233,12 +233,12 @@ def renorm_com_FACTS(graph,dfDMED,ind_i,cov):
             zpara.append(graph[m.m].bar.id)
         else:
             zpara.append(-1) # cria listas
-    for m in  var_UPFC.keys(): # restrição de igualdade UPFC
+    for m in  var_UPFC.keys(): # restrição fr igualdade UPFC
         p,s=m.split("-")
         zT.append(-1)
         zde.append(graph[int(p)].bar.id)
         zpara.append(graph[int(p)].bar.id)
 
-    d={"Tipo":zT,"de":zde,"para":zpara,"Res":b,"Rn":Rn,"bhat":bhat,"dCov":np.diag(cov)} # salva dataframe com resultados
+    d={"type":zT,"fr":zde,"to":zpara,"Res":b,"Rn":Rn,"bhat":bhat,"dCov":np.diag(cov)} # salva dataframe com resultados
     dfRes=pd.DataFrame(d)
     return dfRes

@@ -1,13 +1,13 @@
 from matplotlib.pyplot import flag
-from classes import *
-from SE import *
+from src.classes import *
+from src.SE import *
 import numpy as np
 import pandas as pd
-from readfiles import *
+from src.readfiles import *
 import scipy.sparse.linalg as sliang 
 import scipy.sparse as sparse 
 import csv
-
+import timeit as timieit
 
 
 
@@ -103,10 +103,10 @@ def Vinici(graph,flatStart=0,dfDMEAS=[],ind_i=[]):
     '''
     Function to initate the voltages (state variables)
     If flagStart != 0 and != 1  with flat start (i.e. all the voltage modules equal to one and angles equal to 0)
-    If flagStart == 0 the voltages from the DBAR
-    If flagStart == 1 the voltages from the DBAR only in the ref bus
+    If flagStart == 0 the voltages fr the DBAR
+    If flagStart == 1 the voltages fr the DBAR only in the ref bus
     @param: graph list of instances of the node class with all the information about the network
-    @param: flagStart: 0 if the voltages should be initated with the values from the DBAR and different from 0 if they should initate with flat start  
+    @param: flagStart: 0 if the voltages should be initated with the values fr the DBAR and different frfr if they should initate with flat start  
 
     '''
     idxref=0
@@ -175,8 +175,8 @@ def Vinici_lf(graph,useDBUS=1,var_x=dict(),var_t=dict(),z=[]):
     '''
     Function to initate the voltages (state variables) for the load flow, 
     PQ buses recive 1 for the voltage module and 0 for the angle,
-    PV recive the V from the DBUS for the module
-    slack initate with the voltage from the DB 
+    PV recive the V fr the DBUS for the module
+    slack initate with the voltage fr the DB 
     @param: graph list of instances of the node class with all the information about the network
     '''
     if useDBUS==2:
@@ -244,8 +244,8 @@ def Vinici_DBUS(graph):
     '''
     Function to initate the voltages (state variables) for the load flow, 
     PQ buses recive 1 for the voltage module and 0 for the angle,
-    PV recive the V from the DBAR for the module
-    slack initate with the voltage from the DB 
+    PV recive the V fr the DBAR for the module
+    slack initate with the voltage fr the DB 
     @param: graph list of instances of the node class with all the information about the network
     '''
     for no in graph:
@@ -391,8 +391,8 @@ def PowerFlows(bran,graph,print=0):
         dqf[k+"-"+m]=bran.Qf(graph,0)
         dqf[m+"-"+k]=bran.Qf(graph,1)
     if print == 1:
-        dfFlows=pd.DataFrame(list(dpf.items()),columns=["from/to","PFlow"])
-        dfFlows["QFlow"]=dfFlows["from/to"].map(dqf)
+        dfFlows=pd.DataFrame(list(dpf.items()),columns=["fr/to","PFlow"])
+        dfFlows["QFlow"]=dfFlows["fr/to"].map(dqf)
         dfFlows.to_csv("flows.csv",index=None)    
     return dpf,dqf
 
@@ -445,7 +445,7 @@ def create_z_x_loadflow_TCSC(graph):
 
 def create_x_loadflow_SVC(graph,var_v):
     """
-    Auxiliar funcition for the load flow routine, creates the dictionary with the variables from the SVC and REMOVES the voltage magnitudes of the buses with SVC.
+    Auxiliar funcition for the load flow routine, creates the dictionary with the variables fr the SVC and REMOVES the voltage magnitudes of the buses with SVC.
 
     """
 
@@ -471,7 +471,7 @@ def create_x_loadflow_SVC(graph,var_v):
 
 def create_x_loadflow_UPFC(graph,var_v):
     """
-    Auxiliar funcition for the load flow routine, creates the dictionary with the variables from the SVC and REMOVES the voltage magnitudes of the buses with SVC.
+    Auxiliar funcition for the load flow routine, creates the dictionary with the variables fr the SVC and REMOVES the voltage magnitudes of the buses with SVC.
 
     """
 
@@ -2597,7 +2597,7 @@ def calc_H_se_conv(z,var_t,var_v,var_dc,conv_acdc,graph,graph_dc,H,offset=0):
             if b_ac in bus_v:
                 H[i][var_v[b_ac]+n_theta]=1/graph_dc[b_dc].Vdc
             if b_dc in bus_dc:
-                H[i][var_dc[b_dc]+n_theta+n_v]= - (graph[b_ac].V**2)/graph_dc[b_dc].Vdc
+                H[i][var_dc[b_dc]+n_theta+n_v]= - (graph[b_ac].V)/(graph_dc[b_dc].Vdc**2)
         elif item.type==245: # delta measurement
             k=item.k
             b_ac=conv_acdc[item.k].i_busac
@@ -2754,7 +2754,7 @@ def new_X_TCSCC_B(graph,nvars,var_x,dx):
 
 
 
-def power_flow_FACTS(graph,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres=1):
+def power_flow_FACTS(graph,prt=0,tol=1e-6,inici=1,itmax=20,printgrad=1,printres=1):
     """
     Function to run load flow with FACTS devices (only TCSC implemented yet)
     @param graph with the informations of the network
@@ -2789,11 +2789,14 @@ def power_flow_FACTS(graph,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres
     conv=0
     lstdx=[]
     lstdz=[]
-
+    z_values=[z_item.val for z_item in z]
+    np.savetxt("z_values_initial.txt", z_values, delimiter=",")
     FlagTCSC=len(var_x)>1
     FlagSVC=len(var_svc)>1
     while it<itmax:
+        
         calc_dz(z,graph,dz)
+
         calc_cUPFC(graph,var_UPFC,c_UPFC)
         calc_H_fp(z,var_t,var_v,graph,H)
         calc_H_fp_TCSC(z,var_x,graph,HTCSC)
@@ -2806,6 +2809,8 @@ def power_flow_FACTS(graph,prt=0,tol=1e-12,inici=1,itmax=20,printgrad=1,printres
 
         Hx=np.concatenate((H,HTCSC,HSVC,HUPFC,HUPFC_sh),axis=1)
         Hx=np.concatenate((Hx,C_UPFC),axis=0)
+        if it==0:
+            np.savetxt("Hx.txt", Hx, delimiter=",")
         A=sparse.csc_matrix(Hx, dtype=float)
         b=np.concatenate((dz,c_UPFC))
 
@@ -2939,9 +2944,9 @@ def create_z_x(graph,dfDMEAS,ind_i):
 
     for idx,row in dfDMEAS.iterrows():
         if int(row["type"]) in [0, 1, 4, 5, 6, 7, 11]:  # Types that do not require a "to" bus
-            mes=meas(ind_i[int(row["from"])],-1,int(row["type"]),row["zmeas"],row["prec"])
+            mes=meas(ind_i[int(row["fr"])],-1,int(row["type"]),row["zmeas"],row["prec"])
         else:  
-            mes=meas(ind_i[int(row["from"])],ind_i[int(row["to"])],int(row["type"]),row["zmeas"],row["prec"])
+            mes=meas(ind_i[int(row["fr"])],ind_i[int(row["to"])],int(row["type"]),row["zmeas"],row["prec"])
         z.append(mes)
 
     return z,var_t,var_v
@@ -2963,7 +2968,7 @@ def create_z_x_se_ac(graph,dfDMEAS,ind_i,flagPMU_theta=0):
 
     Args:
         graph (iterable): Collection of bus objects representing the network topology.
-        dfDMEAS (pandas.DataFrame): DataFrame containing measurement data with columns "type", "from", "to", "zmeas", and "prec".
+        dfDMEAS (pandas.DataFrame): DataFrame containing measurement data with columns "type", "fr", "to", "zmeas", and "prec".
         ind_i (dict): Dictionary mapping bus indices to bus objects.
 
     Returns:
@@ -2992,9 +2997,9 @@ def create_z_x_se_ac(graph,dfDMEAS,ind_i,flagPMU_theta=0):
     mask=dfDMEAS["type"]<100
     for idx,row in dfDMEAS[mask].iterrows():
         if int(row["type"]) in [0, 1, 4, 5, 6, 7, 11]:  # Types that do not require a "to" bus
-            mes=meas(ind_i[int(row["from"])],-1,int(row["type"]),row["zmeas"],row["prec"])
+            mes=meas(ind_i[int(row["fr"])],-1,int(row["type"]),row["zmeas"],row["prec"])
         else:  
-            mes=meas(ind_i[int(row["from"])],ind_i[int(row["to"])],int(row["type"]),row["zmeas"],row["prec"])
+            mes=meas(ind_i[int(row["fr"])],ind_i[int(row["to"])],int(row["type"]),row["zmeas"],row["prec"])
         z.append(mes)
 
     return z,var_t,var_v
@@ -3016,9 +3021,9 @@ def create_z_c_x_LGI(graph,dfDMEAS,ind_i):
 
     for idx,row in dfDMEAS.iterrows():
         if int(row["type"])==0 or int(row["type"])==1 or  int(row["type"])==4:
-            mes=meas(ind_i[int(row["from"])],-1,int(row["type"]),row["zmeas"],row["prec"])
+            mes=meas(ind_i[int(row["fr"])],-1,int(row["type"]),row["zmeas"],row["prec"])
         else:  
-            mes=meas(ind_i[int(row["from"])],ind_i[int(row["to"])],int(row["type"]),row["zmeas"],row["prec"])
+            mes=meas(ind_i[int(row["fr"])],ind_i[int(row["to"])],int(row["type"]),row["zmeas"],row["prec"])
         if (int(row["type"])==0 or int(row["type"])==1) and row["zmeas"]==0:
             c.append(mes)
         else:
@@ -3222,3 +3227,18 @@ def upfc_angle(graph):
                 Vshcom=vsh*np.exp(j*tsh)
                 no.bUFPC_adjk[key].t_sh=np.angle(Vshcom)
                 no.bUFPC_adjk[key].Vsh=np.absolute(Vshcom)
+
+
+
+
+def ben_dz_power_flow_FACTS(graph):
+    [z,var_t,var_v]=create_z_x_loadflow(graph)#create z and var_v and var_t for the traditional load flow
+
+
+
+
+    dz=np.zeros(len(z))
+        
+    calc_dz(z,graph,dz)
+    execution_time=timieit.timeit('calc_dz(z,graph,dz)', globals=globals(), number=1000)
+    return execution_time

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #%%
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from BadData import *
+from src.networkcalc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
 
@@ -29,15 +29,15 @@ for item in lst:
     dfDMED["medida"]=""
     for idx, row in dfDMED.iterrows():
         if row["type"]==0:
-            dfDMED.at[idx,"medida"]="P"+str(int(row["de"]))
+            dfDMED.at[idx,"medida"]="P"+str(int(row["fr"]))
         elif row["type"]==1:
-            dfDMED.at[idx,"medida"]="Q"+str(int(row["de"]))
+            dfDMED.at[idx,"medida"]="Q"+str(int(row["fr"]))
         elif row["type"]==4:
-            dfDMED.at[idx,"medida"]="V"+str(int(row["de"]))
+            dfDMED.at[idx,"medida"]="V"+str(int(row["fr"]))
         elif row["type"]==2:
-            dfDMED.at[idx,"medida"]="P"+str(int(row["de"]))+"-"+str(int(row["para"]))
+            dfDMED.at[idx,"medida"]="P"+str(int(row["fr"]))+"-"+str(int(row["to"]))
         elif row["type"]==3:
-            dfDMED.at[idx,"medida"]="Q"+str(int(row["de"]))+"-"+str(int(row["para"]))
+            dfDMED.at[idx,"medida"]="Q"+str(int(row["fr"]))+"-"+str(int(row["to"]))
 
 
     dfDMED[["medida","zmed","sigma"]].to_csv("DMED_prova"+item+".csv",sep="\t",index=None,decimal=",",float_format="%.7f")

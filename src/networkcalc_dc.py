@@ -1,9 +1,9 @@
-from classes import *
-from networkcalc import *
-from SE import *
+from src.classes import *
+from src.networkcalc import *
+from src.SE import *
 import numpy as np
 import pandas as pd
-from readfiles import *
+from src.readfiles import *
 import scipy.sparse.linalg as sliang 
 import scipy.sparse as sparse 
 import csv
@@ -36,14 +36,14 @@ def Vinici_pf_dc(graph_dc,useDBUS_DC=1):
     Initializes the DC bus voltages (state variables) for the power flow calculation.
 
     For each node in the DC network:
-        - If useDBUS_DC == 1: Initializes node.Vdc with the value from the database (node.bus_dc.Vdc).
+        - If useDBUS_DC == 1: Initializes node.Vdc with the value fr the database (node.bus_dc.Vdc).
         - If useDBUS_DC == 0: Initializes node.Vdc with a flat start (value 1).
         - If useDBUS_DC == 2: Does not modify node.Vdc (pass) useful for the iteractive power flow.
 
     Args:
         graph_dc (iterable): List of node objects representing the DC network.
         useDBUS_DC (int, optional): Initialization method for voltages.
-            1 = use values from database,
+            1 = use values fr database,
             0 = flat start (all voltages set to 1),
             2 = do not modify voltages.
 
@@ -65,7 +65,7 @@ def Vinici_se_dc(graph_dc,useDBUS_DC=1):
     """
     Initializes the DC bus voltages (state variables) for the state estimation process in a DC network.
     This function sets the initial values of the `Vdc` attribute for each node in the provided DC network graph, according to the specified initialization method. The initialization method is controlled by the `useDBUS_DC` parameter, which allows for different strategies:
-        - 1: Use voltage values from the associated database (`bus_dc.Vdc`) for each node.
+        - 1: Use voltage values fr the associated database (`bus_dc.Vdc`) for each node.
         - 0: Perform a flat start by setting all node voltages to 1 (per unit).
         - 2: Do not modify the existing voltages (leave as is).
         - 3: For nodes where `bus_dc.type == 0`, use the database value; otherwise, set voltage to 1.
@@ -506,11 +506,11 @@ def calc_conv_inter_pf(graph,graph_dc,conv_acdc,d_Pd,d_Qd):
 
 def inc_conv_inj_acpf(graph,conv_acdc):
     """
-    Updates the active (Pd) and reactive (Qd) power demands at AC buses in the graph to account for power injections from AC/DC converters.
+    Updates the active (Pd) and reactive (Qd) power demands at AC buses in the graph to account for power injections fr AC/DC converters.
     For each converter in conv_acdc, this function:
         - Stores the original Pd and Qd values for the associated AC bus.
-        - Subtracts the converter's P_grid from the bus's Pd if the bus is of type 2 (PQ) or type 1 (PV).
-        - Subtracts the converter's Q_grid from the bus's Qd if the bus is of type 1 (PV).
+        - Subtracts the converter's P_grid fr the bus's Pd if the bus is of type 2 (PQ) or type 1 (PV).
+        - Subtracts the converter's Q_grid fr the bus's Qd if the bus is of type 1 (PV).
     Args:
         graph (iterable): A dictionary representing the power system network, where keys are bus indices and values are bus objects with attributes 'bus.Pd', 'bus.Qd', and 'bus.type'.
         conv_acdc (iterable): An iterable of converter objects, each with attributes 'i_busac' (the associated AC bus index), 'P_grid' (active power injection), and 'Q_grid' (reactive power injection).
@@ -551,8 +551,8 @@ def create_z_x_conv_powerflow(conv):
     Returns:
         tuple:
             - z (list): List of measurement objects for the converter's internal power flow.
-            - var_v (dict): Mapping from internal node keys to indices for voltage magnitude variables.
-            - var_t (dict): Mapping from internal node keys to indices for voltage angle variables.
+            - var_v (dict): Mapping fr internal node keys to indices for voltage magnitude variables.
+            - var_t (dict): Mapping fr internal node keys to indices for voltage angle variables.
     """
 
     var_v={}
@@ -593,8 +593,8 @@ def calcH_conv_pf(z,var_t,var_v,conv_acdc,H):
 
     Args:
         z (list): List of measurement objects for the converter's internal power flow.
-        var_t (dict): Mapping from internal node keys to indices for voltage angle variables.
-        var_v (dict): Mapping from internal node keys to indices for voltage magnitude variables.
+        var_t (dict): Mapping fr internal node keys to indices for voltage angle variables.
+        var_v (dict): Mapping fr internal node keys to indices for voltage magnitude variables.
         conv: Converter object containing internal node and branch data.
         H (np.ndarray): Preallocated Jacobian matrix to be filled in-place.
 
@@ -738,7 +738,7 @@ def new_X_conv_pf(conv,var_t,var_v,dx):
         var_v (dict): A dictionary mapping node keys to indices for voltage magnitudes (V).
         dx (list or array-like): A vector of incremental updates for state variables, where the first n_theta elements correspond to theta updates and the remaining elements correspond to V updates.
     Side Effects:
-        Modifies the 'theta' and 'V' attributes of nodes in conv.d_inter_nodes in-place, applying the corresponding increments from dx.
+        Modifies the 'theta' and 'V' attributes of nodes in conv.d_inter_nodes in-place, applying the corresponding increments fr dx.
     Notes:
         - Assumes that the order and length of dx matches the combined size of var_t and var_v.
         - The function does not return any value; it updates the graph in-place.
@@ -754,7 +754,7 @@ def new_X_conv_pf(conv,var_t,var_v,dx):
 def conv_intern_Pf(conv_acdc,i_conv,tol=1e-8):
     """
     Performs the internal power flow calculation for a converter using the Newton-Raphson method.
-    This function iteratively solves the converter's power flow equations (from Berteens,2012 paper ) by updating the state variables
+    This function iteratively solves the converter's power flow equations (fr Berteens,2012 paper ) by updating the state variables
     until the solution converges within a specified tolerance or a maximum number of iterations is reached.
     Args:
         conv: Converter data structure containing parameters and state variables.
@@ -925,7 +925,7 @@ def create_z_x_dc_se(graph_dc, dfDMEAS, ind_i_dc):
         ind_i_dc: Dictionary mapping DC bus IDs to their indices.
 
     Returns:
-        zdc: List of DC measurement objects (meas_dc) constructed from dfDMEAS.
+        zdc: List of DC measurement objects (meas_dc) constructed fr dfDMEAS.
         var_vdc: Dictionary mapping DC bus IDs to their index in the state vector.
     """
     zdc = []
@@ -938,9 +938,9 @@ def create_z_x_dc_se(graph_dc, dfDMEAS, ind_i_dc):
 
     for idx, row in dfDMEAS[(dfDMEAS["type"] > 99) & (dfDMEAS["type"] < 200)].iterrows():  # 100 - 199 are DC measurements
         if int(row["type"]) in [100, 101, 104]:
-            mes = meas_dc(ind_i_dc[int(row["from"])], -1, int(row["type"]), row["zmeas"], row["prec"])
+            mes = meas_dc(ind_i_dc[int(row["fr"])], -1, int(row["type"]), row["zmeas"], row["prec"])
         else:
-            k=ind_i_dc[int(row["from"])]
+            k=ind_i_dc[int(row["fr"])]
             m=ind_i_dc[int(row["to"])]
             dire=1
             for (key,item) in graph_dc[k].adjk.items():
@@ -971,7 +971,7 @@ def create_z_se_conv(dfDMEAS, convs_acdc, ind_id_conv):
 
     z_Conv = []
     for idx, row in dfDMEAS[mask].iterrows():
-        conv = convs_acdc[ind_id_conv[int(row["from"])]]
+        conv = convs_acdc[ind_id_conv[int(row["fr"])]]
         if int(row["type"]) in [200, 201, 204, 205, 206, 207]:  # filter bus measurements        
             m = meas_conv(conv.i_busfilter, -1, dconvtyp_actype[int(row["type"])], row["zmeas"], row["prec"])
         elif int(row["type"]) in [240, 250]:  # converter bus measurements

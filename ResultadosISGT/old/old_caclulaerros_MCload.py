@@ -21,8 +21,8 @@ df_FACTS=pd.read_csv("state_FACTS_"+sys+ini+medidasFACTS+caso+".csv",index_col=N
 
 
 #%%
-df_Trad.sort_values(by=["scenario","sample","de","tipo"],inplace=True)
-df_refTrad.sort_values(by=["scenario","sample","de","tipo"],inplace=True)
+df_Trad.sort_values(by=["scenario","sample","fr","type"],inplace=True)
+df_refTrad.sort_values(by=["scenario","sample","fr","type"],inplace=True)
 #%%
 
 #%%
@@ -36,8 +36,8 @@ df_Trad["error"]=np.abs(df_Trad["val"]-df_Trad["val_ref"])
 df_Trad.to_csv("ErrorsV_"+caso+".csv",index=None)
 #%%
 
-df_FACTS.sort_values(by=["scenario","sample","de","tipo"],inplace=True)
-df_refFACTS.sort_values(by=["scenario","sample","de","tipo"],inplace=True)
+df_FACTS.sort_values(by=["scenario","sample","fr","type"],inplace=True)
+df_refFACTS.sort_values(by=["scenario","sample","fr","type"],inplace=True)
 
 
 df_FACTS["error"]=0.0

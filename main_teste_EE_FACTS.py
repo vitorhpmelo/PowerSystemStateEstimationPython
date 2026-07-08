@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script executando o EE em python com diferentes modos de solução da função objetivo WLS
+Script executing SE with different solution methods
 """
 
 
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from BadData import *
+from src.networkcalc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
 

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #%%
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from BadData import *
+from src.networkcalc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
 
@@ -58,7 +58,7 @@ dfDMED.loc[(dfDMED["type"]==10)|(dfDMED["type"]==11)|(dfDMED["type"]==12)|(dfDME
 dfDMED.loc[(dfDMED["type"]==4)|(dfDMED["type"]==5)|(dfDMED["type"]==6)|(dfDMED["type"]==7)|(dfDMED["type"]==8)|(dfDMED["type"]==9),"prec"]=0.001
 
 
-medidas_virtuais_P=list(set(dfDMED[(dfDMED["type"]==0)&(dfDMED["zmed"]==0)]["de"].to_list()).intersection(dfDMED[(dfDMED["type"]==1)&(dfDMED["zmed"]==0)]["de"].to_list())) 
+medidas_virtuais_P=list(set(dfDMED[(dfDMED["type"]==0)&(dfDMED["zmed"]==0)]["fr"].to_list()).intersection(dfDMED[(dfDMED["type"]==1)&(dfDMED["zmed"]==0)]["fr"].to_list())) 
 
 #%%
 

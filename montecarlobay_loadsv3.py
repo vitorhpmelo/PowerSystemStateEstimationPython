@@ -3,18 +3,18 @@
 # -*- coding: utf-8 -*-
 #versao com amostragem assincrona entre SCADA e PMU
 
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from BadData import *
+from src.networkcalc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
-from SE_Bayesian import *
+from src.SE_Bayesian import *
 from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
 
@@ -333,8 +333,8 @@ for key,item in dStateFACTS_ref.items():
     df["scenario"]=key
     dfSATES_FACTS_ref=pd.concat([dfSATES_FACTS_ref,df])
 #%%
-dfSATES_ref.sort_values(by=["scenario","de","tipo"],ignore_index=True,inplace=True)
-dfSATES_FACTS_ref.sort_values(by=["scenario","de","tipo"],ignore_index=True,inplace=True)
+dfSATES_ref.sort_values(by=["scenario","fr","type"],ignore_index=True,inplace=True)
+dfSATES_FACTS_ref.sort_values(by=["scenario","fr","type"],ignore_index=True,inplace=True)
 
 #%%
 
@@ -346,15 +346,15 @@ if measFACTS==True:
     dfDMEDs={}
     for ts in range(n_simulacoes):
         prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.01,"SMP":0.01,"SMV":0.01,"PSEUDO":0.01,"VIRTUAL":0.01,"PMU_If":0.005,"PMU_Iinj":0.005,"PMUs_V":0.005}
-        dfDMED=create_DMED(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[ts])
-        dfDMEDFACTs=create_DMED_FACTS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[ts])
+        dfDMED=create_DMEAS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[ts])
+        dfDMEDFACTs=create_DMEAS_FACTS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[ts])
         dfDMEDsr=pd.concat([dfDMED.copy(),dfDMEDFACTs.copy()])
         dfDMEDs[ts]=dfDMEDsr.copy()
 else:
     dfDMEDs={}
     for ts in range(n_simulacoes):
         prec={"SCADAPF":0.02,"SCADAPI":0.02,"SCADAV":0.01,"SMP":0.05,"SMV":0.03,"PSEUDO":0.3,"VIRTUAL":1e-5,"TCSCvar":0.01,"SVCvar":0.01,"UPFCt_sh":0.01,"UPFCV_sh":0.01,"UPFCt_se":0.01,"UPFCV_se":0.01,"PMU_If":0.001,"PMU_Iinj":0.001,"PMUs_V":0.001}
-        dfDMED=create_DMED(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[ts])
+        dfDMED=create_DMEAS(sys,prec,graph,ram,ramUPFC,dfDMEDfp=dDMEDfps[ts])
         dfDMEDs[ts]=dfDMED.copy()
 
 

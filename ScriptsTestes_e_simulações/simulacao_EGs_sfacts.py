@@ -1,16 +1,16 @@
-#%% Simulações de EGs
+#%% Simulações fr EGs
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from BadData import *
+from src.networkcalc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
 import copy
@@ -21,13 +21,13 @@ import copy
 sys="IEEE14"
 measFACTS=False
 
-if measFACTS==True: #nomeclatura dos arquivos de entrada
+if measFACTS==True: #nomeclatura dos arquivos fr entrada
     Meas="ComMedidas"
 else:
     Meas="SemMedidas"
 
 dfEG=pd.read_csv(sys+"/DEG.csv",header=None)
-dfEG.columns=["type","de","para","magnitude","multi"]
+dfEG.columns=["type","fr","to","magnitude","multi"]
 
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys) # lê arquivos
@@ -51,7 +51,7 @@ addSVCingraph(graph,busSVC)
 addUPFCingraph(graph,ramUPFC)
 
 
-#%% Guarda os Set points originais do ramo, para calcular o percentual em relação a eles
+#%% Guarda os Set points originais do ramo, to calcular o percentual em relação a eles
 
 
 conv=power_flow_FACTS(graph,inici=1,prt=1,itmax=20,printgrad=0,printres=0)
@@ -64,8 +64,8 @@ if conv==1:
     
 
 # #%%
-dfSATES_ref=pd.DataFrame() #salva os valores de referência das variáveis de estado normais
-# dfSATES_FACTS_ref=pd.DataFrame() #salva os valores de referência das variáveis de estado dos FACTS
+dfSATES_ref=pd.DataFrame() #salva os valores fr referência das variáveis fr estado normais
+# dfSATES_FACTS_ref=pd.DataFrame() #salva os valores fr referência das variáveis de estado dos FACTS
 
 for key,item in dState_ref.items():
     df=item

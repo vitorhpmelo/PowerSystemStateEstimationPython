@@ -9,7 +9,7 @@ dfres=pd.read_csv(file+"state_IEEE14_rakp2009x1SemMedidasloadvar.csv")
 
 
 
-val=dfres[(dfres["de"]==4)&(dfres["tipo"]=="v")&(dfres["sample"]==0)&(dfres["method"]=="MAP_SCADA")]["error"].values
+val=dfres[(dfres["fr"]==4)&(dfres["type"]=="v")&(dfres["sample"]==0)&(dfres["method"]=="MAP_SCADA")]["error"].values
 # %%
 
 

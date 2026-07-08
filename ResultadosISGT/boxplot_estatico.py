@@ -11,13 +11,13 @@ dfstate_FACTS=pd.read_csv('state_FACTS_IEEE14_rakp2009x1SemMedidasesta.csv',inde
 # %%
 dfdata=dfstate_FACTS.copy()
 #%%
-dfdata["tipo"]="FACTS"
+dfdata["type"]="FACTS"
 
 
 #%%
 
 dfdata=pd.concat([dfstate,dfdata])
-dfdata.rename(columns={"tipo":"Var"},inplace=True)
+dfdata.rename(columns={"type":"Var"},inplace=True)
 #%%
 
 dfdata["method"]=dfdata["method"].map({"WLS":"WLS Hybrid","MAP_SCADA":"MAP Stage 1","MAP_PMU":"MAP Stage 2"})

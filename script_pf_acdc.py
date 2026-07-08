@@ -7,16 +7,16 @@ It reads system data, builds network structures for both AC and DC grids,
 runs iterative power flow calculations, saves measurement data, and executes weighted least squares
 state estimation. The script supports bad data detection and loss calculations for converters.
 """
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from networkcalc_dc import *
-from BadData import *
+from src.networkcalc import *
+from src.networkcalc_dc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
 import numpy as np
@@ -60,3 +60,6 @@ power_flow_iterative(graph,graph_dc,convs_acdc)
 
 dfDMEAS=save_DMEAS_acdc(graph,bran, graph_dc, bran_dc, convs_acdc, sys)
 # %%
+
+
+SE_WLS_acdc(graph)

@@ -23,7 +23,7 @@ vars={"x_tcsc",
 "UPFC_tse"}
 
 for var in vars:
-    masks[var]=dfstate_FACTS["tipo"]==var
+    masks[var]=dfstate_FACTS["type"]==var
 
 
 #%%

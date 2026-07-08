@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script de excução simples do Estimador Bayesiano para fusão de informação em comparação com o EE WLS tradicional
+Script for simple execution of the Bayesian Estimator for information fusion in comparison with the traditional EE WLS
 """
 
 
 #%%
 
 
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from BadData import *
+from src.networkcalc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
-from SE_Bayesian import *
+from src.SE_Bayesian import *
 import matplotlib.pyplot as plt 
 
 

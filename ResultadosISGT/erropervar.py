@@ -9,9 +9,9 @@ pal=["#EF5850","#6060F0","#45A369","#8A7B36","#F0CB26","#1DF06D"]
 dfstate=pd.read_csv('state_IEEE14_rakp2009x1SemMedidasesta.csv',index_col=None)
 dfstate_FACTS=pd.read_csv('state_FACTS_IEEE14_rakp2009x1SemMedidasesta.csv',index_col=None)
 #%%
-maskv=dfstate["tipo"]=="v"
-maskt=dfstate["tipo"]=="theta"
-buses=set(dfstate[dfstate["tipo"]=="v"].de)
+maskv=dfstate["type"]=="v"
+maskt=dfstate["type"]=="theta"
+buses=set(dfstate[dfstate["type"]=="v"].fr)
 #%%
 SEs=["WLS","MAP_PMU","MAP_SCADA"]
 MAEv={}
@@ -35,13 +35,13 @@ for SE in SEs:
 
 for SE in SEs:
     for bus in range(len(buses)):    
-        MAEv[SE].append(np.mean(dfstate[maskv&(dfstate["de"]==bus)&(dfstate["method"]==SE)].error))
-        STDv[SE].append(np.std(dfstate[maskv&(dfstate["de"]==bus)&(dfstate["method"]==SE)].error))
-        MAXv[SE].append(np.max(dfstate[maskv&(dfstate["de"]==bus)&(dfstate["method"]==SE)].error))
+        MAEv[SE].append(np.mean(dfstate[maskv&(dfstate["fr"]==bus)&(dfstate["method"]==SE)].error))
+        STDv[SE].append(np.std(dfstate[maskv&(dfstate["fr"]==bus)&(dfstate["method"]==SE)].error))
+        MAXv[SE].append(np.max(dfstate[maskv&(dfstate["fr"]==bus)&(dfstate["method"]==SE)].error))
 
-        MAEt[SE].append(np.mean(dfstate[maskt&(dfstate["de"]==bus)&(dfstate["method"]==SE)].error))
-        STDt[SE].append(np.std(dfstate[maskt&(dfstate["de"]==bus)&(dfstate["method"]==SE)].error))
-        MAXt[SE].append(np.max(dfstate[maskt&(dfstate["de"]==bus)&(dfstate["method"]==SE)].error))
+        MAEt[SE].append(np.mean(dfstate[maskt&(dfstate["fr"]==bus)&(dfstate["method"]==SE)].error))
+        STDt[SE].append(np.std(dfstate[maskt&(dfstate["fr"]==bus)&(dfstate["method"]==SE)].error))
+        MAXt[SE].append(np.max(dfstate[maskt&(dfstate["fr"]==bus)&(dfstate["method"]==SE)].error))
     MAEv[SE]=np.array(MAEv[SE])
     STDv[SE]=np.array(STDv[SE])
     MAXv[SE]=np.array(MAXv[SE])

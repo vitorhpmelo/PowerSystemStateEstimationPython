@@ -12,58 +12,58 @@ import numpy as np
 
 def label_df(df):
     for idx, row in df.iterrows():
-        if row["Tipo"]==0:
-            de=row["de"]
-            if de==200:
-                de="tcsc"
-            df.at[idx,"label"]=r"$P_{"+"{}".format(de)+"}$"
-        if row["Tipo"]==1:
-            de=row["de"]
-            if de==200:
-                de="tcsc"
-            df.at[idx,"label"]=r"$Q_{"+"{}".format(de)+"}$"
-        if row["Tipo"]==2:
-            de=row["de"]
-            para=row["para"]
-            if para == 200:
-                para = 3
-            if para == 600:
-                para = 12
-            df.at[idx,"label"]=r"$P_{"+"{:d}-{:d}".format(de,para)+"}$"
-        if row["Tipo"]==3:
-            de=row["de"]
-            para=row["para"]
-            if para == 200:
-                para = 3
-            if para == 600:
-                para = 12
-            df.at[idx,"label"]=r"$Q_{"+"{:d}-{:d}".format(de,para)+"}$"
-        if row["Tipo"]==4:
-            de=row["de"]
-            df.at[idx,"label"]=r"$V_{:d}$".format(de)
-        if row["Tipo"]==10:
-            de=row["de"]
-            para=3
-            df.at[idx,"label"]=r"$X_{"+"{:d}-{:d}".format(de,para)+"}$"
-        if row["Tipo"]==11:
-            de=row["de"]
-            df.at[idx,"label"]=r"$B_{:d}$".format(de)
-        if row["Tipo"]==12:
-            de=row["de"]
-            para=12
-            df.at[idx,"label"]=r"$Vsh_{"+"{:d}-{:d}".format(de,para)+"}$"
-        if row["Tipo"]==13:
-            de=row["de"]
-            para=12
-            df.at[idx,"label"]=r"$\theta sh_{"+"{:d}-{:d}".format(de,para)+"}$"
-        if row["Tipo"]==14:
-            de=row["de"]
-            para=12
-            df.at[idx,"label"]=r"$Vse_{"+"{:d}-{:d}".format(de,para)+"}$"
-        if row["Tipo"]==15:
-            de=row["de"]
-            para=12
-            df.at[idx,"label"]=r"$\theta se_{"+"{:d}-{:d}".format(de,para)+"}$"
+        if row["type"]==0:
+            fr=row["fr"]
+            if fr==200:
+                fr="tcsc"
+            df.at[idx,"label"]=r"$P_{"+"{}".format(fr)+"}$"
+        if row["type"]==1:
+            fr=row["fr"]
+            if fr==200:
+                fr="tcsc"
+            df.at[idx,"label"]=r"$Q_{"+"{}".format(fr)+"}$"
+        if row["type"]==2:
+            fr=row["fr"]
+            to=row["pato
+            if to == 200:
+                to = 3
+            if to == 600:
+                to = 12
+            df.at[idx,"label"]=r"$P_{"+"{:d}-{:d}".format(fr,to)+"}$"
+        if row["type"]==3:
+            fr=row["fr"]
+            to=row["pato
+            if to == 200:
+                to = 3
+            if to == 600:
+                to = 12
+            df.at[idx,"label"]=r"$Q_{"+"{:d}-{:d}".format(fr,to)+"}$"
+        if row["type"]==4:
+            fr=row["fr"]
+            df.at[idx,"label"]=r"$V_{:d}$".format(fr)
+        if row["type"]==10:
+            fr=row["fr"]
+            to=3
+            df.at[idx,"label"]=r"$X_{"+"{:d}-{:d}".format(fr,to)+"}$"
+        if row["type"]==11:
+            fr=row["fr"]
+            df.at[idx,"label"]=r"$B_{:d}$".format(fr)
+        if row["type"]==12:
+            fr=row["fr"]
+            to=12
+            df.at[idx,"label"]=r"$Vsh_{"+"{:d}-{:d}".format(fr,to)+"}$"
+        if row["type"]==13:
+            fr=row["fr"]
+            to=12
+            df.at[idx,"label"]=r"$\theta sh_{"+"{:d}-{:d}".format(fr,to)+"}$"
+        if row["type"]==14:
+            fr=row["fr"]
+            to=12
+            df.at[idx,"label"]=r"$Vse_{"+"{:d}-{:d}".format(fr,to)+"}$"
+        if row["type"]==15:
+            fr=row["fr"]
+            to=12
+            df.at[idx,"label"]=r"$\theta se_{"+"{:d}-{:d}".format(fr,to)+"}$"
     return df
 
 

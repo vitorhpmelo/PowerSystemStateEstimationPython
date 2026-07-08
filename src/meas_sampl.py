@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from networkcalc import *
+from src.networkcalc import *
 
 
 def create_dfmeasTCSC(dfDMEASpf,lstTCSC):
@@ -18,7 +18,7 @@ def create_dfmeasTCSC(dfDMEASpf,lstTCSC):
         return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstTCSC:
         [fr,to]=item.split("-")
-        dfTCSC=pd.concat([dfTCSC,dfDMEASpf[((dfDMEASpf["type"]==10)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
+        dfTCSC=pd.concat([dfTCSC,dfDMEASpf[((dfDMEASpf["type"]==10)) &(dfDMEASpf["fr"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfTCSC
 
 
@@ -38,7 +38,7 @@ def create_dfmeasUPFCVsh(dfDMEASpf,lstUPFC):
         return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstUPFC:
         [fr,to]=item.split("-")
-        dfmeasUPFCVsh=pd.concat([dfmeasUPFCVsh,dfDMEASpf[((dfDMEASpf["type"]==12)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
+        dfmeasUPFCVsh=pd.concat([dfmeasUPFCVsh,dfDMEASpf[((dfDMEASpf["type"]==12)) &(dfDMEASpf["fr"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfmeasUPFCVsh
 
 
@@ -58,7 +58,7 @@ def create_dfmeasUPFCtsh(dfDMEASpf,lstUPFC):
         return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstUPFC:
         [fr,to]=item.split("-")
-        dfmeasUPFCtsh=pd.concat([dfmeasUPFCtsh,dfDMEASpf[((dfDMEASpf["type"]==13)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
+        dfmeasUPFCtsh=pd.concat([dfmeasUPFCtsh,dfDMEASpf[((dfDMEASpf["type"]==13)) &(dfDMEASpf["fr"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfmeasUPFCtsh
 
 def create_dfmeasUPFCVse(dfDMEASpf,lstUPFC):
@@ -76,7 +76,7 @@ def create_dfmeasUPFCVse(dfDMEASpf,lstUPFC):
         return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstUPFC:
         [fr,to]=item.split("-")
-        dfmeasUPFCVse=pd.concat([dfmeasUPFCVse,dfDMEASpf[((dfDMEASpf["type"]==14)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
+        dfmeasUPFCVse=pd.concat([dfmeasUPFCVse,dfDMEASpf[((dfDMEASpf["type"]==14)) &(dfDMEASpf["fr"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfmeasUPFCVse
 
 def create_dfmeasUPFCtse(dfDMEASpf,lstUPFC):
@@ -94,7 +94,7 @@ def create_dfmeasUPFCtse(dfDMEASpf,lstUPFC):
         return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstUPFC:
         [fr,to]=item.split("-")
-        dfmeasUPFCVse=pd.concat([dfmeasUPFCVse,dfDMEASpf[((dfDMEASpf["type"]==15)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
+        dfmeasUPFCVse=pd.concat([dfmeasUPFCVse,dfDMEASpf[((dfDMEASpf["type"]==15)) &(dfDMEASpf["fr"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfmeasUPFCVse
 
 
@@ -109,7 +109,7 @@ def create_dfmeasSVC(dfDMEASpf,lst_svc):
     """
     if len(lst_svc)<1:
         return dfDMEASpf[dfDMEASpf['type']==-1]
-    return dfDMEASpf[((dfDMEASpf["type"]==11)) & (dfDMEASpf["from"].isin(lst_svc))]
+    return dfDMEASpf[((dfDMEASpf["type"]==11)) & (dfDMEASpf["fr"].isin(lst_svc))]
 
 
 
@@ -128,7 +128,7 @@ def create_dfFluxo(dfDMEASpf,lstFP):
         return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstFP:
         [fr,to]=item.split("-")
-        dfFLOW=pd.concat([dfFLOW,dfDMEASpf[((dfDMEASpf["type"]==2) |(dfDMEASpf["type"]==3)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
+        dfFLOW=pd.concat([dfFLOW,dfDMEASpf[((dfDMEASpf["type"]==2) |(dfDMEASpf["type"]==3)) &(dfDMEASpf["fr"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfFLOW
 
 def create_dfFluxo_PMU(dfDMEASpf,lstFP):
@@ -146,7 +146,7 @@ def create_dfFluxo_PMU(dfDMEASpf,lstFP):
         return dfDMEASpf[dfDMEASpf['type']==-1]
     for item in lstFP:
         [fr,to]=item.split("-")
-        dfFLOW=pd.concat([dfFLOW,dfDMEASpf[((dfDMEASpf["type"]==8) |(dfDMEASpf["type"]==9)) &(dfDMEASpf["from"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
+        dfFLOW=pd.concat([dfFLOW,dfDMEASpf[((dfDMEASpf["type"]==8) |(dfDMEASpf["type"]==9)) &(dfDMEASpf["fr"]==int(fr)) & (dfDMEASpf["to"]==int(to))]])
     return dfFLOW
 
 def create_dfIP(dfDMEASpf,lst_IP):
@@ -159,7 +159,7 @@ def create_dfIP(dfDMEASpf,lst_IP):
     """
     if len(lst_IP)<1:
         return dfDMEASpf[dfDMEASpf['type']==-1]
-    return dfDMEASpf[((dfDMEASpf["type"]==0)|(dfDMEASpf["type"]==1)) & (dfDMEASpf["from"].isin(lst_IP))]
+    return dfDMEASpf[((dfDMEASpf["type"]==0)|(dfDMEASpf["type"]==1)) & (dfDMEASpf["fr"].isin(lst_IP))]
 
 
 def create_dfIC_PMUs(dfDMEASpf,lst_IP):
@@ -172,7 +172,7 @@ def create_dfIC_PMUs(dfDMEASpf,lst_IP):
     """
     if len(lst_IP)<1:
         return dfDMEASpf[dfDMEASpf['type']==-1]
-    return dfDMEASpf[((dfDMEASpf["type"]==6)|(dfDMEASpf["type"]==7)) & (dfDMEASpf["from"].isin(lst_IP))]
+    return dfDMEASpf[((dfDMEASpf["type"]==6)|(dfDMEASpf["type"]==7)) & (dfDMEASpf["fr"].isin(lst_IP))]
 
 
 def create_dfV(dfDMEASpf,lst_V):
@@ -183,7 +183,7 @@ def create_dfV(dfDMEASpf,lst_V):
     @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lst_V: list with the buses with that type of measurement
     """
-    return dfDMEASpf[(dfDMEASpf["type"]==4)& (dfDMEASpf["from"].isin(lst_V))]
+    return dfDMEASpf[(dfDMEASpf["type"]==4)& (dfDMEASpf["fr"].isin(lst_V))]
 
 def create_dfV_PMUs(dfDMEASpf,lst_V):
     """
@@ -193,7 +193,7 @@ def create_dfV_PMUs(dfDMEASpf,lst_V):
     @param: dfDMEASpf: pandas dataframe with all the measurements avaible in the loadflow
     @param: lst_V: list with the buses with that type of measurement
     """
-    return dfDMEASpf[((dfDMEASpf["type"]==4)|(dfDMEASpf["type"]==5))& (dfDMEASpf["from"].isin(lst_V))]
+    return dfDMEASpf[((dfDMEASpf["type"]==4)|(dfDMEASpf["type"]==5))& (dfDMEASpf["fr"].isin(lst_V))]
 
 
 
@@ -212,12 +212,12 @@ def create_DMEAS_old(sys,prec,graph,bran,dUPFC={},dfDMEASpf=pd.DataFrame()):
 
         try: # if the DMEAS exists the program reads it, this file is not mandatory for power flow 
             dfDMEASpf=pd.read_csv(sys+"/DMEAS_pf.csv",header=None)
-            dfDMEASpf.columns=["type","from","to","zmeas","prec"]
+            dfDMEASpf.columns=["type","fr","to","zmeas","prec"]
         except:
             conv = power_flow(graph,tol=1e-10)
             save_DMEAS_pf(graph,bran,sys,dUPFC)
             dfDMEASpf=pd.read_csv(sys+"/DMEAS_pf.csv",header=None)
-            dfDMEASpf.columns=["type","from","to","zmeas","prec"]
+            dfDMEASpf.columns=["type","fr","to","zmeas","prec"]
 
     try:
         df=pd.read_csv(sys+"/measplan.csv",keep_default_na=False)
@@ -242,8 +242,8 @@ def create_DMEAS_old(sys,prec,graph,bran,dUPFC={},dfDMEASpf=pd.DataFrame()):
     SMlstFP=list(filter(None,df["PFSM"].to_list()))
     SMlstV=list(np.int32(list(filter(None,df["VSM"].to_list()))))
     PSEUDOlst=list(np.int32(list(filter(None,df["PSEUDO"].to_list()))))
-    Plst=dfDMEASpf[((dfDMEASpf["prec"]<0.0001) &(dfDMEASpf["zmeas"]==0.000) & (dfDMEASpf["type"]==0))]["from"].tolist()
-    Qlst=dfDMEASpf[((dfDMEASpf["prec"]<0.0001) &(dfDMEASpf["zmeas"]==0.000) & (dfDMEASpf["type"]==1))]["from"].tolist()
+    Plst=dfDMEASpf[((dfDMEASpf["prec"]<0.0001) &(dfDMEASpf["zmeas"]==0.000) & (dfDMEASpf["type"]==0))]["fr"].tolist()
+    Qlst=dfDMEASpf[((dfDMEASpf["prec"]<0.0001) &(dfDMEASpf["zmeas"]==0.000) & (dfDMEASpf["type"]==1))]["fr"].tolist()
     Vistuaislst=list(set(Plst).intersection(Qlst))
     Vistuaislst=list(set(Vistuaislst)-set(Vistuaislst).intersection(SCADAlstIP+SMlstIP+PSEUDOlst))
 
@@ -351,7 +351,7 @@ def build_bus_measurements(bus_measurements, dtypes, prec, dfDMEAS_pf):
         bus_measurements (dict): Dictionary mapping measurement names to lists of bus identifiers.
         dtypes (dict): Dictionary mapping bus types to lists of measurement types.
         prec (dict): Dictionary mapping measurement names to precision values.
-        dfDMEAS_pf (pd.DataFrame): DataFrame containing measurement data with at least 'type' and 'from' columns.
+        dfDMEAS_pf (pd.DataFrame): DataFrame containing measurement data with at least 'type' and 'fr' columns.
     Returns:
         dict: Dictionary mapping measurement names to filtered DataFrames with an added 'prec' column.
     """
@@ -361,7 +361,7 @@ def build_bus_measurements(bus_measurements, dtypes, prec, dfDMEAS_pf):
         fr = bus_measurements[col]
         types = dtypes[col.split("_")[0]]
         prec_value = prec[col]
-        mask = dfDMEAS_pf["type"].isin(types) & dfDMEAS_pf["from"].isin(fr)
+        mask = dfDMEAS_pf["type"].isin(types) & dfDMEAS_pf["fr"].isin(fr)
         dmeas[col] = dfDMEAS_pf[mask].copy()
         dmeas[col]["prec"] = prec_value
     return dmeas
@@ -370,28 +370,28 @@ def build_branch_measurements(branch_measurements, dtypes, prec, dfDMEAS_pf):
     """
     Constructs a dictionary of filtered branch measurement DataFrames with precision values.
     For each measurement type specified in `branch_measurements`, this function:
-    - Filters the input DataFrame `dfDMEAS_pf` to include only rows matching the specified branch pairs (`from`, `to`)
+    - Filters the input DataFrame `dfDMEAS_pf` to include only rows matching the specified branch pairs (`fr`, `to`)
       and measurement types.
     - Adds a precision column to each filtered DataFrame based on the `prec` dictionary.
     - Returns a dictionary mapping each measurement type to its corresponding filtered DataFrame.
     Function employed in the create_DMEAS function
     Args:
-        branch_measurements (dict): Dictionary where keys are measurement types and values are dicts with "from" and "to" lists.
+        branch_measurements (dict): Dictionary where keys are measurement types and values are dicts with "fr" and "to" lists.
         dtypes (dict): Dictionary mapping measurement type prefixes to lists of valid types.
         prec (dict): Dictionary mapping measurement types to their precision values.
-        dfDMEAS_pf (pandas.DataFrame): DataFrame containing all branch measurements with columns "type", "from", and "to".
+        dfDMEAS_pf (pandas.DataFrame): DataFrame containing all branch measurements with columns "type", "fr", and "to".
     Returns:
         dict: Dictionary mapping measurement types to filtered pandas DataFrames with an added "prec" column.
     """
 
     dmeas = {}
     for col in branch_measurements.keys():
-        fr = branch_measurements[col]["from"]
+        fr = branch_measurements[col]["fr"]
         to = branch_measurements[col]["to"]
         bran = list(zip(fr, to))
         types = dtypes[col.split("_")[0]]
         prec_value = prec[col]
-        mask = dfDMEAS_pf.apply(lambda row: (row["type"] in types) and ((row["from"], row["to"]) in bran), axis=1)
+        mask = dfDMEAS_pf.apply(lambda row: (row["type"] in types) and ((row["fr"], row["to"]) in bran), axis=1)
         dmeas[col] = dfDMEAS_pf[mask].copy()
         dmeas[col]["prec"] = prec_value
     return dmeas
@@ -399,7 +399,7 @@ def build_branch_measurements(branch_measurements, dtypes, prec, dfDMEAS_pf):
 def create_DMEAS(sys,dfDMEAS_pf=pd.DataFrame(),prec={}):
     """
     Generates a DataFrame containing the measurement set for the system based on the "measplan.csv" file.
-    Reads available measurements from "DMEAS_pf.csv"; if not present, raises an exception.
+    Reads available measurements fr "DMEAS_pf.csv"; if not present, raises an exception.
     Accepts the system name (sys) and a dictionary of measurement precisions (prec).
     Returns a pandas DataFrame with the selected measurements and their precision values.
     """
@@ -417,7 +417,6 @@ def create_DMEAS(sys,dfDMEAS_pf=pd.DataFrame(),prec={}):
         raise Exception("There is no measurement plan file")
     
     prec={}
-    df=pd.read_csv(sys+"/measplan.csv",keep_default_na=False)
 
 
     prec_standard = build_prec_standard(df)
@@ -450,7 +449,7 @@ def create_DMEAS(sys,dfDMEAS_pf=pd.DataFrame(),prec={}):
                 for x in meas:
                     fr.append(int(x.split("-")[0]))
                     to.append(int(x.split("-")[1]))
-                branch_measurements[col] = {"from": fr, "to": to}
+                branch_measurements[col] = {"fr": fr, "to": to}
             else:
                 bus_measurements[col] = np.int64(meas)
 
@@ -492,16 +491,16 @@ def insert_EG(dfDMEASsr,dfEG,duplicate=False):
     """
     
     for idx,meas in dfEG.iterrows():
-        tipo=meas["type"]
-        fr=meas["from"]
+        type=meas["type"]
+        fr=meas["fr"]
         to=meas["to"]
         mag=meas["magnitude"]
         mul=meas["multi"]
 
-        if tipo in [0,1,4,11]:
-            mask=(dfDMEASsr["type"]==tipo) & (dfDMEASsr["from"]==fr)
+        if type in [0,1,4,11]:
+            mask=(dfDMEASsr["type"]==type) & (dfDMEASsr["fr"]==fr)
         else: 
-            mask=(dfDMEASsr["type"]==tipo) & (dfDMEASsr["from"]==fr) & (dfDMEASsr["to"]==to)
+            mask=(dfDMEASsr["type"]==type) & (dfDMEASsr["fr"]==fr) & (dfDMEASsr["to"]==to)
         if mul == 0:
             for idx2, row in dfDMEASsr[mask].iterrows():
                     sigma=row["prec"]*np.abs(row["zmeas"])/3
@@ -540,12 +539,12 @@ def create_DMEAS_FACTS(sys,prec,graph,bran,branUPFC,dfDMEASpf=pd.DataFrame()):
     if dfDMEASpf.empty:
         try: # if the DMEAS exists the program reads it, this file is not mandatory for power flow 
             dfDMEASpf=pd.read_csv(sys+"/DMEAS_pf.csv",header=None)
-            dfDMEASpf.columns=["type","from","to","zmeas","prec"]
+            dfDMEASpf.columns=["type","fr","to","zmeas","prec"]
         except:
             conv = power_flow(graph,tol=1e-10)
             save_DMEAS_pf(graph,bran,sys,branUPFC)
             dfDMEASpf=pd.read_csv(sys+"/DMEAS_pf.csv",header=None)
-            dfDMEASpf.columns=["type","from","to","zmeas","prec"]
+            dfDMEASpf.columns=["type","fr","to","zmeas","prec"]
     try:
         df=pd.read_csv(sys+"/measplanFACTS.csv",keep_default_na=False)
     except:

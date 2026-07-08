@@ -8,13 +8,13 @@ DMEDJulio.columns=['dump',"sentido","dump2","ram","dump3","val","val2","prec"]
 # %%
 
 dfRam=pd.read_csv("ram.csv",header=None)
-dfRam.columns=["de","para"]
+dfRam.columns=["fr","to"]
 dfRam["ID"]=dfRam.index
 # %%
 flows=[]
 for idx, row in DMEDJulio.iterrows():
-    k=int(dfRam[dfRam["ID"]==row["ram"]]["de"])
-    m=int(dfRam[dfRam["ID"]==row["ram"]]["para"])
+    k=int(dfRam[dfRam["ID"]==row["ram"]]["fr"])
+    m=int(dfRam[dfRam["ID"]==row["ram"]]["to"])
     if "Pkm" in row["sentido"]:
         flows.append(str(k)+"-"+str(m))
     elif "Pmk" in row["sentido"]:

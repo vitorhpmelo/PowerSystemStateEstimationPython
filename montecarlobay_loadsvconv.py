@@ -3,19 +3,19 @@
 # -*- coding: utf-8 -*-
 #versao com amostragem assincrona entre SCADA e PMU
 
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from BadData import *
+from src.networkcalc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
 import copy as cp
-from SE_Bayesian import *
+from src.SE_Bayesian import *
 from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
 import time as tm
@@ -220,7 +220,7 @@ addSVCingraph(graph,busSVC)
 addUPFCingraph(graph,ramUPFC)
 
 
-#%% Guarda os Set points originais do ramo, para calcular o percentual em relação a eles
+#%% Guarda os Set points originais do ramo, to calcular o percentual em relação a eles
 
 
 
@@ -367,8 +367,8 @@ for key,item in dStateFACTS_ref.items():
     df["scenario"]=key
     dfSATES_FACTS_ref=pd.concat([dfSATES_FACTS_ref,df])
 #%%
-dfSATES_ref.sort_values(by=["scenario","de","tipo"],ignore_index=True,inplace=True)
-dfSATES_FACTS_ref.sort_values(by=["scenario","de","tipo"],ignore_index=True,inplace=True)
+dfSATES_ref.sort_values(by=["scenario","fr","type"],ignore_index=True,inplace=True)
+dfSATES_FACTS_ref.sort_values(by=["scenario","fr","type"],ignore_index=True,inplace=True)
 
 #%%
 dfSATES_ref.to_csv("ResultadosISGT/state_ref"+sys+nome+".csv")
@@ -514,24 +514,24 @@ for n in tqdm(range(N)):
         #     flat_start=6
         #     useDFACTS=6
         #     for idx, row in dState_WLS[cont_ts][n].iterrows():
-        #         no=int(row["de"])
-        #         if row["tipo"]=="v":
+        #         no=int(row["fr"])
+        #         if row["type"]=="v":
         #             graph[no].V=row["val"] 
-        #         elif row["tipo"]=="teta":
+        #         elif row["type"]=="teta":
         #             graph[no].teta=row["val"] 
         #     for idx, row in dStateFACTS_WLS[cont_ts][n].iterrows():
-        #         if row["tipo"]=="x_tcsc":
-        #             ramTCSC[row["de"]].xtcsc=row["val"]
-        #         elif row["tipo"]=="B_svc":
-        #             busSVC[row["de"]].BSVC=row["val"]
-        #         elif row["tipo"]=="UPFC_Vsh":
-        #             ramUPFC[row["de"]].Vsh=row["val"]
-        #         elif row["tipo"]=="UPFC_Vse":
-        #             ramUPFC[row["de"]].Vse=row["val"]
-        #         elif row["tipo"]=="UPFC_tse":
-        #             ramUPFC[row["de"]].t_se=row["val"]
-        #         elif row["tipo"]=="UPFC_tsh":
-        #             ramUPFC[row["de"]].t_sh=row["val"]
+        #         if row["type"]=="x_tcsc":
+        #             ramTCSC[row["fr"]].xtcsc=row["val"]
+        #         elif row["type"]=="B_svc":
+        #             busSVC[row["fr"]].BSVC=row["val"]
+        #         elif row["type"]=="UPFC_Vsh":
+        #             ramUPFC[row["fr"]].Vsh=row["val"]
+        #         elif row["type"]=="UPFC_Vse":
+        #             ramUPFC[row["fr"]].Vse=row["val"]
+        #         elif row["type"]=="UPFC_tse":
+        #             ramUPFC[row["fr"]].t_se=row["val"]
+        #         elif row["type"]=="UPFC_tsh":
+        #             ramUPFC[row["fr"]].t_sh=row["val"]
 
 
         

@@ -36,7 +36,7 @@ dfBRAN["id"]=list(range(1,len(dfbran)+1))
 dfBRAN["type"]=np.ones(len(dfbran),dtype=int)
 trafosidx=dfbran[(dfbran["ratio"]!=0)&(dfbran["ratio"]!=1)].index
 dfBRAN.loc[trafosidx,"type"]=2
-dfBRAN["from"]=dfbran["fbus"]
+dfBRAN["fr"]=dfbran["fbus"]
 dfBRAN["to"]=dfbran["tbus"]
 dfBRAN["r"]=dfbran["r"]
 dfBRAN["x"]=dfbran["x"]

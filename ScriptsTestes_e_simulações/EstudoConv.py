@@ -2,15 +2,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from BadData import *
+from src.networkcalc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
 import copy
@@ -160,19 +160,19 @@ for idx, row in dfcasos.iterrows():
         # dfDMED=insert_res(dfDMEDs[idx],n)
         dfDMED=dfDMEDs[idx].copy()
         for key ,tcsc in ramTCSC.items():
-            # true=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["tipo"]=="x_tcsc")&(dStateTCSC_ref[idx]["de"]==key)]["val"].values[0]
+            # true=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["type"]=="x_tcsc")&(dStateTCSC_ref[idx]["fr"]==key)]["val"].values[0]
             # tcsc.xtcsc_ini=true*(1+cx)
             tcsc.xtcsc_ini=row["TCSC_ini"]
         for key,svc in busSVC.items():
             svc.Bini=row["SVC_ini"]
-            # true=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["tipo"]=="B_svc")&(dStateTCSC_ref[idx]["de"]==key)]["val"].values[0]
+            # true=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["type"]=="B_svc")&(dStateTCSC_ref[idx]["fr"]==key)]["val"].values[0]
             # svc.Bini=true*(1+cx)
         for key,upfc in ramUPFC.items():
             # svc.Bini=row["SVC_ini"]
-            # true_VSH=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["tipo"]=="UPFC_Vsh")&(dStateTCSC_ref[idx]["de"]==key)]["val"].values[0]
-            # true_TSH=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["tipo"]=="UPFC_tsh")&(dStateTCSC_ref[idx]["de"]==key)]["val"].values[0]
-            # true_VSE=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["tipo"]=="UPFC_Vse")&(dStateTCSC_ref[idx]["de"]==key)]["val"].values[0]
-            # true_TSE=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["tipo"]=="UPFC_tse")&(dStateTCSC_ref[idx]["de"]==key)]["val"].values[0]
+            # true_VSH=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["type"]=="UPFC_Vsh")&(dStateTCSC_ref[idx]["fr"]==key)]["val"].values[0]
+            # true_TSH=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["type"]=="UPFC_tsh")&(dStateTCSC_ref[idx]["fr"]==key)]["val"].values[0]
+            # true_VSE=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["type"]=="UPFC_Vse")&(dStateTCSC_ref[idx]["fr"]==key)]["val"].values[0]
+            # true_TSE=dStateTCSC_ref[idx][(dStateTCSC_ref[idx]["type"]=="UPFC_tse")&(dStateTCSC_ref[idx]["fr"]==key)]["val"].values[0]
             # upfc.Vsh_ini=true_VSH*(1+cx)
             # upfc.tsh_ini=true_TSH*(1+cx)
             # upfc.Vse_ini=true_VSE*(1+cx)

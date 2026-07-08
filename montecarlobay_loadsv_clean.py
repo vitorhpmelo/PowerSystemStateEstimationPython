@@ -3,18 +3,18 @@
 # -*- coding: utf-8 -*-
 #versao com amostragem assincrona entre SCADA e PMU
 
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from BadData import *
+from src.networkcalc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
-from SE_Bayesian import *
+from src.SE_Bayesian import *
 from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
 
@@ -404,7 +404,7 @@ for n in tqdm(range(N)):
         
         if conv_MAP_SCADA==True:
             priori=calc_priori(graph,dfDMEDSCADAn,dfDMEDPMUn,ind_i,lamb=lamb)
-            conv_MAP_PMU,nits_MAP_PMU,dfITsMAP_PMU=SE_MAP_FACTS_withBC(graph,priori,dfDMEDPMUn,ind_i,tol2=7,tol=1e-6,flatstart=1,printres=0,printits=2,printgrad=0)
+            conv_MAP_PMU,nits_MAP_PMU,dfITsMAP_PMU=SE_MAP_FACTS_withBC(graph,priori,dfDMEDPMUn,ind_i,tol2=7,tol=1e-6,flatstart=0,printres=0,printits=2,printgrad=0)
         else:
             print("divergencia no MAP PMU")
             conv_MAP_PMU=0

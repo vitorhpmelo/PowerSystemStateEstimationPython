@@ -1,13 +1,13 @@
-from classes import *
+from src.classes import *
 import numpy as np
 import pandas as pd
-from readfiles import *
+from src.readfiles import *
 import scipy.sparse.linalg as sliang 
 import scipy.sparse as sparse 
-from networkcalc import *
+from src.networkcalc import *
 import numpy.linalg as liang
 import time as tm
-from SE import *
+from src.SE import *
 
 
 def create_x_z_priori(graph,dfDMED_sl_ant,ind_i,flag_PMU_teta_prx=0):
@@ -27,9 +27,9 @@ def create_x_z_priori(graph,dfDMED_sl_ant,ind_i,flag_PMU_teta_prx=0):
     
     for idx,row in dfDMED_sl_ant.iterrows():
         if (int(row["type"])==0) or (int(row["type"])==1) or  (int(row["type"])==4) or  (int(row["type"])==5) or  (int(row["type"])==6) or  (int(row["type"])==7)  or (int(row["type"])==11) :
-            mes=meas(ind_i[int(row["from"])],-1,int(row["type"]),row["zmeas"],row["prec"])
+            mes=meas(ind_i[int(row["fr"])],-1,int(row["type"]),row["zmeas"],row["prec"])
         else:  
-            mes=meas(ind_i[int(row["from"])],ind_i[int(row["to"])],int(row["type"]),row["zmeas"],row["prec"])
+            mes=meas(ind_i[int(row["fr"])],ind_i[int(row["to"])],int(row["type"]),row["zmeas"],row["prec"])
         z_sl_ant.append(mes)
 
 
@@ -40,7 +40,7 @@ def create_x_z_priori(graph,dfDMED_sl_ant,ind_i,flag_PMU_teta_prx=0):
     return z_sl_ant,var_t,var_v,var_x,var_svc,var_UPFC,c_upfc
     
 
-def calc_priori(graph,dfDMED_sl_ant,dfDMED_sl_atual,indi,lamb=1.0):
+def calc_priori(graph,dfDMED_sl_ant,dfDMED_sl_atual,indi,lamb=1.0,prec_virtual=1e-5):
 
 
 
@@ -60,7 +60,7 @@ def calc_priori(graph,dfDMED_sl_ant,dfDMED_sl_atual,indi,lamb=1.0):
     n_SVC=len(var_svc)
     n_UPFC=len(var_UPFC)
     nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
-    W=create_W(z_sl_ant+list(c_upfc),mode=2) #expandir W para caber as c_FACTS
+    W=create_W(z_sl_ant+list(c_upfc),mode=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
         
     C_UPFC=np.zeros((len(c_upfc),nvar))
 
@@ -558,7 +558,7 @@ def SE_MAP_FACTS_withBC(graph,priori,dfDMED,ind_i,tol=1e-7,tol2=1e-7,solver="QR"
     dz=np.zeros(len(z))
     dx_sl=np.zeros(nvar)
     
-    W=create_W(z+list(c_upfc),mode=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
+    W=create_W(z+list(c_upfc),mode=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
     
     C_UPFC=np.zeros((len(c_upfc),nvar))
 

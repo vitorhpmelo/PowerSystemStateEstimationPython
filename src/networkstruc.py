@@ -1,5 +1,5 @@
 from csv import DictReader
-from classes import *
+from src.classes import *
 import pandas as pd
 import numpy as np
 
@@ -54,15 +54,15 @@ def create_bran(dfDBRAN,ind_i):
     ## determines paralel lines
     dparallel={}
     for idx, row in dfDBRAN.iterrows():
-        mask1=(dfDBRAN["from"]== row["from"]) & (dfDBRAN["to"]== row["to"])
-        mask2=(dfDBRAN["from"]== row["to"]) & (dfDBRAN["to"]== row["from"])
+        mask1=(dfDBRAN["fr"]== row["fr"]) & (dfDBRAN["to"]== row["to"])
+        mask2=(dfDBRAN["fr"]== row["to"]) & (dfDBRAN["to"]== row["fr"])
         if sum(mask1) + sum(mask2)>1:
-            if str(row["from"])+"-"+str(row["to"]) in dparallel.keys():
-                dparallel[str(row["from"])+"-"+str(row["to"])].append(idx)
-            elif str(row["to"])+"-"+str(row["from"]) in dparallel.keys():
-                dparallel[str(row["to"])+"-"+str(row["from"])].append(idx)
+            if str(row["fr"])+"-"+str(row["to"]) in dparallel.keys():
+                dparallel[str(row["fr"])+"-"+str(row["to"])].append(idx)
+            elif str(row["to"])+"-"+str(row["fr"]) in dparallel.keys():
+                dparallel[str(row["to"])+"-"+str(row["fr"])].append(idx)
             else:
-                dparallel[str(row["from"])+"-"+str(row["to"])]=[idx]
+                dparallel[str(row["fr"])+"-"+str(row["to"])]=[idx]
 
     # remove linhas paralelas
     for key,item in dparallel.items():
@@ -80,8 +80,8 @@ def create_bran(dfDBRAN,ind_i):
     dfDBRAN.reindex()
 
     for id, row in dfDBRAN.iterrows():
-        key=str(ind_i[int(row["from"])])+"-"+str(ind_i[int(row["to"])])
-        item=branch(int(row["id"]),ind_i[int(row["from"])],ind_i[int(row["to"])],int(row["type"]),i)
+        key=str(ind_i[int(row["fr"])])+"-"+str(ind_i[int(row["to"])])
+        item=branch(int(row["id"]),ind_i[int(row["fr"])],ind_i[int(row["to"])],int(row["type"]),i)
         item.x=row["x"]
         item.r=row["r"]
         item.bsh=complex(0,row["bsh"]/2) #divides the shunt suceptance by two
@@ -118,8 +118,8 @@ def create_TCSC(dfFACTS,ind_i):
     dfTCSC=dfFACTS[dfFACTS["type"]==0].copy()
     for id, row in dfTCSC.iterrows():
         #ram type 3 == TCSC
-        key=str(ind_i[int(row["de"])])+"-"+str(ind_i[int(row["para"])])
-        item=branTCSC(int(row["id"]),ind_i[int(row["de"])],ind_i[int(row["para"])],3,i,row["a"],row["xtscc_ini"],row["Pfesp"])
+        key=str(ind_i[int(row["fr"])])+"-"+str(ind_i[int(row["to"])])
+        item=branTCSC(int(row["id"]),ind_i[int(row["fr"])],ind_i[int(row["to"])],3,i,row["a"],row["xtscc_ini"],row["Pfesp"])
         ram[key]=item    
         i+=1
     return ram,i
@@ -151,8 +151,8 @@ def create_SVC(dfFACTS,ind_i):
     dfSVC=dfFACTS[dfFACTS["type"]==1].copy()
     for id, row in dfSVC.iterrows():
         #ram type 3 == TCSC
-        key=ind_i[int(row["de"])]
-        item=SVC(int(row["id"]),ind_i[int(row["de"])],row["Rt"],row["Xt"],row["Bini"],row["Bmax"],row["Bmin"],row["aini"],row["amax"],row["amin"])
+        key=ind_i[int(row["fr"])]
+        item=SVC(int(row["id"]),ind_i[int(row["fr"])],row["Rt"],row["Xt"],row["Bini"],row["Bmax"],row["Bmin"],row["aini"],row["amax"],row["amin"])
         svc[key]=item    
         i+=1
     return svc,i
@@ -184,8 +184,8 @@ def create_UPFC(dfFACTS,ind_i):
     for id, row in dfUPFC.iterrows():
         #ram type 3 == TCSC
 
-        key=str(ind_i[int(row["from"])])+"-"+str(ind_i[int(row["to"])])
-        item=UPFC(id=int(row["id"]),de=ind_i[int(row["from"])],para=ind_i[int(row["to"])],Vse_ini=row["Vse"],\
+        key=str(ind_i[int(row["fr"])])+"-"+str(ind_i[int(row["to"])])
+        item=UPFC(id=int(row["id"]),fr=ind_i[int(row["fr"])],to=ind_i[int(row["to"])],Vse_ini=row["Vse"],\
                 t_se_ini=row["t_se"],Vsh_ini=row["Vsh"],t_sh_ini=row["t_sh"],Psp=row["Psp"],Qsp=row["Qsp"],\
                 Vp=row["Vp"],Rse=row["Rse"],Xse=row["Xse"],Rsh=row["Rsh"],Xsh=row["Xsh"],Vse_max=row["Vse_max"],\
                 Vse_min=row["Vse_min"],Vsh_max=row["Vsh_max"],Vsh_min=row["Vsh_min"],mode=row["mode"])
@@ -224,16 +224,16 @@ def addTCSCingraph(graph,ramfacts):
 
     for key,item in ramfacts.items(): #save the adjacent buses in the node and the rams connected to it
         if item.type==3:#Type 3 == TCSC
-            k=int(key.split("-")[0]) #bus from
+            k=int(key.split("-")[0]) #bus fr
             m=int(key.split("-")[1]) #bus to
             item.AttY() # creates adimitance matrix
             item.AttY_B()
-            graph[k].FlagTCSC=1 # indicates that there is TCSC in the bus from
+            graph[k].FlagTCSC=1 # indicates that there is TCSC in the bus fr
             graph[m].FlagTCSC=1# indicates that there is TCSC connected in the bus to
-            graph[k].bFACTS_adjk.update({key:item}) #inserts the ram key in the bus adj of the bus from dic only of FACTS
+            graph[k].bFACTS_adjk.update({key:item}) #inserts the ram key in the bus adj of the bus fr dic only of FACTS
             graph[m].bFACTS_adjm.update({key:item}) #inserts the ram key in the bus adj of the bus to dic only of FACTS
-            graph[k].adjk.update({key:item}) #inserts the ram key in the bus from adjk dict
-            graph[k].ladjk.append(m) #inserts the ram key in the bus from adjk list
+            graph[k].adjk.update({key:item}) #inserts the ram key in the bus fr adjk dict
+            graph[k].ladjk.append(m) #inserts the ram key in the bus fr adjk list
             graph[m].adjm.update({key:item}) #inserts the ram key in the bus to adjm dict
             graph[m].ladjm.append(k) #inserts the ram key in the bus to adjm list
 
@@ -253,11 +253,11 @@ def addUPFCingraph(graph,ramUPFC):
         return
 
     for key,item in ramUPFC.items(): #save the adjacent buses in the node and the rams connected to it
-        k=int(key.split("-")[0]) #bus from
+        k=int(key.split("-")[0]) #bus fr
         m=int(key.split("-")[1]) #bus to
-        graph[k].FlagUPFC=1 # indicates that there is TCSC in the bus from
+        graph[k].FlagUPFC=1 # indicates that there is TCSC in the bus fr
         graph[m].FlagUPFC=1# indicates that there is TCSC connected in the bus to
-        graph[k].bUFPC_adjk.update({key:item}) #inserts the ram key in the bus adj of the bus from dic only of FACTS
+        graph[k].bUFPC_adjk.update({key:item}) #inserts the ram key in the bus adj of the bus fr dic only of FACTS
         graph[m].bUFPC_adjm.update({key:item}) #inserts the ram key in the bus adj of the bus to dic only of FACTS
 
 
@@ -306,7 +306,7 @@ def create_bus_dc(dfDBUS_dc,muticonductors=False):
     for idx, row in dfDBUS_dc.iterrows():#reads each line of the data frame
         item=bus_dc(int(row["id"]),int(row["type"]),i) 
         item.Vdc=row.Vdc
-        item.Pdc_load=row["Pdc_load"]/100#converts the power from MW to p.u.
+        item.Pdc_load=row["Pdc_load"]/100#converts the power fr MW to p.u.
         item.Pdc_gen=row["Pdc_gen"]/100
         item.area=int(row["area"])
         if int(row["type"])==0:
@@ -334,7 +334,7 @@ def create_bran_dc(dfDBRAN_DC,ind_i_dc):
 
     for id, row in dfDBRAN_DC.iterrows():
         key=i
-        item=branch_dc(int(row["id"]),ind_i_dc[int(row["from"])],ind_i_dc[int(row["to"])],i)
+        item=branch_dc(int(row["id"]),ind_i_dc[int(row["fr"])],ind_i_dc[int(row["to"])],i)
         item.r=row["r"]
         item.p=row["line_confi"]
         bran[key]=item    

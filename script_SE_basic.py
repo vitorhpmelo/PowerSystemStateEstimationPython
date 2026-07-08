@@ -7,16 +7,16 @@ It reads system data, builds network structures for both AC and DC grids,
 runs iterative power flow calculations, saves measurement data, and executes weighted least squares
 state estimation. The script supports bad data detection and loss calculations for converters.
 """
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from networkcalc_dc import *
-from BadData import *
+from src.networkcalc import *
+from src.networkcalc_dc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
 import numpy as np
@@ -59,17 +59,17 @@ power_flow_iterative(graph,graph_dc,convs_acdc)
 dfDMEAS_pf=save_DMEAS_acdc(graph,bran, graph_dc, bran_dc, convs_acdc, sys)
 
 
-
+#%%
 include_conv_nodes_in_graph(graph,ind_i, bran, convs_acdc)
 
 dfDMEASsr=create_DMEAS(sys,dfDMEAS_pf=dfDMEAS_pf)
 #%%
-dfDMEAS=insert_res(dfDMEASsr)
+# dfDMEAS=insert_res(dfDMEASsr)
 
 dfState_ref=get_state(graph)
 dfStatedc_ref=get_state_dc(graph_dc)
 #%%
-SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_conv,scale_virt=0.1,printmat=True)
+SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS_pf, ind_i, ind_i_dc, ind_id_conv,scale_virt=0.1,printmat=True)
 # %%
 dfStateac_se= get_state(graph,df_ref=dfState_ref,sample="SE")
 dfStatedc_se= get_state_dc(graph_dc,df_ref=dfStatedc_ref,sample="SE")

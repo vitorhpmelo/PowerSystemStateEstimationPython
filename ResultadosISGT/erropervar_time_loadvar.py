@@ -17,9 +17,9 @@ s=""
 dfstate=pd.read_csv(file+'state_IEEE14_rakp2009x1SemMedidasloadvar'+s+'.csv',index_col=None)
 dfstate_FACTS=pd.read_csv(file+'state_FACTS_IEEE14_rakp2009x1SemMedidasloadvar'+s+'.csv',index_col=None)
 #%%
-maskv=dfstate["tipo"]=="v"
-maskt=dfstate["tipo"]=="theta"
-buses=set(dfstate[dfstate["tipo"]=="v"].de)
+maskv=dfstate["type"]=="v"
+maskt=dfstate["type"]=="theta"
+buses=set(dfstate[dfstate["type"]=="v"].fr)
 #%%
 SEs=["WLS","MAP_PMU","MAP_SCADA"]
 MAEv={}

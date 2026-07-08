@@ -1,4 +1,4 @@
-id,from,to,r,line_confi,return_type,return_z,connect_at,status_p,status_n,area
+id,fr,to,r,line_confi,return_type,return_z,connect_at,status_p,status_n,area
 0,1,2,0.01,2,0,0,0,1,1,1
 1,2,3,0.01,2,0,0,0,1,1,1
 2,1,4,0.01,2,0,0,0,1,1,1

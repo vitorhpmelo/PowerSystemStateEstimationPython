@@ -41,9 +41,9 @@ for caso in casos:
 
     for sce in scenarios:
         for met in methods:
-            maskV=(dfErrorV["tipo"]=="v")&(dfErrorV["scenario"]==sce) & (dfErrorV["method"]==met)
+            maskV=(dfErrorV["type"]=="v")&(dfErrorV["scenario"]==sce) & (dfErrorV["method"]==met)
             dv[met].append(np.mean(dfErrorV[maskV]["error"].values))
-            maskt=(dfErrorV["tipo"]=="theta")&(dfErrorV["scenario"]==sce) & (dfErrorV["method"]==met)
+            maskt=(dfErrorV["type"]=="theta")&(dfErrorV["scenario"]==sce) & (dfErrorV["method"]==met)
             dtheta[met].append(np.mean(dfErrorV[maskV]["error"].values))
             maskf=(dfErrorFACTS["scenario"]==sce) & (dfErrorFACTS["method"]==met)
             dFACTS[met].append(np.mean(dfErrorFACTS[maskf]["error"].values))

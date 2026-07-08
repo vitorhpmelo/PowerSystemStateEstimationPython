@@ -80,11 +80,11 @@ mode - 0 controles voltage at bus "p"/ 1 does note control voltage at bus "p"
 
 DMED -- File with the measurement about the measurements
 
-type,de,para,zmed,prec
+type,from,to,zmed,prec
 
 type: Type of measurement (see list below)
-de: From bus or element
-para: To bus or element
+from: From bus or element
+to: To bus or element
 zmed: Measured value
 prec: Measurement precision 
 
@@ -118,20 +118,20 @@ type - measurement type  ( AC Network measurements
                           ACDC converter measurements
                             200 - ACDC Converter internal filter bus active injection (p.u.) - virtual measurment it is a null injection
                             201 - ACDC Converter internal filter bus reactive injection (p.u.) - virtual measurment it is a null injection
-                            202 - ACDC Converter internal transformer active power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
-                            203 - ACDC Converter internal transformer reactive power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
-                            220 - ACDC Converter internal reactor active power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to  
-                            230 - ACDC Converter internal reactor reactive power flow (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+                            202 - ACDC Converter internal transformer active power flow (p.u.) "to" field gives the direction (0 from grid to conv, 1 from conv to grid)
+                            203 - ACDC Converter internal transformer reactive power flow (p.u.) "to" field gives the direction (0 from grid to conv, 1 from conv to grid)
+                            220 - ACDC Converter internal reactor active power flow (p.u.) "to" field gives the direction (0 from grid to conv, 1 from conv to  
+                            230 - ACDC Converter internal reactor reactive power flow (p.u.) "to" field gives the direction (0 from grid to conv, 1 from conv to grid)
                             204 - ACDC Converter internal filter bus voltage magnitude (p.u.) 
                             205 - ACDC Converter internal filter bus voltage angle (rad)
                             240 - ACDC Converter AC bus voltage magnitude (p.u.)
                             250 - ACDC Converter AC bus voltage angle (rad)
                             206 - ACDC Converter internal filter bus Current injection Re (p.u.) - virtual measurements (a null injection) 
                             207 - ACDC Converter internal filter bus Current injection Im (p.u.) - virtual measurements (a null injection) 
-                            208 - ACDC Converter internal transformer Current flow Re (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
-                            209 - ACDC Converter internal transformer Current flow Im (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
-                            280 - ACDC Converter internal reactor Current flow Re (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
-                            290 - ACDC Converter internal reactor Current flow Im (p.u.) "para" field gives the direction (0 from grid to conv, 1 from conv to grid)
+                            208 - ACDC Converter internal transformer Current flow Re (p.u.) "to" field gives the direction (0 from grid to conv, 1 from conv to grid)
+                            209 - ACDC Converter internal transformer Current flow Im (p.u.) "to" field gives the direction (0 from grid to conv, 1 from conv to grid)
+                            280 - ACDC Converter internal reactor Current flow Re (p.u.) "to" field gives the direction (0 from grid to conv, 1 from conv to grid)
+                            290 - ACDC Converter internal reactor Current flow Im (p.u.) "to" field gives the direction (0 from grid to conv, 1 from conv to grid)
                             244 - ACDC Converter voltage ratio M = Vac/Vdc
                             )
 

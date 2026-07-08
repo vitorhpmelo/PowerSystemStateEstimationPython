@@ -1,13 +1,13 @@
-from classes import *
+from src.classes import *
 import numpy as np
 import pandas as pd
-from readfiles import *
+from src.readfiles import *
 import scipy.sparse.linalg as sliang 
 import scipy.sparse as sparse 
 import numpy.linalg as liang
 import time as tm
-from networkcalc import *
-from networkcalc_dc import *
+from src.networkcalc import *
+from src.networkcalc_dc import *
 import copy as copy
 #file with the information of the libary
 
@@ -346,20 +346,20 @@ def fbacktracking(graph,dx,z,var_t,var_v,H,dz,W):
     
 def get_state_old(graph,sample="ref",df_ref=pd.DataFrame()):
     d={}
-    d["tipo"]=[]
-    d["de"]=[]
+    d["type"]=[]
+    d["fr"]=[]
     d["val"]=[]
     d["sample"]=[]
     d["val_ref"]=[]
     for no in graph:
         #teta
-        d["tipo"].append("teta")
-        d["de"].append(copy.deepcopy(no.id))
+        d["type"].append("teta")
+        d["fr"].append(copy.deepcopy(no.id))
         d["val"].append(copy.deepcopy(no.theta))
         d["sample"].append(copy.deepcopy(sample))
         #v
-        d["tipo"].append("v")
-        d["de"].append(copy.deepcopy(no.id))
+        d["type"].append("v")
+        d["fr"].append(copy.deepcopy(no.id))
         d["val"].append(copy.deepcopy(no.V))
         d["sample"].append(copy.deepcopy(sample))
         if df_ref.empty:
@@ -367,11 +367,11 @@ def get_state_old(graph,sample="ref",df_ref=pd.DataFrame()):
             d["val_ref"].append(np.nan)
         else:
             #teta
-            mask=(df_ref["tipo"]=="teta") & (df_ref["de"]==no.id)
+            mask=(df_ref["type"]=="teta") & (df_ref["fr"]==no.id)
             val=df_ref.loc[mask,"val"].values[0]
             d["val_ref"].append(val)
             #v 
-            mask=(df_ref["tipo"]=="v") & (df_ref["de"]==no.id)
+            mask=(df_ref["type"]=="v") & (df_ref["fr"]==no.id)
             val=df_ref.loc[mask,"val"].values[0]
             d["val_ref"].append(val)
 
@@ -449,56 +449,56 @@ def get_state_TCSC(ramTCSC):
 
 def get_state_FACTS(TCSC={},svc={},UPFC={},sample="ref",df_ref=pd.DataFrame()):
     d={}
-    d["tipo"]=[]
-    d["de"]=[]
+    d["type"]=[]
+    d["fr"]=[]
     d["val"]=[]
     d["sample"]=[]
     d["val_ref"]=[]
     if isinstance(TCSC,dict):
         for key,ram in TCSC.items():
-            d["tipo"].append("x_tcsc")
-            d["de"].append(copy.deepcopy(key))
+            d["type"].append("x_tcsc")
+            d["fr"].append(copy.deepcopy(key))
             d["val"].append(copy.deepcopy(ram.xtcsc))
             d["sample"].append(copy.deepcopy(sample))
             if df_ref.empty:
                 d["val_ref"].append(np.nan)
             else:
-                mask=(df_ref["tipo"]=="x_tcsc") & (df_ref["de"]==key)
+                mask=(df_ref["type"]=="x_tcsc") & (df_ref["fr"]==key)
                 val=df_ref.loc[mask,"val"].values[0]
                 d["val_ref"].append(val)
 
     if isinstance(svc,dict):
         for key,s in svc.items():
-            d["tipo"].append("B_svc")
-            d["de"].append(copy.deepcopy(key))
+            d["type"].append("B_svc")
+            d["fr"].append(copy.deepcopy(key))
             d["val"].append(copy.deepcopy(s.BSVC))
             d["sample"].append(copy.deepcopy(sample))
             if df_ref.empty:
                 d["val_ref"].append(np.nan)
             else:
-                mask=(df_ref["tipo"]=="B_svc") & (df_ref["de"]==key)
+                mask=(df_ref["type"]=="B_svc") & (df_ref["fr"]==key)
                 val=df_ref.loc[mask,"val"].values[0]
                 d["val_ref"].append(val)
     if isinstance(UPFC,dict):
         for key,u in UPFC.items():
             ##Vsh
-            d["tipo"].append("UPFC_Vsh")
-            d["de"].append(copy.deepcopy(key))
+            d["type"].append("UPFC_Vsh")
+            d["fr"].append(copy.deepcopy(key))
             d["val"].append(copy.deepcopy(u.Vsh))
             d["sample"].append(copy.deepcopy(sample))
             ##tsh
-            d["tipo"].append("UPFC_tsh")
-            d["de"].append(copy.deepcopy(key))
+            d["type"].append("UPFC_tsh")
+            d["fr"].append(copy.deepcopy(key))
             d["val"].append(copy.deepcopy(u.t_sh))
             d["sample"].append(copy.deepcopy(sample))
             #vse
-            d["tipo"].append("UPFC_Vse")
-            d["de"].append(copy.deepcopy(key))
+            d["type"].append("UPFC_Vse")
+            d["fr"].append(copy.deepcopy(key))
             d["val"].append(copy.deepcopy(u.Vse))
             d["sample"].append(copy.deepcopy(sample))
             #tse
-            d["tipo"].append("UPFC_tse")
-            d["de"].append(copy.deepcopy(key))
+            d["type"].append("UPFC_tse")
+            d["fr"].append(copy.deepcopy(key))
             d["val"].append(copy.deepcopy(u.t_se))
             d["sample"].append(copy.deepcopy(sample))
 
@@ -508,19 +508,19 @@ def get_state_FACTS(TCSC={},svc={},UPFC={},sample="ref",df_ref=pd.DataFrame()):
                 d["val_ref"].append(np.nan)
                 d["val_ref"].append(np.nan)
             else:
-                mask=(df_ref["tipo"]=="UPFC_Vsh") & (df_ref["de"]==key)
+                mask=(df_ref["type"]=="UPFC_Vsh") & (df_ref["fr"]==key)
                 val=df_ref.loc[mask,"val"].values[0]
                 d["val_ref"].append(val)
 
-                mask=(df_ref["tipo"]=="UPFC_tsh") & (df_ref["de"]==key)
+                mask=(df_ref["type"]=="UPFC_tsh") & (df_ref["fr"]==key)
                 val=df_ref.loc[mask,"val"].values[0]
                 d["val_ref"].append(val)
 
-                mask=(df_ref["tipo"]=="UPFC_Vse") & (df_ref["de"]==key)
+                mask=(df_ref["type"]=="UPFC_Vse") & (df_ref["fr"]==key)
                 val=df_ref.loc[mask,"val"].values[0]
                 d["val_ref"].append(val)
 
-                mask=(df_ref["tipo"]=="UPFC_tse") & (df_ref["de"]==key)
+                mask=(df_ref["type"]=="UPFC_tse") & (df_ref["fr"]==key)
                 val=df_ref.loc[mask,"val"].values[0]
                 d["val_ref"].append(val)
 
@@ -581,7 +581,7 @@ def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
     nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
     dz=np.zeros(len(z))
     h=np.zeros(len(z))
-    W=create_W(z+list(c_upfc),mode=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
+    W=create_W(z+list(c_upfc),mode=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
     
     C_UPFC=np.zeros((len(c_upfc),nvar))
 
@@ -607,6 +607,8 @@ def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
         H=np.concatenate((Hx,C_UPFC),axis=0)
         b=np.append(dz,c_upfc)
         grad=np.matmul(np.matmul(H.T,W),b)
+        if it==0:
+            np.savetxt("Hse.txt",Hx,delimiter=",")
         try: 
             dx=NormalEQ_QR(H,W,b,printcond=printcond,printmat=printmat)
         except:
@@ -1849,11 +1851,15 @@ def SE_WLS_acdc(graph, graph_dc, convs_acdc, dfDMEAS, ind_i, ind_i_dc, ind_id_co
             break
         if gradredux < tol2 and maxdx < tol:
             txt = "Conv in {:d} iterations".format(it)
+            if (printmat):
+                print_jacobian_info(H, W,z_ac, z_conv, c_conv, z_dc, var_t, var_v, var_vdc)
             if printres:
                 print(liang.norm(grad) / norminicial)
                 print(txt)
                 prt_state(graph)
                 prt_state_dc(graph_dc)
+
+
             conv = 1
             break
     return conv, lstdx, lstdz

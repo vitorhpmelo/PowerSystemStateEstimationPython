@@ -1,4 +1,4 @@
-from classes import *
+from src.classes import *
 import pandas as pd
 import numpy as np
 
@@ -20,19 +20,19 @@ def read_files_old(sys):
 
     try: # if the DBRAN exists the program reads it, if not it stops. This file is mandatory
         dfDBRAN=pd.read_csv(sys+"/DBRAN.csv",header=None,dtype={0:np.int64,1:np.int64,2:np.int64,3:np.int64})
-        dfDBRAN.columns=["id","type","from","to","r","x","bsh","tap"]
+        dfDBRAN.columns=["id","type","fr","to","r","x","bsh","tap"]
     except:
         print("Error while reading DBRAN file")
         exit(1)
     try: # if the DMEAS exists the program reads it, this file is not mandatory for power flow 
         dfDMEAS=pd.read_csv(sys+"/DMEAS.csv",header=None)
-        dfDMEAS.columns=["type","from","to","zmeas","prec"]
+        dfDMEAS.columns=["type","fr","to","zmeas","prec"]
     except:
         print("There is no DMEAS")
         dfDMEAS=[]
     try: # if the DMEAS exists the program reads it, this file is not mandatory for power flow 
         dfDTCSC=pd.read_csv(sys+"/DTCSC.csv",header=None,dtype={0:np.int64,1:np.int64,2:np.int64,3:np.float64,4:np.float64,5:np.float64})
-        dfDTCSC.columns=["id","from","to","a","xtscc_ini","Pfesp"]
+        dfDTCSC.columns=["id","fr","to","a","xtscc_ini","Pfesp"]
         dfDTCSC["type"]=0
     except:
         print("There is no DTCSC")
@@ -46,7 +46,7 @@ def read_files_old(sys):
         dfDSVC=pd.DataFrame()   
     try: # if the DMEAS exists the program reads it, this file is not mandatory for power flow 
         dfUPFC=pd.read_csv(sys+"/DUPFC.csv",header=None,dtype={0:np.int64,1:np.int64,2:np.float64,3:np.float64,4:np.float64,5:np.float64,6:np.float64,7:np.float64,8:np.float64,9:np.float64})
-        dfUPFC.columns=["id","from","to","Vse","t_se","Vsh","t_sh","Psp","Qsp","Vp","Rse","Xse","Rsh","Xsh","Vse_max","Vse_min","Vsh_max","Vsh_min","mode"]
+        dfUPFC.columns=["id","fr","to","Vse","t_se","Vsh","t_sh","Psp","Qsp","Vp","Rse","Xse","Rsh","Xsh","Vse_max","Vse_min","Vsh_max","Vsh_min","mode"]
         dfUPFC["type"]=2
     except:
         print("There is no DUPFC")
@@ -83,22 +83,21 @@ def read_files(sys):
         print("There is no DMEAS")
         dfDMEAS=[]
     try: # if the DMEAS exists the program reads it, this file is not mandatory for power flow 
-        dfDTCSC=pd.read_csv(sys+"/DTCSC.csv",header=None,dtype={0:np.int64,1:np.int64,2:np.int64,3:np.float64,4:np.float64,5:np.float64})
-        dfDTCSC.columns=["id","from","to","a","xtscc_ini","Pfesp"]
+        dfDTCSC=pd.read_csv(sys+"/DTCSC.csv",header=0,dtype={0:np.int64,1:np.int64,2:np.int64,3:np.float64,4:np.float64,5:np.float64})
         dfDTCSC["type"]=0
     except:
         print("There is no DTCSC")
         dfDTCSC=pd.DataFrame()   
     try: # if the DMEAS exists the program reads it, this file is not mandatory for power flow 
-        dfDSVC=pd.read_csv(sys+"/DSVC.csv",header=None,dtype={0:np.int64,1:np.int64,2:np.float64,3:np.float64,4:np.float64,5:np.float64,6:np.float64,7:np.float64,8:np.float64,9:np.float64})
-        dfDSVC.columns=["id","de","Rt","Xt","Bini","Bmax","Bmin","aini","amax","amin"]
+        dfDSVC=pd.read_csv(sys+"/DSVC.csv",header=0,dtype={0:np.int64,1:np.int64,2:np.float64,3:np.float64,4:np.float64,5:np.float64,6:np.float64,7:np.float64,8:np.float64,9:np.float64})
+        dfDSVC.columns=["id","fr","Rt","Xt","Bini","Bmax","Bmin","aini","amax","amin"]
         dfDSVC["type"]=1
     except:
         print("There is no DSVC")
         dfDSVC=pd.DataFrame()   
     try: # if the DMEAS exists the program reads it, this file is not mandatory for power flow 
         dfUPFC=pd.read_csv(sys+"/DUPFC.csv",header=None,dtype={0:np.int64,1:np.int64,2:np.float64,3:np.float64,4:np.float64,5:np.float64,6:np.float64,7:np.float64,8:np.float64,9:np.float64})
-        dfUPFC.columns=["id","from","to","Vse","t_se","Vsh","t_sh","Psp","Qsp","Vp","Rse","Xse","Rsh","Xsh","Vse_max","Vse_min","Vsh_max","Vsh_min","mode"]
+        dfUPFC.columns=["id","fr","to","Vse","t_se","Vsh","t_sh","Psp","Qsp","Vp","Rse","Xse","Rsh","Xsh","Vse_max","Vse_min","Vsh_max","Vsh_min","mode"]
         dfUPFC["type"]=2
     except:
         print("There is no DUPFC")
@@ -174,7 +173,7 @@ def prt_state_FACTS(graph,var_x,var_svc,var_upfc):
     for key,item in var_x.items():
         k=int(key.split("-")[0])
         m=int(key.split("-")[1])
-        s="TCSC | from {:d} | to {:d}| X : {:f}".format(graph[k].bus.id,graph[m].bus.id,graph[k].adjk[key].xtcsc)
+        s="TCSC | fr {:d} | to {:d}| X : {:f}".format(graph[k].bus.id,graph[m].bus.id,graph[k].adjk[key].xtcsc)
         print(s)
     for key,item in var_svc.items():
         k=int(key)
@@ -186,7 +185,7 @@ def prt_state_FACTS(graph,var_x,var_svc,var_upfc):
         m=int(key.split("-")[1])
 
 
-        s="UPFC | from {:d} | to {:d}| Vse: {:f} | Tse {:f} |  Vsh: {:f} | Tsh {:f}"\
+        s="UPFC | fr {:d} | to {:d}| Vse: {:f} | Tse {:f} |  Vsh: {:f} | Tsh {:f}"\
             .format(graph[k].bus.id,graph[m].bus.id,graph[k].bUFPC_adjk[key].Vse,\
                     graph[k].bUFPC_adjk[key].t_se*180/np.pi,graph[k].bUFPC_adjk[key].Vsh,graph[k].bUFPC_adjk[key].t_sh*180/np.pi)
         print(s)
@@ -544,7 +543,7 @@ def save_DMEAS_conv_pf(convs_acdc,graph,graph_dc,sys,flag_save_csv=True):
 def save_DBUS(graph):
 
     id=[]
-    tipo=[]
+    type=[]
     V=[]
     theta=[]
     Pg=[]
@@ -554,7 +553,7 @@ def save_DBUS(graph):
     Bs=[]
     for no in graph:
         id.append(no.bus.id)
-        tipo.append(no.bus.type)
+        type.append(no.bus.type)
         V.append(no.V)
         theta.append(no.theta*180/np.pi)
         Pg.append(no.bus.Pg*100)
@@ -564,7 +563,7 @@ def save_DBUS(graph):
         Bs.append(no.bus.Bs*100)
 
 
-    d={"id":id,"tipo":tipo,"V":V,"theta":theta,"Pg":Pg,"Qg":Qg,"Pd":Pd,"Qd":Qd,"Bs":Bs}
+    d={"id":id,"type":type,"V":V,"theta":theta,"Pg":Pg,"Qg":Qg,"Pd":Pd,"Qd":Qd,"Bs":Bs}
     dfDBUS=pd.DataFrame(d)
 
     dfDBUS.to_csv("DBUS.csv",header=None,index=None,float_format="%.7f")
@@ -629,10 +628,10 @@ def include_conv_in_injectioncac(graph, convs_acdc, dfDMEAS):
             Pgrid=conv.Ptf(0)
             Qgrid=conv.Qtf(0)
             bus_id = graph[conv.i_busac].bus.id
-            maskP=(dfDMEAS["type"]==0) & (dfDMEAS["from"]==bus_id) 
-            maskQ=(dfDMEAS["type"]==1) & (dfDMEAS["from"]==bus_id) 
-            maskIre=(dfDMEAS["type"]==6) & (dfDMEAS["from"]==bus_id) 
-            maskIim=(dfDMEAS["type"]==7) & (dfDMEAS["from"]==bus_id) 
+            maskP=(dfDMEAS["type"]==0) & (dfDMEAS["fr"]==bus_id) 
+            maskQ=(dfDMEAS["type"]==1) & (dfDMEAS["fr"]==bus_id) 
+            maskIre=(dfDMEAS["type"]==6) & (dfDMEAS["fr"]==bus_id) 
+            maskIim=(dfDMEAS["type"]==7) & (dfDMEAS["fr"]==bus_id) 
             if not dfDMEAS[maskP].empty:
                 dfDMEAS.loc[maskP, "zmeas"] += Pgrid
             else:
@@ -654,10 +653,10 @@ def include_conv_in_injectioncac(graph, convs_acdc, dfDMEAS):
             Pgrid=conv.Prc(0)
             Qgrid=conv.Qrc(0)
             bus_id = graph[conv.i_busac].bus.id
-            maskP=(dfDMEAS["type"]==0) & (dfDMEAS["from"]==bus_id) 
-            maskQ=(dfDMEAS["type"]==1) & (dfDMEAS["from"]==bus_id) 
-            maskIre=(dfDMEAS["type"]==6) & (dfDMEAS["from"]==bus_id) 
-            maskIim=(dfDMEAS["type"]==7) & (dfDMEAS["from"]==bus_id) 
+            maskP=(dfDMEAS["type"]==0) & (dfDMEAS["fr"]==bus_id) 
+            maskQ=(dfDMEAS["type"]==1) & (dfDMEAS["fr"]==bus_id) 
+            maskIre=(dfDMEAS["type"]==6) & (dfDMEAS["fr"]==bus_id) 
+            maskIim=(dfDMEAS["type"]==7) & (dfDMEAS["fr"]==bus_id) 
             if not dfDMEAS[maskP].empty:
                 dfDMEAS.loc[maskP, "zmeas"] += Pgrid
             else:
@@ -713,17 +712,18 @@ def print_jacobian_info(H, W, z_ac, z_conv, c_conv, z_dc, var_t, var_v, var_vdc)
         np.savetxt("H_acdc.csv", H, delimiter=",", fmt="%.15e")
         z_list = []
         i=0
+        z_list.append("grid,type,fr,to")
         for z in z_ac:
-            z_list.append("z_ac_{}".format(i))
+            z_list.append("ac,{},{},{},{}".format(z.type,z.k,z.m,i))
             i += 1
         for z in z_conv:
-            z_list.append("z_conv_{}".format(i))
+            z_list.append("conv,{},{},{},{}".format(z.type,z.k,z.m,i))
             i += 1
         for z in c_conv:
-            z_list.append("c_conv_{}".format(i))
+            z_list.append("c_conv,{},{},{},{}".format(z.type,z.k,z.m,i))
             i += 1
         for z in z_dc:
-            z_list.append("z_dc_{}".format(i))
+            z_list.append("dc,{},{},{},{}".format(z.type,z.k,z.m,i))
             i += 1
         var_list = []
         for v in sorted(var_t.keys()):

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #%%
-from classes import *
-from readfiles import *
-from networkstruc import *
-from SE import *
-from meas_sampl import *
+from src.classes import *
+from src.readfiles import *
+from src.networkstruc import *
+from src.SE import *
+from src.meas_sampl import *
 import pandas as pd
 import numpy as np
-from networkcalc import *
-from BadData import *
+from src.networkcalc import *
+from src.BadData import *
 import numpy.linalg as liang
 import scipy.sparse.linalg as sliang 
 
@@ -20,7 +20,7 @@ sys="IEEE14_rakp2009"
 
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
-
+#%%
 
 [bars,nbars,pv,pq,ind_i]=creat_bus(dfDBAR)
 [ram,nbran]=create_bran(dfDBRAN,ind_i)

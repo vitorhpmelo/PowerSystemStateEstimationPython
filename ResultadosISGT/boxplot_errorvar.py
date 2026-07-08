@@ -18,7 +18,7 @@ dfdata
 
 
 
-buses=set(dfstate[dfstate["tipo"]=="v"].de)
+buses=set(dfstate[dfstate["type"]=="v"].fr)
 #%%
 
 
@@ -36,12 +36,12 @@ dfstate=dfstate[dfstate["method"]!="MAP_SCADA"]
 dfstate_FACTS=dfstate_FACTS[dfstate_FACTS["method"]!="MAP_SCADA"]
 
 
-dfstate_FACTS["tipo"]="FACTS"
+dfstate_FACTS["type"]="FACTS"
 
 
 dfdata=pd.concat([dfstate,dfstate_FACTS])
 
-dfdata["tipo"]=dfdata["tipo"].map({"FACTS":"FACTS","v":r"$v$","theta":r"$\theta$"})
+dfdata["type"]=dfdata["type"].map({"FACTS":"FACTS","v":r"$v$","theta":r"$\theta$"})
 
 dfdata["method"]=dfdata["method"].map({"WLS":"WLS Hyb.","MAP_PMU":"MAP Stg. 2"})
 
@@ -50,7 +50,7 @@ dfdata.rename(columns={"method":"Method","error":"Error"},inplace=True)
 k=0.5
 fig,ax =plt.subplots(ncols=1,nrows=1,figsize=(10*k,k*6))
 
-sns.boxplot(dfdata,y="Error",x="tipo",hue="Method",showfliers=False,palette=pal,ax=ax)
+sns.boxplot(dfdata,y="Error",x="type",hue="Method",showfliers=False,palette=pal,ax=ax)
 
 plt.xlabel("Variable Type")
 

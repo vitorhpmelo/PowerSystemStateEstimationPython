@@ -19,21 +19,21 @@ df_FACTS=pd.read_csv("state_FACTS_IEEE14_rakp2009x1SemMedidas.csv")
 
 df_Trad["erro"]=0.0
 for idx, item in df_Trad.iterrows():
-    tipo=item["tipo"]
-    de=item["de"]
+    type=item["type"]
+    fr=item["fr"]
     sce=item["scenario"]
     method=item["method"]
-    mask=(df_refTrad["tipo"]==tipo) & (df_refTrad["de"]==de)  & (df_refTrad["scenario"]==sce)    
+    mask=(df_refTrad["type"]==type) & (df_refTrad["fr"]==fr)  & (df_refTrad["scenario"]==sce)    
     df_Trad.at[idx,"erro"]=np.abs(item["val"]-df_refTrad[mask]["val"].values[0])
 #%%
 
 
 df_FACTS["erro"]=0.0
 for idx, item in df_FACTS.iterrows():
-    tipo=item["tipo"]
-    de=item["de"]
+    type=item["type"]
+    fr=item["fr"]
     sce=item["scenario"]
-    mask=(df_refFACTS["tipo"]==tipo) & (df_refFACTS["de"]==de)  & (df_refFACTS["scenario"]==sce)  
+    mask=(df_refFACTS["type"]==type) & (df_refFACTS["fr"]==fr)  & (df_refFACTS["scenario"]==sce)  
     df_FACTS.at[idx,"erro"]=np.abs(item["val"]-df_refFACTS[mask]["val"].values[0])
 
 #%%
@@ -45,8 +45,8 @@ error_FACTS={}
 
 
 for met in methods:
-    maskV=(df_Trad["method"]==met) & (df_Trad["tipo"]=="v")
-    maskt=(df_Trad["method"]==met) & (df_Trad["tipo"]=="theta")
+    maskV=(df_Trad["method"]==met) & (df_Trad["type"]=="v")
+    maskt=(df_Trad["method"]==met) & (df_Trad["type"]=="theta")
     maskFACTS=(df_FACTS["method"]==met) 
     error_V[met]=np.mean(df_Trad[maskV].erro.values)
     error_theta[met]=np.mean(df_Trad[maskt].erro.values)
