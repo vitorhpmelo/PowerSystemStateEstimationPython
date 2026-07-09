@@ -492,10 +492,10 @@ def create_x_loadflow_UPFC(graph,var_v):
                 zQf.append(mes)
                 var_UPFC[str(item.p)+"-"+str(item.s)]=i
                 i=i+1
-                if item.mode==1:
+                if item.mode==1: #vm_sh is a variable
                     var_UPFC_vsh[str(item.p)+"-"+str(item.s)]=i_vsh
                     i_vsh=i_vsh+1
-                    p_controlled.append(item.p)
+                    p_controlled.append(item.p) # list of p controlled buses
 
 
     i=0
@@ -2790,7 +2790,7 @@ def power_flow_FACTS(graph,prt=0,tol=1e-6,inici=1,itmax=20,printgrad=1,printres=
     lstdx=[]
     lstdz=[]
     z_values=[z_item.val for z_item in z]
-    np.savetxt("z_values_initial.txt", z_values, delimiter=",")
+    np.savetxt("tmp/z_values_initial.txt", z_values, delimiter=",")
     FlagTCSC=len(var_x)>1
     FlagSVC=len(var_svc)>1
     while it<itmax:
@@ -2810,7 +2810,7 @@ def power_flow_FACTS(graph,prt=0,tol=1e-6,inici=1,itmax=20,printgrad=1,printres=
         Hx=np.concatenate((H,HTCSC,HSVC,HUPFC,HUPFC_sh),axis=1)
         Hx=np.concatenate((Hx,C_UPFC),axis=0)
         if it==0:
-            np.savetxt("Hx.txt", Hx, delimiter=",")
+            np.savetxt("tmp/Hx.txt", Hx, delimiter=",")
         A=sparse.csc_matrix(Hx, dtype=float)
         b=np.concatenate((dz,c_UPFC))
 

@@ -72,7 +72,7 @@ Vse_max - max value for Vse
 Vse_min - min value for Vse 
 Vsh_max - max value for Vsh 
 Vsh_min - min value for Vsh 
-mode - 0 controles voltage at bus "p"/ 1 does note control voltage at bus "p"
+mode - 1 control voltage at bus "p"/ 0 does note control voltage at bus "p"
 
 
 ---------------------------------------------------------------------------------------

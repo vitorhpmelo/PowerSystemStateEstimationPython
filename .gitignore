@@ -3,3 +3,5 @@ ResultadosISGT/state_FACTS*
 *.pdf
 ResultadosISGT/resultados_conv*
 *.zip
+tmp/*
+*.txt#
