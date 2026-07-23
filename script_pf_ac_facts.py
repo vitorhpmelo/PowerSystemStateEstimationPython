@@ -108,12 +108,11 @@ calc_C_fp_UPFC(var_t,var_v,var_x,var_svc,var_UPFC,var_UPFC_vsh,graph,C_UPFC)
 Hx=np.concatenate((H,HTCSC,HSVC,HUPFC,HUPFC_sh),axis=1)
 Hx=np.concatenate((Hx,C_UPFC),axis=0)
 
-pd.DataFrame(Hx).to_csv('tmp/Hx.csv', index=False, header=False, float_format='%.15e')
 #%%
 
+save_matrix(Hx,"tmp/facts_fp_Hx.csv")
 
+save_measurement_facts_order(z, var_UPFC, filename="tmp/facts_fp_z_order.csv")
 
-save_measurement_facts_order(z, var_UPFC)
-
-save_variable_facts_order(var_t,var_v,var_x,var_svc,var_UPFC,var_UPFC_vsh)
+save_variable_facts_order(var_t,var_v,var_x,var_svc,var_UPFC,var_UPFC_vsh, filename="tmp/facts_fp_var_order.csv")
 # %%

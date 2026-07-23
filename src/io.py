@@ -96,3 +96,38 @@ def save_variable_facts_order(
             for key in variables:
                 writer.writerow([index, var_type, key])
                 index += 1
+
+
+
+def save_matrix(matrix, filename, float_format="%.15e"):
+    """
+    Save a matrix or vector to a CSV file.
+
+    Parameters
+    ----------
+    matrix : array-like
+        Matrix or vector to save.
+    filename : str or Path
+        Output CSV file.
+    float_format : str, optional
+        Floating-point format used when writing the file.
+    """
+    filename = Path(filename)
+    filename.parent.mkdir(parents=True, exist_ok=True)
+
+    with filename.open("w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+
+        for row in matrix:
+            # Handle both matrices and vectors
+            try:
+                writer.writerow(
+                    [
+                        float_format % x if isinstance(x, (float, int)) else x
+                        for x in row
+                    ]
+                )
+            except TypeError:
+                writer.writerow(
+                    [float_format % row if isinstance(row, (float, int)) else row]
+                )
