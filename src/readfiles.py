@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from src.classes import *
 import pandas as pd
 import numpy as np
@@ -191,154 +193,460 @@ def prt_state_FACTS(graph,var_x,var_svc,var_upfc):
         print(s)
 
 
-def save_DMEAS_ac_pf(graph,bran,sys,dUPFC={},flag_save_csv=True):
+def save_DMEAS_ac_pf(
+    graph,
+    bran,
+    sys,
+    dUPFC={},
+    precision={"scada": {"P":0.02,"V":0.01,"UPFC":0.01,"TCSC":0.01,"SVC":0.01}, 
+    "pmu": {"V":0.0001,"I":0.0001}},
+    flag_save_csv=True,
+):
     """
-    Function to save the file with all measurements possible, from a power flow simulation 
-    for AC networks with FACTS devices. It uses the graph of the network to calculate every 
-    possible measurement and saves it in a file called DMEAS_fp.csv into the system's folder.
-    @param: graph Graph structure with the information about the network
-    @param: bran Dictionary with the information about the network branches
-    @param: sys String with the system folder's name
-    Note: This function is specifically designed for AC networks with FACTS devices.
+    Save all possible AC measurements obtained from a power-flow solution.
+
+    Measurement classes
+    -------------------
+    SCADA:
+        0  - Active power injection
+        1  - Reactive power injection
+        2  - Active power flow
+        3  - Reactive power flow
+        4  - Voltage magnitude
+
+        FACTS measurements:
+        10 - TCSC reactance
+        11 - SVC susceptance
+        12 - UPFC shunt voltage magnitude
+        13 - UPFC shunt voltage angle
+        14 - UPFC series voltage magnitude
+        15 - UPFC series voltage angle
+
+    PMU:
+        5 - Voltage angle
+        6 - Current injection real
+        7 - Current injection imaginary
+        8 - Current flow real
+        9 - Current flow imaginary
+
+    Parameters
+    ----------
+    graph :
+        Network graph.
+
+    bran : dict
+        Network branches.
+
+    sys : str or Path
+        System folder.
+
+    dUPFC : dict, optional
+        UPFC devices.
+
+    precision : dict, optional
+        Measurement precision. Expected keys:
+            "scada"
+            "pmu"
+
+    flag_save_csv : bool, optional
+        If True, save DMEAS_fp.csv.
+
+    Returns
+    -------
+    list
+        List containing all measurements.
     """
-    meas=[] 
-    Pinj=[]
-    Qinj=[]
-    Vmod=[]
-    Vangl=[]
-    Pkm=[]
-    Pmk=[]
-    Qkm=[]
-    Qmk=[]
-    Ikm_re=[]
-    Imk_re=[]
-    Ikm_im=[]
-    Imk_im=[]
-    Iinj_re=[]
-    Iinj_im=[]
-    
-    #calculates the Power Inejection (Reactive and Active)
-    for no in graph:
-        linha=[0,no.bus.id,-1,no.P(graph),1]
-        Pinj.append(linha)
-        linha=[1,no.bus.id,-1,no.Q(graph),1]
-        Qinj.append(linha)
-        linha=[4,no.bus.id,-1,no.V,1]
-        Vmod.append(linha)
-        linha=[5,no.bus.id,-1,no.theta,1]
-        Vangl.append(linha)
 
-    #calculates the flows in the branches
-    for key,r in bran.items():
-        #calculate from k to m
-        linha=[2,graph[r.fr].bus.id,graph[r.to].bus.id,r.Pf(graph,0),1.0]
-        linha2=[3,graph[r.fr].bus.id,graph[r.to].bus.id,r.Qf(graph,0),1.0]
-        Pkm.append(linha)
-        Qkm.append(linha2)
-        #calculate from m to k
-        linha=[2,graph[r.to].bus.id,graph[r.fr].bus.id,r.Pf(graph,1),1.0]
-        linha2=[3,graph[r.to].bus.id,graph[r.fr].bus.id,r.Qf(graph,1),1.0]
-        Pmk.append(linha)
-        Qmk.append(linha2)
+    prec_scada = precision["scada"]
+    prec_pmu = precision["pmu"]
 
+    # =========================================================
+    # SCADA measurements
+    # =========================================================
 
- 
-    #calculates the flows in the upfc
-    for key,upfc in dUPFC.items():
-        linha=[2,graph[upfc.p].bus.id,graph[upfc.s].bus.id,upfc.Pps(graph),1.0]
-        linha2=[3,graph[upfc.p].bus.id,graph[upfc.s].bus.id,upfc.Qps(graph),1.0]
-        Pkm.append(linha)
-        Qkm.append(linha2)
-        #calculate from m to k
-        linha=[2,graph[upfc.s].bus.id,graph[upfc.p].bus.id,upfc.Psp(graph),1.0]
-        linha2=[3,graph[upfc.s].bus.id,graph[upfc.p].bus.id,upfc.Qsp(graph),1.0]
-        Pmk.append(linha)
-        Qmk.append(linha2)
+    Pinj = []
+    Qinj = []
+    Pkm = []
+    Pmk = []
+    Qkm = []
+    Qmk = []
+    Vmod = []
 
-
-
+    # ---------------------------------------------------------
+    # Bus measurements
+    # ---------------------------------------------------------
 
     for no in graph:
-        linha=[6,no.bus.id,-1,no.I_inj_re(graph),1]
-        Iinj_re.append(linha)
-        linha=[7,no.bus.id,-1,no.I_inj_im(graph),1]
-        Iinj_im.append(linha)
 
+        Pinj.append([0,no.bus.id,-1,no.P(graph),prec_scada["P"]])
 
-     #calculates the current in the branches
-    for key,r in bran.items():
-        #calculate from k to m
-        linha=[8,graph[r.fr].bus.id,graph[r.to].bus.id,r.Iref(graph,0),1.0]
-        linha2=[9,graph[r.fr].bus.id,graph[r.to].bus.id,r.Iimf(graph,0),1.0]
-        Ikm_re.append(linha)
-        Ikm_im.append(linha2)
-        #calculate from m to k
-        linha=[8,graph[r.to].bus.id,graph[r.fr].bus.id,r.Iref(graph,1),1.0]
-        linha2=[9,graph[r.to].bus.id,graph[r.fr].bus.id,r.Iimf(graph,1),1.0]
-        Imk_re.append(linha)
-        Imk_im.append(linha2)
+        Qinj.append([
+            1,
+            no.bus.id,
+            -1,
+            no.Q(graph),
+            prec_scada["P"],
+        ])
 
+        Vmod.append([
+            4,
+            no.bus.id,
+            -1,
+            no.V,
+            prec_scada["V"],
+        ])
 
-    for key,upfc in dUPFC.items():
-        linha=[8,graph[upfc.p].bus.id,graph[upfc.s].bus.id,upfc.Ips_re(graph),1.0]
-        linha2=[9,graph[upfc.p].bus.id,graph[upfc.s].bus.id,upfc.Ips_im(graph),1.0]
-        Ikm_re.append(linha)
-        Ikm_im.append(linha2)
-        #calculate from m to k
-        linha=[8,graph[upfc.s].bus.id,graph[upfc.p].bus.id,upfc.Isp_re(graph),1.0]
-        linha2=[9,graph[upfc.s].bus.id,graph[upfc.p].bus.id,upfc.Isp_im(graph),1.0]
-        Imk_re.append(linha)
-        Imk_im.append(linha2)
+    # ---------------------------------------------------------
+    # Branch active/reactive power flows
+    # ---------------------------------------------------------
 
-    Xtcsc=[]
-    BSVC=[]
-    Vsh=[]
-    t_sh=[]
-    Vse=[]
-    t_se=[]
+    for key, r in bran.items():
+
+        # From -> To
+        Pkm.append([
+            2,
+            graph[r.fr].bus.id,
+            graph[r.to].bus.id,
+            r.Pf(graph, 0),
+            prec_scada["P"],
+        ])
+
+        Qkm.append([
+            3,
+            graph[r.fr].bus.id,
+            graph[r.to].bus.id,
+            r.Qf(graph, 0),
+            prec_scada["P"],
+        ])
+
+        # To -> From
+        Pmk.append([
+            2,
+            graph[r.to].bus.id,
+            graph[r.fr].bus.id,
+            r.Pf(graph, 1),
+            prec_scada["P"],
+        ])
+
+        Qmk.append([
+            3,
+            graph[r.to].bus.id,
+            graph[r.fr].bus.id,
+            r.Qf(graph, 1),
+            prec_scada["P"],
+        ])
+
+    # ---------------------------------------------------------
+    # UPFC active/reactive power flows
+    #
+    # These are also SCADA measurements.
+    # ---------------------------------------------------------
+
+    for key, upfc in dUPFC.items():
+
+        # p -> s
+        Pkm.append([
+            2,
+            graph[upfc.p].bus.id,
+            graph[upfc.s].bus.id,
+            upfc.Pps(graph),
+            prec_scada["P"],
+        ])
+
+        Qkm.append([
+            3,
+            graph[upfc.p].bus.id,
+            graph[upfc.s].bus.id,
+            upfc.Qps(graph),
+            prec_scada["P"],
+        ])
+
+        # s -> p
+        Pmk.append([
+            2,
+            graph[upfc.s].bus.id,
+            graph[upfc.p].bus.id,
+            upfc.Psp(graph),
+            prec_scada["P"],
+        ])
+
+        Qmk.append([
+            3,
+            graph[upfc.s].bus.id,
+            graph[upfc.p].bus.id,
+            upfc.Qsp(graph),
+            prec_scada["P"],
+        ])
+
+    # =========================================================
+    # FACTS measurements
+    #
+    # FACTS measurements are SCADA measurements.
+    # =========================================================
+
+    Xtcsc = []
+    BSVC = []
+    Vsh = []
+    t_sh = []
+    Vse = []
+    t_se = []
+
     for no in graph:
-        if no.FlagTCSC==True:
-            for key,item in  no.bFACTS_adjk.items():
-                k=int(key.split("-")[0])
-                m=int(key.split("-")[1])
-                linha=[10,graph[k].bus.id,graph[m].bus.id,item.xtcsc,1.0]
-                Xtcsc.append(linha)
-        if no.FlagSVC==True:
-            linha=[11,no.bus.id,-1,no.SVC.BSVC,1.0]
-            BSVC.append(linha)
-        if no.FlagUPFC==True:
-            for key,item in  no.bUFPC_adjk.items():
-                k=int(key.split("-")[0])
-                m=int(key.split("-")[1])
-                linha=[12,graph[k].bus.id,graph[m].bus.id,item.Vsh,1.0]
-                linha1=[13,graph[k].bus.id,graph[m].bus.id,graph[k].theta-item.t_sh,1.0]
-                linha2=[14,graph[k].bus.id,graph[m].bus.id,item.Vse,1.0]
-                linha3=[15,graph[k].bus.id,graph[m].bus.id,graph[k].theta-item.t_se,1.0]
-                Vsh.append(linha)
-                t_sh.append(linha1)
-                Vse.append(linha2)
-                t_se.append(linha3)
 
+        # -----------------------------------------------------
+        # TCSC
+        # -----------------------------------------------------
 
+        if no.FlagTCSC:
 
+            for key, item in no.bFACTS_adjk.items():
 
+                k = int(key.split("-")[0])
+                m = int(key.split("-")[1])
 
+                Xtcsc.append([
+                    10,
+                    graph[k].bus.id,
+                    graph[m].bus.id,
+                    item.xtcsc,
+                    prec_scada["TCSC"],
+                ])
 
+        # -----------------------------------------------------
+        # SVC
+        # -----------------------------------------------------
 
+        if no.FlagSVC:
 
+            BSVC.append([
+                11,
+                no.bus.id,
+                -1,
+                no.SVC.BSVC,
+                prec_scada["SVC"],
+            ])
 
+        # -----------------------------------------------------
+        # UPFC
+        # -----------------------------------------------------
 
-    meas=Pinj+Qinj+Pkm+Qkm+Pmk+Qmk+Vmod+\
-    Vangl+Ikm_re+Ikm_im+Imk_re+Imk_im+Iinj_re+Iinj_im\
-    +Xtcsc+BSVC+Vsh+t_sh+Vse+t_se
+        if no.FlagUPFC:
 
+            for key, item in no.bUFPC_adjk.items():
 
-    
-    dfDMEAS=pd.DataFrame(meas,columns=["type","from","to","zmeas","prec"])
+                k = int(key.split("-")[0])
+                m = int(key.split("-")[1])
+
+                # Shunt voltage magnitude
+                Vsh.append([
+                    12,
+                    graph[k].bus.id,
+                    graph[m].bus.id,
+                    item.Vsh,
+                    prec_scada["UPFC"],
+                ])
+
+                # Shunt voltage angle
+                t_sh.append([
+                    13,
+                    graph[k].bus.id,
+                    graph[m].bus.id,
+                    graph[k].theta - item.t_sh,
+                    prec_scada["UPFC"],
+                ])
+
+                # Series voltage magnitude
+                Vse.append([
+                    14,
+                    graph[k].bus.id,
+                    graph[m].bus.id,
+                    item.Vse,
+                    prec_scada["UPFC"],
+                ])
+
+                # Series voltage angle
+                t_se.append([
+                    15,
+                    graph[k].bus.id,
+                    graph[m].bus.id,
+                    graph[k].theta - item.t_se,
+                    prec_scada["UPFC"],
+                ])
+
+    # =========================================================
+    # PMU measurements
+    # =========================================================
+
+    Vangl = []
+
+    Iinj_re = []
+    Iinj_im = []
+
+    Ikm_re = []
+    Ikm_im = []
+    Imk_re = []
+    Imk_im = []
+
+    # ---------------------------------------------------------
+    # Bus voltage angle
+    # ---------------------------------------------------------
+
+    for no in graph:
+
+        Vangl.append([
+            5,
+            no.bus.id,
+            -1,
+            no.theta,
+            prec_pmu["V"],
+        ])
+
+    # ---------------------------------------------------------
+    # Bus current injections
+    # ---------------------------------------------------------
+
+    for no in graph:
+
+        Iinj_re.append([
+            6,
+            no.bus.id,
+            -1,
+            no.I_inj_re(graph),
+            prec_pmu["I"],
+        ])
+
+        Iinj_im.append([
+            7,
+            no.bus.id,
+            -1,
+            no.I_inj_im(graph),
+            prec_pmu["I"],
+        ])
+
+    # ---------------------------------------------------------
+    # Branch current flows
+    # ---------------------------------------------------------
+
+    for key, r in bran.items():
+
+        # From -> To
+        Ikm_re.append([
+            8,
+            graph[r.fr].bus.id,
+            graph[r.to].bus.id,
+            r.Iref(graph, 0),
+            prec_pmu["I"],
+        ])
+
+        Ikm_im.append([
+            9,
+            graph[r.fr].bus.id,
+            graph[r.to].bus.id,
+            r.Iimf(graph, 0),
+            prec_pmu["I"],
+        ])
+
+        # To -> From
+        Imk_re.append([
+            8,
+            graph[r.to].bus.id,
+            graph[r.fr].bus.id,
+            r.Iref(graph, 1),
+            prec_pmu["I"],
+        ])
+
+        Imk_im.append([
+            9,
+            graph[r.to].bus.id,
+            graph[r.fr].bus.id,
+            r.Iimf(graph, 1),
+            prec_pmu["I"],
+        ])
+
+    # ---------------------------------------------------------
+    # UPFC current flows
+    #
+    # UPFC current measurements are PMU measurements.
+    # ---------------------------------------------------------
+
+    for key, upfc in dUPFC.items():
+
+        # p -> s
+        Ikm_re.append([
+            8,
+            graph[upfc.p].bus.id,
+            graph[upfc.s].bus.id,
+            upfc.Ips_re(graph),
+            prec_pmu["I"],
+        ])
+
+        Ikm_im.append([
+            9,
+            graph[upfc.p].bus.id,
+            graph[upfc.s].bus.id,
+            upfc.Ips_im(graph),
+            prec_pmu["I"],
+        ])
+
+        # s -> p
+        Imk_re.append([
+            8,
+            graph[upfc.s].bus.id,
+            graph[upfc.p].bus.id,
+            upfc.Isp_re(graph),
+            prec_pmu["I"],
+        ])
+
+        Imk_im.append([
+            9,
+            graph[upfc.s].bus.id,
+            graph[upfc.p].bus.id,
+            upfc.Isp_im(graph),
+            prec_pmu["I"],
+        ])
+
+    # =========================================================
+    # Assemble measurements
+    #
+    # Keep the same ordering as the original implementation.
+    # =========================================================
+
+    meas = (
+        Pinj
+        + Qinj
+        + Pkm
+        + Qkm
+        + Pmk
+        + Qmk
+        + Vmod
+        + Vangl
+        + Ikm_re
+        + Ikm_im
+        + Imk_re
+        + Imk_im
+        + Iinj_re
+        + Iinj_im
+        + Xtcsc
+        + BSVC
+        + Vsh
+        + t_sh
+        + Vse
+        + t_se
+    )
+
+    # =========================================================
+    # Save CSV
+    # =========================================================
+
+    dfDMEAS=pd.DataFrame(meas,columns=["type","fr","to","zmeas","prec"])
+
     if flag_save_csv:
-        dfDMEAS.to_csv(sys+"/DMEAS_fp.csv",index=False,float_format="%.7f",header=True)
-    return dfDMEAS
 
+        filename = Path(sys) / "DMEAS_fp.csv"
+        dfDMEAS.to_csv(filename, index=False, float_format="%.7f", header=True)
+
+
+    return dfDMEAS
 
 def save_DMEAS_dc_pf(graph_dc,bran_dc,sys,flag_save_csv=True):
     """
@@ -392,7 +700,7 @@ def save_DMEAS_dc_pf(graph_dc,bran_dc,sys,flag_save_csv=True):
 
 
     
-    dfDMEAS=pd.DataFrame(meas,columns=["type","from","to","zmeas","prec"])
+    dfDMEAS=pd.DataFrame(meas,columns=["type","fr","to","zmeas","prec"])
     if flag_save_csv:
         dfDMEAS.to_csv(sys+"/DMEASdc_fp.csv",index=False,float_format="%.7f",header=True)
     return dfDMEAS
@@ -535,7 +843,7 @@ def save_DMEAS_conv_pf(convs_acdc,graph,graph_dc,sys,flag_save_csv=True):
 
 
     
-    dfDMEAS=pd.DataFrame(meas,columns=["type","from","to","zmeas","prec"])
+    dfDMEAS=pd.DataFrame(meas,columns=["type","fr","to","zmeas","prec"])
     if flag_save_csv:
         dfDMEAS.to_csv(sys+"/DMEASconv_fp.csv",index=False,float_format="%.7f",header=True)
     return dfDMEAS

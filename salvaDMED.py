@@ -22,7 +22,7 @@ sys="IEEE14_rakp2009"
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)
 #%%
 
-[bars,nbars,pv,pq,ind_i]=creat_bus(dfDBAR)
+[bars,nbars,pv,pq,ind_i]=create_bus(dfDBAR)
 [ram,nbran]=create_bran(dfDBRAN,ind_i)
 #%%
 [ramTCSC,nbranTCSC]=create_TCSC(dfDFACTS,ind_i)
@@ -47,9 +47,7 @@ addUPFCingraph(graph,ramUPFC)
 conv=power_flow_FACTS(graph,inici=1,prt=1,itmax=30)
 #%%3
 
-ram.update(ramTCSC)
 
-save_DMEAS_pf(graph,ram,sys,ramUPFC)
 
 #%%
 state_ref=get_state(graph)

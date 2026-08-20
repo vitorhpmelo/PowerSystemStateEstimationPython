@@ -548,7 +548,6 @@ def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
     the flat start, 1 it uses the DBAR
     '''
     conv=0
-    c1=1e-4 #constant for backintracking
 
 
     FACTSini(graph,useDFACTS=useDFACTS)
@@ -565,7 +564,8 @@ def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
         for key in var_x.keys():
             key=key.split("-")
             m=int(key[1])
-            graph[m].V=graph[m].V-0.1
+            graph[m].V=graph[m].V+1e-1
+            # graph[m].theta=graph[m].theta+1e-2
 
 
 
@@ -586,14 +586,13 @@ def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
     C_UPFC=np.zeros((len(c_upfc),nvar))
 
     it=0
-    it2=0
-    itmax=2
+
     lstdx=[]
     lstdz=[]
     
     
     while(it <30):
-        a=1
+     
         calc_dz(z,graph,dz)
         calc_h(z,graph,h)
         calc_cUPFC(graph,var_UPFC,c_upfc)
@@ -607,8 +606,7 @@ def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
         H=np.concatenate((Hx,C_UPFC),axis=0)
         b=np.append(dz,c_upfc)
         grad=np.matmul(np.matmul(H.T,W),b)
-        if it==0:
-            np.savetxt("Hse.txt",Hx,delimiter=",")
+
         try: 
             dx=NormalEQ_QR(H,W,b,printcond=printcond,printmat=printmat)
         except:
@@ -621,19 +619,20 @@ def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
             norminicial=liang.norm(grad)
 
 
-        new_X(graph,var_t,var_v,a*dx)
-        new_X_TCSC(graph,len(var_t)+len(var_v),var_x,a*dx)
-        new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,a*dx)
-        new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,a*dx)
+        new_X(graph,var_t,var_v,dx)
+        new_X_TCSC(graph,len(var_t)+len(var_v),var_x,dx)
+        new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,dx)
+        new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,dx)
+
         calc_dz(z,graph,dz)
         calc_cUPFC(graph,var_UPFC,c_upfc)
         b=np.append(dz,c_upfc)
         Jxn=np.matmul(np.matmul(b,W),b)
         it=it+1
         if printgrad==True:
-            print("{:e},{:e}".format( liang.norm(grad)/norminicial,liang.norm(a*dx)))
+            print("{:e},{:e}".format( liang.norm(grad)/norminicial,liang.norm(dx)))
         gradredux=liang.norm(grad)/norminicial
-        maxdx= liang.norm(a*dx)
+        maxdx= liang.norm(dx)
         lstdx.append(maxdx)
         lstdz.append(gradredux)
         if maxdx>1e5:
@@ -642,7 +641,6 @@ def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
             break
         if gradredux <tol2 and maxdx<tol:
             txt="Conv in {:d} iterations".format(it)
-            upfc_angle(graph)
             if printres==True:
                 print(liang.norm(grad)/norminicial)
                 print(txt)

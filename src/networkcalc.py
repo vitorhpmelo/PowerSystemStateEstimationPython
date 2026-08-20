@@ -212,7 +212,7 @@ def Vinici_lf(graph,useDBUS=1,var_x=dict(),var_t=dict(),z=[]):
             key=key.split("-")
             k=int(key[1])
             graph[k].V=graph[k].V+0.1
-            graph[k].theta=graph[k].theta+0.01
+            # graph[k].theta=graph[k].theta+0.01
     
     
     else:
@@ -1822,6 +1822,14 @@ def calc_cUPFC(graph,var_UPFC,c):
         c[i]=-graph[p].bUFPC_adjk[key].Pse(graph)+graph[p].bUFPC_adjk[key].Psh(graph)
         i=i+1
 
+def calc_hUPFC(graph,var_UPFC,h):
+    i=0
+    for key in var_UPFC.keys():
+        p,s=key.split("-") 
+        p=int(p)
+        h[i]=-(-graph[p].bUFPC_adjk[key].Pse(graph)+graph[p].bUFPC_adjk[key].Psh(graph))
+        i=i+1
+
 def calc_cx(vecc,graph,cx):
     i=0
     for c in vecc:
@@ -1855,6 +1863,9 @@ def new_X_UPFC(graph,offset,var_UPFC,var_UPFC_sh,dx):
         if key in var_UPFC_sh.keys():
             graph[p].bUFPC_adjk[key].Vsh=graph[p].bUFPC_adjk[key].Vsh+dx[offset+3*n_upfc+var_UPFC_sh[key]]
 
+def canonicalize_angle(angle):
+    return (angle + np.pi) % (2 * np.pi) - np.pi
+
 def new_X_EE_UPFC(graph,offset,var_UPFC,dx):
     
     n_upfc=len(var_UPFC)
@@ -1863,6 +1874,7 @@ def new_X_EE_UPFC(graph,offset,var_UPFC,dx):
         p=int(p)
 
         graph[p].bUFPC_adjk[key].t_se=graph[p].bUFPC_adjk[key].t_se+dx[offset+var_UPFC[key]]
+        graph[p].bUFPC_adjk[key].t_se=canonicalize_angle(graph[p].bUFPC_adjk[key].t_se)
         graph[p].bUFPC_adjk[key].t_sh=graph[p].bUFPC_adjk[key].t_sh+dx[offset+n_upfc+var_UPFC[key]]
         graph[p].bUFPC_adjk[key].Vse=graph[p].bUFPC_adjk[key].Vse+dx[offset+2*n_upfc+var_UPFC[key]]
         graph[p].bUFPC_adjk[key].Vsh=graph[p].bUFPC_adjk[key].Vsh+dx[offset+3*n_upfc+var_UPFC[key]]
@@ -2816,13 +2828,14 @@ def power_flow_FACTS(graph,prt=0,tol=1e-6,inici=1,itmax=20,printgrad=1,printres=
 
        
         dx=sliang.spsolve(A,b)
+        print("dx: ", abs(dx).max())
 
         if (0.5<dx_TCSC_max(graph,len(var_t)+len(var_v),var_x,dx))  :
             X_TCSC_its(graph,len(var_t)+len(var_v),var_x,dx)    
 
         new_X(graph,var_t,var_v,dx)
 
-        if (it>5):
+        if (it>-1):
             new_X_TCSC(graph,len(var_t)+len(var_v),var_x,dx)
             new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,dx)
             new_X_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,var_UPFC_vsh,dx)#
