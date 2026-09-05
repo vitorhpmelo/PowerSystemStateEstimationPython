@@ -528,10 +528,211 @@ def get_state_FACTS(TCSC={},svc={},UPFC={},sample="ref",df_ref=pd.DataFrame()):
     return dfANS
 
 
+def initialize_se_facts( graph, dfDMEAS, ind_i, flatstart=-1, prec_virtual=1e-5, w_flag_ones=None, useDFACTS=1 ):
+    """
+    Initialize the state-estimation problem with FACTS.
+    """
+
+    FACTSini( graph, useDFACTS=useDFACTS)
+
+    Vinici(graph,flatStart=flatstart,dfDMEAS=dfDMEAS,ind_i=ind_i)
+
+    z, var_t, var_v = create_z_x(graph,dfDMEAS,ind_i)
+
+    var_x = create_x_TCSC(graph)
+    var_svc = create_x_SVC(graph)
+    var_UPFC, c_upfc = create_c_x_UPFC(graph)
+
+    # --------------------------------------------------
+    # Flat-start perturbation
+    # --------------------------------------------------
+
+    if flatstart == 2:
+        for key in var_x.keys():
+
+            key_split = key.split("-")
+            m = int(key_split[1])
+
+            graph[m].V -= 0.1
+
+    # --------------------------------------------------
+    # Dimensions
+    # --------------------------------------------------
+
+    n_teta = len(var_t)
+    n_v = len(var_v)
+    n_TCSC = len(var_x)
+    n_SVC = len(var_svc)
+    n_UPFC = len(var_UPFC)
+
+    nvar = n_teta+ n_v+ n_TCSC+ n_SVC+ 4 * n_UPFC
+
+    # --------------------------------------------------
+    # Allocate matrices
+    # --------------------------------------------------
+
+    Htrad = np.zeros( (len(z), n_teta + n_v))
+
+    HTCSC = np.zeros( (len(z), n_TCSC))
+
+    HSVC = np.zeros((len(z), n_SVC))
+
+    UPFC = np.zeros( (len(z), 4 * n_UPFC))
+
+    C_UPFC = np.zeros( (len(c_upfc), nvar))
+
+    dz = np.zeros(len(z))
+    h = np.zeros(len(z))
+
+    # --------------------------------------------------
+    # Weight matrix
+    # --------------------------------------------------
+
+    if w_flag_ones is None:
+
+        W = create_W(z + list(c_upfc),mode=0,prec_virtual=prec_virtual)
+
+    else:
+
+        W = create_W(z + list(c_upfc),flag_ones=w_flag_ones,prec_virtual=prec_virtual)
+
+    return {
+        "z": z,
+        "var_t": var_t,
+        "var_v": var_v,
+        "var_x": var_x,
+        "var_svc": var_svc,
+        "var_UPFC": var_UPFC,
+        "c_upfc": c_upfc,
+
+        "Htrad": Htrad,
+        "HTCSC": HTCSC,
+        "HSVC": HSVC,
+        "UPFC": UPFC,
+        "C_UPFC": C_UPFC,
+
+        "dz": dz,
+        "h": h,
+        "W": W,
+
+        "n_teta": n_teta,
+        "n_v": n_v,
+        "n_TCSC": n_TCSC,
+        "n_SVC": n_SVC,
+        "n_UPFC": n_UPFC,
+        "nvar": nvar,
+    }
 
 
 
-def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1,useDFACTS=1):
+def calculate_b_se_facts(graph, se):
+    """
+    Calculate the residual vector b for the FACTS state estimator.
+    """
+
+    calc_dz(
+        se["z"],
+        graph,
+        se["dz"]
+    )
+
+
+    calc_cUPFC(
+        graph,
+        se["var_UPFC"],
+        se["c_upfc"]
+    )
+
+    return np.append(se["dz"], se["c_upfc"])
+
+def calculate_jacobian_se_facts(graph, se):
+    """
+    Calculate the Jacobian matrix H for the FACTS state estimator.
+    """
+
+    calc_H_EE(se["z"],se["var_t"],se["var_v"],graph,se["Htrad"])
+
+    calc_H_EE_TCSC(se["z"],se["var_x"],graph,se["HTCSC"])
+
+    calc_H_EE_SVC(se["z"],se["var_svc"],graph,se["HSVC"])
+
+    calc_H_EE_UPFC(se["z"],se["var_UPFC"],graph,se["UPFC"])
+
+    calc_C_EE_UPFC(se["var_t"],se["var_v"],
+                   se["var_x"],se["var_svc"],
+                   se["var_UPFC"],graph,se["C_UPFC"])
+
+    # Assemble Jacobian blocks
+    Hx = np.concatenate(
+        (se["Htrad"],se["HTCSC"],se["HSVC"],se["UPFC"],),
+        axis=1
+    )
+
+    H = np.concatenate(
+        (Hx,se["C_UPFC"],),axis=0)
+
+    return H
+
+def update_se_facts(graph,se,dx,alpha=1.0,):
+    """
+    Update all state variables.
+    """
+
+    var_t = se["var_t"]
+    var_v = se["var_v"]
+    var_x = se["var_x"]
+    var_svc = se["var_svc"]
+    var_UPFC = se["var_UPFC"]
+
+    offset = 0
+
+    new_X(graph,var_t,var_v,alpha * dx)
+
+    offset += len(var_t) + len(var_v)
+
+    new_X_TCSC(graph,offset,var_x,alpha * dx)
+
+    offset += len(var_x)
+
+    new_X_SVC(graph,offset,var_svc,alpha * dx)
+
+    offset += len(var_svc)
+
+    new_X_EE_UPFC(graph,offset,var_UPFC,alpha * dx)
+
+
+
+def backtracking_se_facts(graph,se,dx,grad,Jxk,W,itmax=3,c1=1e-4):
+    """
+    Perform backtracking line search.
+    """
+
+    alpha = 1.0
+
+    for _ in range(itmax):
+
+        update_se_facts(graph,se,dx,alpha=alpha)
+
+        H = calculate_jacobian_se_facts(graph,se)
+        b = calculate_b_se_facts(graph,se)
+        
+
+        Jxn = b @ W @ b
+
+        if Jxn < Jxk + c1 * alpha * np.dot(grad, dx):
+            break
+
+        # Undo update
+        update_se_facts(graph,se,dx,alpha=-alpha,)
+
+        alpha /= 2
+
+    return alpha
+
+def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,max_it=30,
+                      solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,
+                      printcond=0,printmat=0,printits=0,prinnormgrad=0,
+                      flatstart=-1,useDFACTS=1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -547,42 +748,12 @@ def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
     @param flat start, initialization of the state variables, if -1 uses the DC state estimator to intialize the angles and the X, 0 it ujses
     the flat start, 1 it uses the DBAR
     '''
+
+    se = initialize_se_facts(graph, dfDMEAS, ind_i, flatstart=flatstart, prec_virtual=prec_virtual, w_flag_ones=None, useDFACTS=useDFACTS,)
+
     conv=0
 
-
-    FACTSini(graph,useDFACTS=useDFACTS)
-
-    Vinici(graph,flatStart=flatstart,dfDMEAS=dfDMEAS,ind_i=ind_i)
-
-    [z,var_t,var_v]=create_z_x(graph,dfDMEAS,ind_i)
-    var_x=create_x_TCSC(graph)
-    var_svc=create_x_SVC(graph)
-    [var_UPFC,c_upfc]=create_c_x_UPFC(graph)
-    #create var UPFC
-
-    if flatstart==2:
-        for key in var_x.keys():
-            key=key.split("-")
-            m=int(key[1])
-            graph[m].V=graph[m].V+1e-1
-
-
-
-    Htrad=np.zeros((len(z),len(var_t)+len(var_v)))
-    HTCSC=np.zeros((len(z),len(var_x)))
-    HSVC=np.zeros((len(z),len(var_svc)))
-    UPFC=np.zeros((len(z),4*len(var_UPFC)))
-    n_teta=len(var_t)
-    n_v=len(var_v)
-    n_TCSC=len(var_x)
-    n_SVC=len(var_svc)
-    n_UPFC=len(var_UPFC)
-    nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
-    dz=np.zeros(len(z))
-    h=np.zeros(len(z))
-    W=create_W(z+list(c_upfc),mode=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
-    
-    C_UPFC=np.zeros((len(c_upfc),nvar))
+    W=se["W"]
 
     it=0
 
@@ -590,80 +761,62 @@ def SE_WLS_FACTS_noBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_vi
     lstdz=[]
     
     
-    while(it <30):
-     
-        calc_dz(z,graph,dz)
-        calc_h(z,graph,h)
-        calc_cUPFC(graph,var_UPFC,c_upfc)
-        calc_H_EE(z,var_t,var_v,graph,Htrad) 
-        calc_H_EE_TCSC(z,var_x,graph,HTCSC) 
-        calc_H_EE_SVC(z,var_svc,graph,HSVC) 
-        calc_H_EE_UPFC(z,var_UPFC,graph,UPFC)
-        calc_C_EE_UPFC(var_t,var_v,var_x,var_svc,var_UPFC,graph,C_UPFC)
+    for it in range(max_it):
+
+        H = calculate_jacobian_se_facts(graph, se)
+        b = calculate_b_se_facts(graph, se)
         
-        Hx=np.concatenate((Htrad,HTCSC,HSVC,UPFC),axis=1)
-        H=np.concatenate((Hx,C_UPFC),axis=0)
-        b=np.append(dz,c_upfc)
-        grad=np.matmul(np.matmul(H.T,W),b)
+        
+        grad = H.T @ W @ b
+
 
         try: 
-            dx=NormalEQ_QR(H,W,b,printcond=printcond,printmat=printmat)
+            dx = NormalEQ_QR(H,W,b,printcond=printcond,printmat=printmat)
         except:
-            conv=0
-            it=30
-            break
+            return 0, max_it, []
 
-        Jxk=np.matmul(np.matmul(b,W),b)
         if it==0:
             norminicial=liang.norm(grad)
 
+        update_se_facts(graph,se,dx)
 
-        new_X(graph,var_t,var_v,dx)
-        new_X_TCSC(graph,len(var_t)+len(var_v),var_x,dx)
-        new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,dx)
-        new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,dx)
 
-        calc_dz(z,graph,dz)
-        calc_cUPFC(graph,var_UPFC,c_upfc)
-        b=np.append(dz,c_upfc)
-        Jxn=np.matmul(np.matmul(b,W),b)
-        it=it+1
-        if printgrad==True:
-            print("{:e},{:e}".format( liang.norm(grad)/norminicial,liang.norm(dx)))
-        gradredux=liang.norm(grad)/norminicial
-        maxdx= liang.norm(dx)
+        gradredux = liang.norm(grad) / norminicial
+        maxdx = liang.norm(dx)
+
+
+        if printgrad:
+            print( "{:e},{:e}".format(gradredux,maxdx,))
+        
         lstdx.append(maxdx)
         lstdz.append(gradredux)
-        if maxdx>1e5:
-            conv=0
-            it=30
+
+        if maxdx > 1e5:
             break
-        if gradredux <tol2 and maxdx<tol:
-            txt="Conv in {:d} iterations".format(it)
-            if printres==True:
-                print(liang.norm(grad)/norminicial)
-                print(txt)
+
+        if gradredux < tol2 and maxdx < tol:
+            if printres:
+                print(gradredux)
+                print("Conv in {:d} iterations".format(it + 1))
                 prt_state(graph)
-                prt_state_FACTS(graph,var_x,var_svc,var_UPFC)
-            conv=1
+                prt_state_FACTS(graph,se["var_x"],se["var_svc"],se["var_UPFC"])
+
+            conv = 1
             break
 
         
 
-    if printits==1:
-        iterdict={"dx":lstdx,"dz":lstdz}
-        dfits = pd.DataFrame(iterdict)
-
-        # Save the DataFrame to a CSV file
-        dfits.to_csv('conv_GN.csv', index=False)
-    elif printits==2:
-        iterdict={"dx":lstdx,"dz":lstdz}
-        dfits = pd.DataFrame(iterdict)
+    if printits:
+        dfits = pd.DataFrame({"dx": lstdx,"dz": lstdz})
     else:
-        dfits=[]
-    return conv,it,dfits
+        dfits = []
 
-def SE_WLS_FACTS_withBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printres=1,printgrad=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+    return conv, it + 1, dfits
+
+def SE_WLS_FACTS_withBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,max_it=30,
+                      solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,
+                      printcond=0,printmat=0,printits=0,prinnormgrad=0,
+                      flatstart=2,useDFACTS=1):
     
     '''
     WLS state estimator with FACTS devices (only TCSC implemented yet)
@@ -679,61 +832,26 @@ def SE_WLS_FACTS_withBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_
     @param flat start, initialization of the state variables, if -1 uses the DC state estimator to intialize the angles and the X, 0 it ujses
     the flat start, 1 it uses the DBAR
     '''
+    se = initialize_se_facts(graph, dfDMEAS, ind_i, flatstart=flatstart, prec_virtual=prec_virtual, w_flag_ones=None, useDFACTS=useDFACTS,)
+
     conv=0
-    c1=1e-4 #constant for backintracking
-    FACTSini(graph)
 
-    Vinici(graph,flatStart=flatstart,dfDMEAS=dfDMEAS,ind_i=ind_i)
-
-    [z,var_t,var_v]=create_z_x(graph,dfDMEAS,ind_i)
-    var_x=create_x_TCSC(graph)
-    var_svc=create_x_SVC(graph)
-    [var_UPFC,c_upfc]=create_c_x_UPFC(graph)
-    #create var UPFC
-
-    if flatstart==2:
-        for key in var_x.keys():
-            key=key.split("-")
-            m=int(key[0])
-            graph[m].V=graph[m].V-0.01
-
-
-    Htrad=np.zeros((len(z),len(var_t)+len(var_v)))
-    HTCSC=np.zeros((len(z),len(var_x)))
-    HSVC=np.zeros((len(z),len(var_svc)))
-    UPFC=np.zeros((len(z),4*len(var_UPFC)))
-    n_teta=len(var_t)
-    n_v=len(var_v)
-    n_TCSC=len(var_x)
-    n_SVC=len(var_svc)
-    n_UPFC=len(var_UPFC)
-    nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
-    dz=np.zeros(len(z))
-    W=create_W(z+list(c_upfc),flag_ones=2,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
-    
-    C_UPFC=np.zeros((len(c_upfc),nvar))
+    W=se["W"]
 
     it=0
-    it2=0
-    itmax=3
+
     lstdx=[]
     lstdz=[]
-    lstc_upfc=[]
     
-    while(it <30):
-        a=1
-        calc_dz(z,graph,dz)
-        calc_cUPFC(graph,var_UPFC,c_upfc)
-        calc_H_EE(z,var_t,var_v,graph,Htrad) 
-        calc_H_EE_TCSC(z,var_x,graph,HTCSC) 
-        calc_H_EE_SVC(z,var_svc,graph,HSVC) 
-        calc_H_EE_UPFC(z,var_UPFC,graph,UPFC)
-        calc_C_EE_UPFC(var_t,var_v,var_x,var_svc,var_UPFC,graph,C_UPFC)
+    
+    for it in range(max_it):
+
+        H = calculate_jacobian_se_facts(graph, se)
+        b = calculate_b_se_facts(graph, se)
         
-        Hx=np.concatenate((Htrad,HTCSC,HSVC,UPFC),axis=1)
-        H=np.concatenate((Hx,C_UPFC),axis=0)
-        b=np.append(dz,c_upfc)
-        grad=np.matmul(np.matmul(H.T,W),b)
+        
+        grad = H.T @ W @ b
+        Jxk=np.matmul(np.matmul(b,W),b)
         try: 
             dx=NormalEQ_QR(H,W,b,printcond=printcond,printmat=printmat)
         except:
@@ -741,33 +859,14 @@ def SE_WLS_FACTS_withBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_
             it=30
             break
 
-        Jxk=np.matmul(np.matmul(b,W),b)
+        
         if it==0:
             norminicial=liang.norm(grad)
-        it2=0
-        while it2<itmax:
-            new_X(graph,var_t,var_v,a*dx)
-            new_X_TCSC(graph,len(var_t)+len(var_v),var_x,a*dx)
-            new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,a*dx)
-            new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,a*dx)
-            calc_dz(z,graph,dz)
-            calc_cUPFC(graph,var_UPFC,c_upfc)
-            b=np.append(dz,c_upfc)
-            Jxn=np.matmul(np.matmul(b,W),b)
-            it2=it2+1
-            if (it2==itmax) | (liang.norm(a*dx) <1e-2):
-                break
-            if Jxn < Jxk + c1*a*np.dot(grad,dx):
-                break
-            else:
-                new_X(graph,var_t,var_v,-a*dx)
-                new_X_TCSC(graph,len(var_t)+len(var_v),var_x,-a*dx)
-                new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,-a*dx)
-                new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,-a*dx)
-                # new_X_EE_UPFC_lim(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,-dx,a)
-                a=a/2
+
+        backtracking_se_facts(graph,se,dx,grad,Jxk,W,itmax=3,c1=1e-4)
+
         if printgrad==True:   
-            print("{:e},{:e}".format( liang.norm(grad)/norminicial,liang.norm(a*dx)))
+            print("{:e},{:e}".format( liang.norm(grad)/norminicial,liang.norm(dx)))
         gradredux=liang.norm(grad)/norminicial
         maxdx= liang.norm(dx)
 
@@ -779,37 +878,30 @@ def SE_WLS_FACTS_withBC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_
             break
         it=it+1
         if gradredux <tol2 and maxdx<tol:
-            txt="Conv in {:d} iterations".format(it)
             upfc_angle(graph)
             if printres==True:
                 print(liang.norm(grad)/norminicial)
-                print(txt)
+                print("Conv in {:d} iterations".format(it + 1))
                 prt_state(graph)
-                prt_state_FACTS(graph,var_x,var_svc,var_UPFC)
+                prt_state_FACTS(graph,se["var_x"],se["var_svc"],se["var_UPFC"])
+
             conv=1
             break
 
 
-        
-
-
-    if printits==1:
-        iterdict={"dx":lstdx,"dz":lstdz}
-        dfits = pd.DataFrame(iterdict)
-
-        # Save the DataFrame to a CSV file
-        dfits.to_csv('conv_GNbc.csv', index=False)
-    elif printits==2:
-        iterdict={"dx":lstdx,"dz":lstdz}
-        dfits = pd.DataFrame(iterdict)
+    if printits:
+        dfits = pd.DataFrame({"dx": lstdx,"dz": lstdz})
     else:
-        dfits=[]
+        dfits = []
 
-    return conv,it,dfits
+    return conv, it + 1, dfits
 
 
 
-def SE_WLS_FACTS_LM(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SE_WLS_FACTS_LM(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,max_it=30,
+                    solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,
+                    printcond=0,printmat=0,printits=0,prinnormgrad=0,
+                    flatstart=2,useDFACTS=1):
     
     '''
     WLS state estimator with FACTS devices LevenberMerquard
@@ -825,113 +917,76 @@ def SE_WLS_FACTS_LM(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virt
     @param flat start, initialization of the state variables, if -1 uses the DC state estimator to intialize the angles and the X, 0 it ujses
     the flat start, 1 it uses the DBAR
     '''
-    conv=0
-    c1=1e-4 #constant for backintracking
-    FACTSini(graph)
-
-    Vinici(graph,flatStart=flatstart,dfDMEAS=dfDMEAS,ind_i=ind_i)
-
-    [z,var_t,var_v]=create_z_x(graph,dfDMEAS,ind_i)
-    var_x=create_x_TCSC(graph)
-    var_svc=create_x_SVC(graph)
-    [var_UPFC,c_upfc]=create_c_x_UPFC(graph)
-    #create var UPFC
-
-    if flatstart==2:
-        for key in var_x.keys():
-            key=key.split("-")
-            m=int(key[1])
-            graph[m].V=graph[m].V-0.1
-
-
-
-    Htrad=np.zeros((len(z),len(var_t)+len(var_v)))
-    HTCSC=np.zeros((len(z),len(var_x)))
-    HSVC=np.zeros((len(z),len(var_svc)))
-    UPFC=np.zeros((len(z),4*len(var_UPFC)))
-    n_teta=len(var_t)
-    n_v=len(var_v)
-    n_TCSC=len(var_x)
-    n_SVC=len(var_svc)
-    n_UPFC=len(var_UPFC)
-    nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
-    dz=np.zeros(len(z))
-    W=create_W(z+list(c_upfc),flag_ones=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
+    se = initialize_se_facts(graph, dfDMEAS, ind_i, flatstart=flatstart, prec_virtual=prec_virtual, w_flag_ones=None, useDFACTS=useDFACTS,)
     
-    C_UPFC=np.zeros((len(c_upfc),nvar))
-
+    conv=0
+    
+    W=se["W"]
+    
     it=0
-    it2=0
-    itmax=2
+    
     lstdx=[]
     lstdz=[]
-    lstc_upfc=[]
     
-    while(it <30):
-        calc_dz(z,graph,dz)
-        calc_cUPFC(graph,var_UPFC,c_upfc)
-        calc_H_EE(z,var_t,var_v,graph,Htrad) 
-        calc_H_EE_TCSC(z,var_x,graph,HTCSC) 
-        calc_H_EE_SVC(z,var_svc,graph,HSVC) 
-        calc_H_EE_UPFC(z,var_UPFC,graph,UPFC)
-        calc_C_EE_UPFC(var_t,var_v,var_x,var_svc,var_UPFC,graph,C_UPFC)
+    for it in range(max_it):
 
-        
-        Hx=np.concatenate((Htrad,HTCSC,HSVC,UPFC),axis=1)
-        H=np.concatenate((Hx,C_UPFC),axis=0)
-        b=np.append(dz,c_upfc)
 
-        grad=np.matmul(np.matmul(H.T,W),b)
+        H = calculate_jacobian_se_facts(graph, se)
+        b = calculate_b_se_facts(graph, se)
+
+
+        grad = H.T @ W @ b
         Jxk=np.matmul(np.matmul(b,W),b)
 
         if it==0:
             norminicial=liang.norm(grad)
             Jxkin=Jxk
             G=np.matmul(np.matmul(H.T,W),H)
-            D=liang.norm(np.diag(G))*0.0001
+            d=liang.norm(np.diag(G))*0.0001
 
             
         damp=calc_damp_leven_mod_2(grad/norminicial,it+1)
-        dx=NormalEQ_lev(H,W,damp,b,D=D)
+        dx=NormalEQ_lev(H,W,damp,b,D=d)
 
-        new_X(graph,var_t,var_v,dx)
-        new_X_TCSC(graph,len(var_t)+len(var_v),var_x,dx)
-        new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,dx)
-        new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,dx)
-        calc_dz(z,graph,dz)
-        calc_cUPFC(graph,var_UPFC,c_upfc)
-        b=np.append(dz,c_upfc)
-        if printgrad==True:
-            print("grad {:e}, dx {:e}".format( liang.norm(grad)/norminicial,liang.norm(dx)))
-        gradredux=liang.norm(grad)/norminicial
-        maxdx= liang.norm(dx)
+        update_se_facts(graph,se,dx)
+
+        gradredux = liang.norm(grad) / norminicial
+        maxdx = liang.norm(dx)
+
+        if printgrad:
+            print( "{:e},{:e}".format(gradredux,maxdx,))
+        
         lstdx.append(maxdx)
         lstdz.append(gradredux)
-        if gradredux <tol2 and maxdx<tol:
-            txt="Conv in {:d} iterations".format(it)
-            upfc_angle(graph)
-            if printres==True:
-                print(liang.norm(grad)/norminicial)
-                print(txt)
+
+        if maxdx > 1e5:
+            break
+
+        if gradredux < tol2 and maxdx < tol:
+            if printres:
+                print(gradredux)
+                print("Conv in {:d} iterations".format(it + 1))
                 prt_state(graph)
-                prt_state_FACTS(graph,var_x,var_svc,var_UPFC)
-            conv=1
+                prt_state_FACTS(graph,se["var_x"],se["var_svc"],se["var_UPFC"])
+
+            conv = 1
             break
 
         it=it+1
 
-    if printits==1:
-        iterdict={"dx":lstdx,"dz":lstdz}
-        df = pd.DataFrame(iterdict)
+    if printits:
+        dfits = pd.DataFrame({"dx": lstdx,"dz": lstdz})
+    else:
+        dfits = []
 
-        # Save the DataFrame to a CSV file
-        df.to_csv('conv_A.csv', index=False)
-
-    return conv,it
+    return conv, it + 1, dfits
 
 
 
-def SE_WLS_FACTS_LM_BC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,printcond=0,printmat=0,printits=0,prinnormgrad=0,flatstart=-1):
+def SE_WLS_FACTS_LM_BC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7, max_it=30,
+                       solver="QR",prec_virtual=1e-5,printgrad=1,printres=1,
+                       printcond=0,printmat=0,printits=0,prinnormgrad=0,
+                       flatstart=2,useDFACTS=1):
     
     '''
     WLS state estimator with FACTS devices LevenberMerquard
@@ -947,62 +1002,22 @@ def SE_WLS_FACTS_LM_BC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_v
     @param flat start, initialization of the state variables, if -1 uses the DC state estimator to intialize the angles and the X, 0 it ujses
     the flat start, 1 it uses the DBAR
     '''
+    se = initialize_se_facts(graph, dfDMEAS, ind_i, flatstart=flatstart, prec_virtual=prec_virtual, w_flag_ones=None, useDFACTS=useDFACTS,)
+  
     conv=0
-    c1=1e-4 #constant for backintracking
-    FACTSini(graph)
-
-    Vinici(graph,flatStart=flatstart,dfDMEAS=dfDMEAS,ind_i=ind_i)
-
-    [z,var_t,var_v]=create_z_x(graph,dfDMEAS,ind_i)
-    var_x=create_x_TCSC(graph)
-    var_svc=create_x_SVC(graph)
-    [var_UPFC,c_upfc]=create_c_x_UPFC(graph)
-    #create var UPFC
-
-    if flatstart==2:
-        for key in var_x.keys():
-            key=key.split("-")
-            m=int(key[1])
-            graph[m].V=graph[m].V-0.01
-
-
-
-    Htrad=np.zeros((len(z),len(var_t)+len(var_v)))
-    HTCSC=np.zeros((len(z),len(var_x)))
-    HSVC=np.zeros((len(z),len(var_svc)))
-    UPFC=np.zeros((len(z),4*len(var_UPFC)))
-    n_teta=len(var_t)
-    n_v=len(var_v)
-    n_TCSC=len(var_x)
-    n_SVC=len(var_svc)
-    n_UPFC=len(var_UPFC)
-    nvar=n_teta+n_v+n_TCSC+n_SVC+4*n_UPFC
-    dz=np.zeros(len(z))
-    W=create_W(z+list(c_upfc),flag_ones=0,prec_virtual=prec_virtual) #expandir W para caber as c_FACTS
-    
-    C_UPFC=np.zeros((len(c_upfc),nvar))
-
+  
+    W=se["W"]
+  
     it=0
-    it2=0
-    itmax=3
+  
     lstdx=[]
     lstdz=[]
-    lstc_upfc=[]
     
-    while(it <30):
-        calc_dz(z,graph,dz)
-        calc_cUPFC(graph,var_UPFC,c_upfc)
-        calc_H_EE(z,var_t,var_v,graph,Htrad) 
-        calc_H_EE_TCSC(z,var_x,graph,HTCSC) 
-        calc_H_EE_SVC(z,var_svc,graph,HSVC) 
-        calc_H_EE_UPFC(z,var_UPFC,graph,UPFC)
-        calc_C_EE_UPFC(var_t,var_v,var_x,var_svc,var_UPFC,graph,C_UPFC)
+    for it in range(max_it):
 
+        H = calculate_jacobian_se_facts(graph, se)
+        b = calculate_b_se_facts(graph, se)
         
-        Hx=np.concatenate((Htrad,HTCSC,HSVC,UPFC),axis=1)
-        H=np.concatenate((Hx,C_UPFC),axis=0)
-        b=np.append(dz,c_upfc)
-
         grad=np.matmul(np.matmul(H.T,W),b)
         Jxk=np.matmul(np.matmul(b,W),b)
 
@@ -1014,61 +1029,39 @@ def SE_WLS_FACTS_LM_BC(graph,dfDMEAS,ind_i,tol=1e-7,tol2=1e-7,solver="QR",prec_v
             
         damp=calc_damp_leven_mod_2(grad/norminicial,it+1)
         dx=NormalEQ_lev(H,W,damp,b,D=D)
-        a=1
-        it2=0
-        while it2<itmax:
-            new_X(graph,var_t,var_v,a*dx)
-            new_X_TCSC(graph,len(var_t)+len(var_v),var_x,a*dx)
-            new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,a*dx)
-            new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,a*dx)
-            calc_dz(z,graph,dz)
-            calc_cUPFC(graph,var_UPFC,c_upfc)
-            b=np.append(dz,c_upfc)
-            Jxn=np.matmul(np.matmul(b,W),b)
-            it2=it2+1
-            if it2>=itmax:
-                break
-            if Jxn < Jxk + c1*a*np.dot(grad,dx):
-                break
-            else:
-                new_X(graph,var_t,var_v,-a*dx)
-                new_X_TCSC(graph,len(var_t)+len(var_v),var_x,-a*dx)
-                new_X_SVC(graph,len(var_t)+len(var_v)+len(var_x),var_svc,-a*dx)
-                new_X_EE_UPFC(graph,len(var_t)+len(var_v)+len(var_x)+len(var_svc),var_UPFC,-a*dx)
-                a=a/2
-                
-        if printgrad==True:
-            print("grad {:e}, dx {:e}".format( liang.norm(grad)/norminicial,liang.norm(a*dx)))
-        gradredux=liang.norm(grad)/norminicial
-        maxdx= liang.norm(dx)
-        lstdx.append(maxdx)
-        lstdz.append(gradredux)
+        backtracking_se_facts(graph,se,dx,grad,Jxk,W,itmax=3,c1=1e-4)
+       
+        if printgrad==True:   
+            print("{:e},{:e}".format( liang.norm(grad)/norminicial,liang.norm(dx)))
+            gradredux=liang.norm(grad)/norminicial
+            maxdx= liang.norm(dx)
+
+            lstdx.append(maxdx)
+            lstdz.append(gradredux)
+        if maxdx>1e3:
+            conv=0
+            it=30
+            break
+        it=it+1
         if gradredux <tol2 and maxdx<tol:
-            txt="Conv in {:d} iterations".format(it)
             upfc_angle(graph)
             if printres==True:
                 print(liang.norm(grad)/norminicial)
-                print(txt)
+                print("Conv in {:d} iterations".format(it + 1))
                 prt_state(graph)
-                prt_state_FACTS(graph,var_x,var_svc,var_UPFC)
+                prt_state_FACTS(graph,se["var_x"],se["var_svc"],se["var_UPFC"])
+
             conv=1
             break
 
-        it=it+1
 
-    if printits==1:
-        iterdict={"dx":lstdx,"dz":lstdz}
-        dfits = pd.DataFrame(iterdict)
-
-        # Save the DataFrame to a CSV file
-        dfits.to_csv('conv_LM.csv', index=False)
-    elif printits==2:
-        iterdict={"dx":lstdx,"dz":lstdz}
-        dfits = pd.DataFrame(iterdict)
+    if printits:
+        dfits = pd.DataFrame({"dx": lstdx,"dz": lstdz})
     else:
-        dfits=[]
+        dfits = []
 
-    return conv,it,dfits
+    return conv, it + 1, dfits
+       
 
 
 
