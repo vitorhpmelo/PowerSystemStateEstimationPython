@@ -69,3 +69,4 @@ H=save_se_inner_matrices(graph,df_DMEAS,ind_i,flatstart=False,filename="python_s
 
 SE_WLS_FACTS_noBC(graph,df_DMEAS,ind_i,flatstart=2,prec_virtual=1e-5)
 # %%
+SE_WLS_FACTS_LM()
