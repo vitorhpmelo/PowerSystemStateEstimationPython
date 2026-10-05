@@ -1,7 +1,12 @@
-ResultadosISGT/state_*
-ResultadosISGT/state_FACTS*
+# Simulation results
+ResultadosISGT/**/state_*
+ResultadosISGT/**/state_FACTS*
+ResultadosISGT/**/resultados_conv*
+
+# Temporary files
+tmp/
+
+# Documents and compressed files
 *.pdf
-ResultadosISGT/resultados_conv*
 *.zip
-tmp/*
-*.txt#
+*.txt
