@@ -4,7 +4,8 @@ ResultadosISGT/**/state_FACTS*
 ResultadosISGT/**/resultados_conv*
 
 # Temporary files
-tmp/
+tmp/*
+!tmp/.gitkeep
 
 # Documents and compressed files
 *.pdf
