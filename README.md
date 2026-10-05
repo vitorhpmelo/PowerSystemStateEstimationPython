@@ -1,6 +1,6 @@
 # Power Systems State Estimation – Python Implementation
 
-Python implementation of algorithms for **Power System State Estimation (PSSE)** developed for research purposes.
+Python implementation of algorithms for **Power System State Estimation (PSSE)** developed primarily for research and numerical validation.
 
 The repository includes state estimation formulations for conventional AC networks and networks containing **FACTS devices**, including:
 
@@ -11,11 +11,12 @@ The repository includes state estimation formulations for conventional AC networ
 - SVC models;
 - TCSC models;
 - UPFC models;
-- SCADA and PMU measurements.
-
-This repository is maintained primarily as a **research and validation implementation** and is also used for numerical comparison with the [`PowerSystemsStateEstimation.jl`](https://github.com/) Julia implementation.
+- SCADA and PMU measurements;
+- Bayesian state estimation formulations.
 
 ## Structure
+
+The main source code is organized under `src/`:
 
 ```text
 .
@@ -28,16 +29,22 @@ This repository is maintained primarily as a **research and validation implement
 │   ├── readfiles.py
 │   ├── classes.py
 │   ├── meas_sampl.py
-│   └── BadData.py
+│   ├── BadData.py
+│   └── io.py
 │
-├── tmp/               # Temporary/debugging outputs
+├── tmp/                   # Temporary/debugging outputs
+├── requirements.txt
+├── environment.yml
+├── LICENSE
 └── README.md
 ```
 
-The code is currently being refactored to separate:
+The repository also contains several test systems and input datasets used for validating the implemented state estimation methods.
+
+The code is being progressively reorganized to improve the separation between:
 
 - network models and equations;
-- residual calculations;
+- measurement and residual calculations;
 - Jacobian calculations;
 - numerical solvers;
 - state-estimation algorithms;
@@ -48,29 +55,37 @@ The code is currently being refactored to separate:
 Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/REPOSITORY_NAME.git
-cd REPOSITORY_NAME
+git clone https://github.com/vitorhpmelo/PowerSystemStateEstimationPython.git
+cd PowerSystemStateEstimationPython
 ```
 
-Create a Python environment and install the required dependencies.
+### Using Conda
+
+Create the environment from the provided file:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+conda env create -f environment.yml
+conda activate psse-python
+```
 
+Alternatively, the Python dependencies can be installed using:
+
+```bash
 pip install -r requirements.txt
 ```
 
 ## Status
 
-This repository contains research code and is currently under active refactoring.
+This repository contains research code developed over several stages of different research projects.
 
-The main goal of the refactoring is to preserve the numerical behavior of the original implementation while providing a cleaner and more modular architecture.
+It is currently undergoing refactoring and cleanup to provide a more modular and consistent structure while preserving the numerical behavior of the original implementations.
 
-## Related project
+The repository is **not extensively maintained**, and some scripts, test cases, or legacy implementations may not follow the current project structure or may require additional adjustments to run.
 
-A Julia implementation of the state-estimation framework is being developed in **PowerSystemsStateEstimation.jl**.
+A new and substantially revised version of the implementation is currently under development and is expected to be released soon.
+
+The code is therefore provided primarily for **research, validation, and reproducibility purposes**, rather than as a production-ready software package.
 
 ## License
 
-See `LICENSE` for licensing information.
+This project is distributed under the terms described in the [`LICENSE`](LICENSE) file.
