@@ -10,3 +10,6 @@ tmp/
 *.pdf
 *.zip
 *.txt
+
+# Keep dependency file
+!requirements.txt
