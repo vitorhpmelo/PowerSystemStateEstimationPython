@@ -23,9 +23,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
-
-sys="case5_2grids"
+data_files="network_data/"
+sys=data_files+"case5_2grids"
 
 dfDBUS,dfDBRAN,dfDMEAS,dfDFACTS=read_files(sys)
 

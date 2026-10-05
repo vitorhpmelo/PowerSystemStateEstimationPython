@@ -22,7 +22,9 @@ import timeit
 import csv
 import os
 
-sys="IEEE14_rakp2009"
+
+data_files="network_data/"
+sys=data_files+"IEEE14_rakp2009"
 
 
 

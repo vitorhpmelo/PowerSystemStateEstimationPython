@@ -21,7 +21,8 @@ import timeit
 
 #%% Lê arquivos e constroi a estrutura da rede
 
-sys="IEEE14"
+data_files="network_data/"
+sys=data_files+"IEEE14"
 
 
 

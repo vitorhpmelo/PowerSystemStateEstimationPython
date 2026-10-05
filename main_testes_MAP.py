@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 
 #%% Lê arquivos e constroi a estrutura da rede
 
-sys="IEEE14_rakp2009"
+sys="network_data/IEEE14_rakp2009"
 
 
 dfDBAR,dfDBRAN,dfDMED,dfDFACTS=read_files(sys)

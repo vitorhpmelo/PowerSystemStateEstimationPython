@@ -21,7 +21,11 @@ import matplotlib.pyplot as plt
 import timeit 
 import csv
 
-sys="IEEE14_rakp2009"
+
+
+
+data_files="network_data/"
+sys=data_files+"IEEE14_rakp2009"
 
 
 

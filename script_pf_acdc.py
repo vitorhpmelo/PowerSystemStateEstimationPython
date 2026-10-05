@@ -26,8 +26,9 @@ import numpy as np
 
 
 
+data_files="network_data/"
+sys=data_files+"case5_2grids"
 
-sys="case5_2grids"
 
 dfDBUS,dfDBRAN,dfDMEAS,dfDFACTS=read_files(sys)
 

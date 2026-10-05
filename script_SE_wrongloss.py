@@ -51,7 +51,8 @@ def remove_error_converter_losses(d_original_losses, convs_acdc):
         conv.c = d_original_losses[key][2]
 
 
-sys="case5_2grids"
+data_files="network_data/"
+sys=data_files+"case5_2grids"
 
 dfDBUS,dfDBRAN,dfDMEAS,dfDFACTS=read_files(sys)
 
