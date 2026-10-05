@@ -3,6 +3,16 @@ ResultadosISGT/**/state_*
 ResultadosISGT/**/state_FACTS*
 ResultadosISGT/**/resultados_conv*
 
+/*.csv
+
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Temporary office files
+.~lock.*
+
 # Temporary files
 tmp/*
 !tmp/.gitkeep
@@ -14,3 +24,12 @@ tmp/*
 
 # Keep dependency file
 !requirements.txt
+
+.vscode/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
