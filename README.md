@@ -11,8 +11,9 @@ The repository includes state estimation formulations for conventional AC networ
 - SVC models;
 - TCSC models;
 - UPFC models;
+- VSC-HVDC;
 - SCADA and PMU measurements;
-- Bayesian state estimation formulations.
+- Bayesian State Estimation formulations.
 
 ## Structure
 
